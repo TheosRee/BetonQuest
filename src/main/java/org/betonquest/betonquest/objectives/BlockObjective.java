@@ -30,7 +30,7 @@ public class BlockObjective extends CountingObjective implements Listener {
         super(instruction);
         selector = instruction.getBlockSelector();
         exactMatch = instruction.hasArgument("exactMatch");
-        targetAmount = instruction.getInt();
+        targetAmount = instruction.getVarNum();
         noSafety = instruction.hasArgument("noSafety");
     }
 
