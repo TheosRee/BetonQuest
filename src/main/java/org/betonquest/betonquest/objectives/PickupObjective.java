@@ -24,7 +24,7 @@ public class PickupObjective extends CountingObjective implements Listener {
         super(instruction, "items_to_pickup");
         pickupItems = instruction.getItemList();
         targetAmount = instruction.getVarNum(instruction.getOptional("amount", "1"));
-        //TODO pre check or count other way around
+        preCheckAmountNotLessThanOne(targetAmount);
     }
 
     @EventHandler(ignoreCancelled = true)

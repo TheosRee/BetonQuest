@@ -4,6 +4,7 @@ import org.betonquest.betonquest.BetonQuest;
 import org.betonquest.betonquest.Instruction;
 import org.betonquest.betonquest.api.CountingObjective;
 import org.betonquest.betonquest.api.profiles.OnlineProfile;
+import org.betonquest.betonquest.api.profiles.Profile;
 import org.betonquest.betonquest.exceptions.InstructionParseException;
 import org.betonquest.betonquest.utils.BlockSelector;
 import org.betonquest.betonquest.utils.PlayerConverter;
@@ -32,6 +33,11 @@ public class BlockObjective extends CountingObjective implements Listener {
         exactMatch = instruction.hasArgument("exactMatch");
         targetAmount = instruction.getVarNum();
         noSafety = instruction.hasArgument("noSafety");
+    }
+
+    @Override
+    public String getDefaultDataInstruction(final Profile profile) {
+        return String.valueOf(targetAmount.getInt(profile));
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
