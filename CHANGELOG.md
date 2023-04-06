@@ -56,6 +56,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
     - top lists ordered by point values of players
     - `npcs` list now supports global variables as NPC ID in NPC Holograms
 - menus now support global variables
+- counting-objectives now support variables
 - `freeze` event - ProtocolLib compatibility feature: Blocks the player from moving for the specified amount of ticks
 - `block` objective - properties: `absoluteAmount`, `absoluteLeft` and `absoluteTotal`
 - `command` objective
@@ -95,7 +96,6 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - `deleteglobalpoint` event
 - `score` event - more options for manipulating the scoreboard
 - `item` variable - new `name` and `lore` argument and now supports items from other packages
-- counting-objectives now support variables
 - Things that are also added in 1.12.X:
     - new line support for `journal_lore` in `messages.yml`
     - FastAsyncWorldEdit compatibility
