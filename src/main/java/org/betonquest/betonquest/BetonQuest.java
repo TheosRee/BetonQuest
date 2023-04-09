@@ -2,7 +2,6 @@ package org.betonquest.betonquest;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.papermc.lib.PaperLib;
-import lombok.Getter;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.Logger;
@@ -109,11 +108,7 @@ import org.betonquest.betonquest.events.CommandEvent;
 import org.betonquest.betonquest.events.CompassEvent;
 import org.betonquest.betonquest.events.FolderEvent;
 import org.betonquest.betonquest.events.GiveEvent;
-import org.betonquest.betonquest.events.GiveJournalEvent;
 import org.betonquest.betonquest.events.KillMobEvent;
-import org.betonquest.betonquest.events.LightningEvent;
-import org.betonquest.betonquest.events.NotifyAllEvent;
-import org.betonquest.betonquest.events.NotifyEvent;
 import org.betonquest.betonquest.events.ObjectiveEvent;
 import org.betonquest.betonquest.events.OpSudoEvent;
 import org.betonquest.betonquest.events.PickRandomEvent;
@@ -210,6 +205,7 @@ import org.betonquest.betonquest.quest.event.effect.EffectEventFactory;
 import org.betonquest.betonquest.quest.event.experience.ExperienceEventFactory;
 import org.betonquest.betonquest.quest.event.explosion.ExplosionEventFactory;
 import org.betonquest.betonquest.quest.event.hunger.HungerEventFactory;
+import org.betonquest.betonquest.quest.event.journal.GiveJournalEventFactory;
 import org.betonquest.betonquest.quest.event.journal.JournalEventFactory;
 import org.betonquest.betonquest.quest.event.kill.KillEventFactory;
 import org.betonquest.betonquest.quest.event.language.LanguageEventFactory;
@@ -217,7 +213,10 @@ import org.betonquest.betonquest.quest.event.legacy.FromClassQuestEventFactory;
 import org.betonquest.betonquest.quest.event.legacy.QuestEventFactory;
 import org.betonquest.betonquest.quest.event.legacy.QuestEventFactoryAdapter;
 import org.betonquest.betonquest.quest.event.lever.LeverEventFactory;
+import org.betonquest.betonquest.quest.event.lightning.LightningEventFactory;
 import org.betonquest.betonquest.quest.event.logic.IfElseEventFactory;
+import org.betonquest.betonquest.quest.event.notify.NotifyAllEventFactory;
+import org.betonquest.betonquest.quest.event.notify.NotifyEventFactory;
 import org.betonquest.betonquest.quest.event.party.PartyEventFactory;
 import org.betonquest.betonquest.quest.event.point.DeleteGlobalPointEventFactory;
 import org.betonquest.betonquest.quest.event.point.DeletePointEventFactory;
@@ -242,6 +241,7 @@ import org.betonquest.betonquest.variables.NpcNameVariable;
 import org.betonquest.betonquest.variables.ObjectivePropertyVariable;
 import org.betonquest.betonquest.variables.PlayerNameVariable;
 import org.betonquest.betonquest.variables.PointVariable;
+import org.betonquest.betonquest.variables.RandomNumberVariable;
 import org.betonquest.betonquest.variables.TagVariable;
 import org.betonquest.betonquest.variables.VersionVariable;
 import org.bstats.bukkit.Metrics;
@@ -297,12 +297,7 @@ public class BetonQuest extends JavaPlugin {
     private static final Map<String, QuestCanceler> CANCELERS = new HashMap<>();
     /**
      * The BetonQuest Plugin instance.
-     * -- GETTER --
-     * Get the plugin's instance.
-     *
-     * @return The plugin's instance.
      */
-    @Getter
     private static BetonQuest instance;
     private static BetonQuestLogger log;
 
@@ -315,12 +310,7 @@ public class BetonQuest extends JavaPlugin {
     private ConfigurationFile config;
     /**
      * The adventure instance.
-     * -- GETTER --
-     * Get the adventure instance.
-     *
-     * @return The adventure instance.
      */
-    @Getter
     private BukkitAudiences adventure;
     private Database database;
     private boolean isMySQLUsed;
@@ -329,7 +319,6 @@ public class BetonQuest extends JavaPlugin {
     private Updater updater;
     private GlobalData globalData;
     private PlayerHider playerHider;
-    @Getter
     private RPGMenu rpgMenu;
 
     /**
@@ -341,6 +330,15 @@ public class BetonQuest extends JavaPlugin {
      * Cache for event schedulers, holding the last execution of an event
      */
     private LastExecutionCache lastExecutionCache;
+
+    /**
+     * Get the plugin's instance.
+     *
+     * @return The plugin's instance.
+     */
+    public static BetonQuest getInstance() {
+        return instance;
+    }
 
     public static boolean conditions(final Profile profile, final Collection<ConditionID> conditionIDs) {
         final ConditionID[] ids = new ConditionID[conditionIDs.size()];
@@ -371,7 +369,7 @@ public class BetonQuest extends JavaPlugin {
                     if (!condition.get()) {
                         return false;
                     }
-                } catch (InterruptedException | ExecutionException e) {
+                } catch (final InterruptedException | ExecutionException e) {
                     // Currently conditions that are forced to be sync cause every CompletableFuture.get() call
                     // to delay the check by one tick.
                     // If this happens during a shutdown, the check will be delayed past the last tick.
@@ -439,7 +437,6 @@ public class BetonQuest extends JavaPlugin {
                         + conditionID + " for " + profile);
         return isMet;
     }
-
 
     /**
      * Fires an event for the {@link Profile} if it meets the event's conditions.
@@ -637,6 +634,19 @@ public class BetonQuest extends JavaPlugin {
         return CANCELERS;
     }
 
+    /**
+     * Get the adventure instance.
+     *
+     * @return The adventure instance.
+     */
+    public BukkitAudiences getAdventure() {
+        return adventure;
+    }
+
+    public RPGMenu getRpgMenu() {
+        return rpgMenu;
+    }
+
     @NotNull
     public ConfigurationFile getPluginConfig() {
         return config;
@@ -672,7 +682,7 @@ public class BetonQuest extends JavaPlugin {
 
         try {
             config = ConfigurationFile.create(new File(getDataFolder(), "config.yml"), this, "config.yml");
-        } catch (InvalidConfigurationException | FileNotFoundException e) {
+        } catch (final InvalidConfigurationException | FileNotFoundException e) {
             log.error("Could not load the config.yml file!", e);
             return;
         }
@@ -798,7 +808,7 @@ public class BetonQuest extends JavaPlugin {
         registerEvent("journal", new JournalEventFactory(this, InstantSource.system(), getSaver()));
         registerNonStaticEvent("teleport", new TeleportEventFactory(getServer(), getServer().getScheduler(), this));
         registerEvent("explosion", new ExplosionEventFactory(getServer(), getServer().getScheduler(), this));
-        registerEvents("lightning", LightningEvent.class);
+        registerEvent("lightning", new LightningEventFactory(getServer(), getServer().getScheduler(), this));
         registerNonStaticEvent("point", new PointEventFactory());
         registerEvent("globalpoint", new GlobalPointEventFactory());
         registerEvents("give", GiveEvent.class);
@@ -818,7 +828,7 @@ public class BetonQuest extends JavaPlugin {
         registerNonStaticEvent("party", new PartyEventFactory());
         registerEvents("clear", ClearEvent.class);
         registerEvents("run", RunEvent.class);
-        registerEvents("givejournal", GiveJournalEvent.class);
+        registerNonStaticEvent("givejournal", new GiveJournalEventFactory(getServer(), getServer().getScheduler(), this));
         registerEvents("sudo", SudoEvent.class);
         registerEvents("opsudo", OpSudoEvent.class);
         registerEvents("chestgive", ChestGiveEvent.class);
@@ -834,8 +844,8 @@ public class BetonQuest extends JavaPlugin {
         registerNonStaticEvent("language", new LanguageEventFactory(this));
         registerEvents("pickrandom", PickRandomEvent.class);
         registerNonStaticEvent("experience", new ExperienceEventFactory(getServer(), getServer().getScheduler(), this));
-        registerEvents("notify", NotifyEvent.class);
-        registerEvents("notifyall", NotifyAllEvent.class);
+        registerNonStaticEvent("notify", new NotifyEventFactory(getServer(), getServer().getScheduler(), this));
+        registerEvent("notifyall", new NotifyAllEventFactory(getServer(), getServer().getScheduler(), this));
         registerEvents("chat", ChatEvent.class);
         registerEvents("freeze", FreezeEvent.class);
         registerNonStaticEvent("burn", new BurnEventFactory(getServer(), getServer().getScheduler(), this));
@@ -909,6 +919,7 @@ public class BetonQuest extends JavaPlugin {
         registerVariable("version", VersionVariable.class);
         registerVariable("location", LocationVariable.class);
         registerVariable("math", MathVariable.class);
+        registerVariable("randomnumber", RandomNumberVariable.class);
 
         registerScheduleType("realtime-daily", RealtimeDailySchedule.class, new RealtimeDailyScheduler(lastExecutionCache));
         registerScheduleType("realtime-cron", RealtimeCronSchedule.class, new RealtimeCronScheduler(lastExecutionCache));
@@ -942,7 +953,7 @@ public class BetonQuest extends JavaPlugin {
             Class.forName("org.apache.logging.log4j.core.Filter");
             final Logger coreLogger = (Logger) LogManager.getRootLogger();
             coreLogger.addFilter(new AnswerFilter());
-        } catch (ClassNotFoundException | NoClassDefFoundError e) {
+        } catch (final ClassNotFoundException | NoClassDefFoundError e) {
             log.warn("Could not disable /betonquestanswer logging", e);
         }
 
