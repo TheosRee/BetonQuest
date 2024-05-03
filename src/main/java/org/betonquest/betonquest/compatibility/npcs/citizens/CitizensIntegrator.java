@@ -4,6 +4,9 @@ import org.betonquest.betonquest.BetonQuest;
 import org.betonquest.betonquest.api.logger.BetonQuestLoggerFactory;
 import org.betonquest.betonquest.compatibility.Compatibility;
 import org.betonquest.betonquest.compatibility.Integrator;
+import org.betonquest.betonquest.compatibility.npcs.citizens.conditions.CitizensDistanceConditionFactory;
+import org.betonquest.betonquest.compatibility.npcs.citizens.conditions.CitizensLocationConditionFactory;
+import org.betonquest.betonquest.compatibility.npcs.citizens.conditions.CitizensRegionConditionFactory;
 import org.betonquest.betonquest.compatibility.npcs.citizens.events.move.CitizensMoveController;
 import org.betonquest.betonquest.compatibility.npcs.citizens.events.move.CitizensMoveEvent;
 import org.betonquest.betonquest.compatibility.npcs.citizens.events.move.CitizensMoveEventFactory;
@@ -11,6 +14,9 @@ import org.betonquest.betonquest.compatibility.npcs.citizens.events.move.Citizen
 import org.betonquest.betonquest.compatibility.npcs.citizens.variables.CitizensVariableFactory;
 import org.betonquest.betonquest.compatibility.protocollib.hider.NPCHider;
 import org.betonquest.betonquest.compatibility.protocollib.hider.UpdateVisibilityNowEvent;
+import org.betonquest.betonquest.quest.PrimaryServerThreadData;
+import org.betonquest.betonquest.quest.registry.QuestTypeRegistries;
+import org.betonquest.betonquest.quest.registry.type.ConditionTypeRegistry;
 import org.bukkit.Server;
 import org.bukkit.event.HandlerList;
 import org.bukkit.scheduler.BukkitScheduler;
@@ -53,6 +59,11 @@ public class CitizensIntegrator implements Integrator {
         citizensConversationStarter = new CitizensConversationStarter(loggerFactory, loggerFactory.create(CitizensConversationStarter.class), citizensMoveController);
         new CitizensWalkingListener();
 
+        final QuestTypeRegistries questRegistries = plugin.getQuestRegistries();
+        final Server server = plugin.getServer();
+        final BukkitScheduler scheduler = server.getScheduler();
+        final PrimaryServerThreadData primaryServerThreadData = new PrimaryServerThreadData(server, scheduler, plugin);
+
         // if ProtocolLib is hooked, start NPCHider
         if (Compatibility.getHooked().contains("ProtocolLib")) {
             NPCHider.start(loggerFactory.create(NPCHider.class));
@@ -61,19 +72,18 @@ public class CitizensIntegrator implements Integrator {
         plugin.registerObjectives("npckill", NPCKillObjective.class);
         plugin.registerObjectives("npcinteract", NPCInteractObjective.class);
         plugin.registerObjectives("npcrange", NPCRangeObjective.class);
-        final Server server = plugin.getServer();
-        final BukkitScheduler scheduler = server.getScheduler();
         server.getPluginManager().registerEvents(citizensMoveController, plugin);
         plugin.registerNonStaticEvent("movenpc", new CitizensMoveEventFactory(server, scheduler, plugin, citizensMoveController));
         plugin.registerEvents("teleportnpc", NPCTeleportEvent.class);
         plugin.registerEvent("stopnpc", new CitizensStopEventFactory(server, scheduler, plugin, citizensMoveController));
         plugin.registerConversationIO("chest", CitizensInventoryConvIO.class);
         plugin.registerConversationIO("combined", CitizensInventoryConvIO.CitizensCombined.class);
-        plugin.getQuestRegistries().getVariableTypes().register("citizen", new CitizensVariableFactory(loggerFactory));
-        plugin.registerConditions("npcdistance", NPCDistanceCondition.class);
-        plugin.registerConditions("npclocation", NPCLocationCondition.class);
+        questRegistries.getVariableTypes().register("citizen", new CitizensVariableFactory(loggerFactory));
+        final ConditionTypeRegistry conditionTypes = questRegistries.getConditionTypes();
+        conditionTypes.register("npcdistance", new CitizensDistanceConditionFactory(primaryServerThreadData));
+        conditionTypes.register("npclocation", new CitizensLocationConditionFactory(primaryServerThreadData));
         if (Compatibility.getHooked().contains("WorldGuard")) {
-            plugin.registerConditions("npcregion", NPCRegionCondition.class);
+            conditionTypes.register("npcregion", new CitizensRegionConditionFactory(primaryServerThreadData));
         }
     }
 

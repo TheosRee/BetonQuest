@@ -8,8 +8,10 @@ import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 import org.betonquest.betonquest.BetonQuest;
 import org.betonquest.betonquest.compatibility.Compatibility;
 import org.betonquest.betonquest.compatibility.Integrator;
-import org.betonquest.betonquest.compatibility.npcs.citizens.NPCRegionCondition;
+import org.betonquest.betonquest.compatibility.npcs.citizens.conditions.CitizensRegionConditionFactory;
+import org.betonquest.betonquest.quest.PrimaryServerThreadData;
 import org.bukkit.Location;
+import org.bukkit.Server;
 import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings("PMD.CommentRequired")
@@ -48,7 +50,9 @@ public class WorldGuardIntegrator implements Integrator {
         plugin.registerConditions("region", RegionCondition.class);
         plugin.registerObjectives("region", RegionObjective.class);
         if (Compatibility.getHooked().contains("Citizens")) {
-            plugin.registerConditions("npcregion", NPCRegionCondition.class);
+            final Server server = plugin.getServer();
+            final PrimaryServerThreadData data = new PrimaryServerThreadData(server, server.getScheduler(), plugin);
+            plugin.getQuestRegistries().getConditionTypes().register("npcregion", new CitizensRegionConditionFactory(data));
         }
     }
 
