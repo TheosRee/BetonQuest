@@ -8,6 +8,7 @@ import org.betonquest.betonquest.compatibility.npcs.citizens.events.move.Citizen
 import org.betonquest.betonquest.compatibility.npcs.citizens.events.move.CitizensMoveEvent;
 import org.betonquest.betonquest.compatibility.npcs.citizens.events.move.CitizensMoveEventFactory;
 import org.betonquest.betonquest.compatibility.npcs.citizens.events.move.CitizensStopEventFactory;
+import org.betonquest.betonquest.compatibility.npcs.citizens.variables.CitizensVariableFactory;
 import org.betonquest.betonquest.compatibility.protocollib.hider.NPCHider;
 import org.betonquest.betonquest.compatibility.protocollib.hider.UpdateVisibilityNowEvent;
 import org.bukkit.Server;
@@ -68,7 +69,7 @@ public class CitizensIntegrator implements Integrator {
         plugin.registerEvent("stopnpc", new CitizensStopEventFactory(server, scheduler, plugin, citizensMoveController));
         plugin.registerConversationIO("chest", CitizensInventoryConvIO.class);
         plugin.registerConversationIO("combined", CitizensInventoryConvIO.CitizensCombined.class);
-        plugin.registerVariable("citizen", CitizensVariable.class);
+        plugin.getQuestRegistries().getVariableTypes().register("citizen", new CitizensVariableFactory(loggerFactory));
         plugin.registerConditions("npcdistance", NPCDistanceCondition.class);
         plugin.registerConditions("npclocation", NPCLocationCondition.class);
         if (Compatibility.getHooked().contains("WorldGuard")) {
