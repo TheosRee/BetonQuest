@@ -12,6 +12,8 @@ import org.betonquest.betonquest.compatibility.npcs.citizens.events.move.Citizen
 import org.betonquest.betonquest.compatibility.npcs.citizens.events.move.CitizensMoveEventFactory;
 import org.betonquest.betonquest.compatibility.npcs.citizens.events.move.CitizensStopEventFactory;
 import org.betonquest.betonquest.compatibility.npcs.citizens.events.teleport.CitizensNPCTeleportEventFactory;
+import org.betonquest.betonquest.compatibility.npcs.citizens.objectives.CitizensInteractObjective;
+import org.betonquest.betonquest.compatibility.npcs.citizens.objectives.CitizensRangeObjective;
 import org.betonquest.betonquest.compatibility.npcs.citizens.variables.CitizensVariableFactory;
 import org.betonquest.betonquest.compatibility.protocollib.hider.NPCHider;
 import org.betonquest.betonquest.compatibility.protocollib.hider.UpdateVisibilityNowEvent;
@@ -72,8 +74,8 @@ public class CitizensIntegrator implements Integrator {
             plugin.registerEvents("updatevisibility", UpdateVisibilityNowEvent.class);
         }
         plugin.registerObjectives("npckill", NPCKillObjective.class);
-        plugin.registerObjectives("npcinteract", NPCInteractObjective.class);
-        plugin.registerObjectives("npcrange", NPCRangeObjective.class);
+        plugin.registerObjectives("npcinteract", CitizensInteractObjective.class);
+        plugin.registerObjectives("npcrange", CitizensRangeObjective.class);
         server.getPluginManager().registerEvents(citizensMoveController, plugin);
         final EventTypeRegistry eventTypes = questRegistries.getEventTypes();
         eventTypes.register("movenpc", new CitizensMoveEventFactory(primaryServerThreadData, citizensMoveController));
