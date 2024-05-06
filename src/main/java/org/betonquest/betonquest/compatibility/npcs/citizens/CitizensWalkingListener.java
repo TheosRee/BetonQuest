@@ -52,7 +52,7 @@ public class CitizensWalkingListener implements Listener {
                 @Override
                 public void run() {
                     final CitizensConversation conv = (CitizensConversation) event.getConversation();
-                    final NPC npc = conv.getNPC();
+                    final NPC npc = conv.getCitizensNPC();
                     if (npcs.containsKey(npc)) {
                         npcs.computeIfPresent(npc, (k, pair) -> Pair.of(pair.getKey() + 1, pair.getValue()));
                     } else {
@@ -61,7 +61,7 @@ public class CitizensWalkingListener implements Listener {
                             npcs.put(npc, Pair.of(1, nav.getTargetAsLocation()));
                             nav.setPaused(true);
                             nav.cancelNavigation();
-                            nav.setTarget(conv.getNPC().getEntity().getLocation());
+                            nav.setTarget(conv.getCitizensNPC().getEntity().getLocation());
                             nav.setPaused(true);
                             nav.cancelNavigation();
                         }
@@ -80,7 +80,7 @@ public class CitizensWalkingListener implements Listener {
                 @Override
                 public void run() {
                     final CitizensConversation conv = (CitizensConversation) event.getConversation();
-                    final NPC npc = conv.getNPC();
+                    final NPC npc = conv.getCitizensNPC();
                     if (npcs.containsKey(npc)) {
                         final Pair<Integer, Location> pair = npcs.get(npc);
                         final int conversationsAmount = pair.getKey() - 1;
