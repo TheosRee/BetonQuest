@@ -17,11 +17,19 @@ import org.bukkit.event.Listener;
 /**
  * Player has to kill an NPC.
  */
-@SuppressWarnings("PMD.CommentRequired")
 public class NPCKillObjective extends CountingObjective implements Listener {
-
+    /**
+     * Citizens NPC id.
+     */
     private final int npcId;
 
+    /**
+     * Create a new Citizens NPC kill objective.
+     *
+     * @param instruction the instruction to parse
+     * @throws InstructionParseException when the instruction cannot be parsed or is invalid
+     */
+    @SuppressWarnings("PMD.ConstructorCallsOverridableMethod")
     public NPCKillObjective(final Instruction instruction) throws InstructionParseException {
         super(instruction, "mobs_to_kill");
         npcId = instruction.getInt();
@@ -31,6 +39,11 @@ public class NPCKillObjective extends CountingObjective implements Listener {
         targetAmount = instruction.getVarNum(instruction.getOptional("amount", "1"), VariableNumber.NOT_LESS_THAN_ONE_CHECKER);
     }
 
+    /**
+     * Handles the NPC death.
+     *
+     * @param event the event to listen
+     */
     @EventHandler(ignoreCancelled = true)
     public void onNpcKill(final MobKilledEvent event) {
         final NPC npc = CitizensAPI.getNPCRegistry().getNPC(event.getEntity());

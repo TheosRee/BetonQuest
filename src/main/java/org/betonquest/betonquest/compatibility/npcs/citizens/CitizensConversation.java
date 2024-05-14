@@ -12,9 +12,14 @@ import org.bukkit.Location;
  */
 @SuppressWarnings("PMD.CommentRequired")
 public class CitizensConversation extends Conversation {
-
+    /**
+     * Citizens NPC used in this conversation.
+     */
     private final NPC npc;
 
+    /**
+     * @param npc the Citizens NPC used for this conversation
+     */
     public CitizensConversation(final BetonQuestLogger log, final OnlineProfile onlineProfile, final ConversationID conversationID, final Location location, final NPC npc) {
         super(log, onlineProfile, conversationID, location);
         this.npc = npc;

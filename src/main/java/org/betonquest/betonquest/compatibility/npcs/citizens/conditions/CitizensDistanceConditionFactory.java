@@ -24,6 +24,7 @@ public class CitizensDistanceConditionFactory extends NPCDistanceConditionFactor
      * @param data the data used for primary server thread access
      */
     public CitizensDistanceConditionFactory(final PrimaryServerThreadData data) {
+        super();
         this.data = data;
     }
 
