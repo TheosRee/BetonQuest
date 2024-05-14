@@ -1,4 +1,4 @@
-package org.betonquest.betonquest.compatibility.npcs.citizens.events.teleport;
+package org.betonquest.betonquest.compatibility.npcs.citizens.events;
 
 import org.betonquest.betonquest.Instruction;
 import org.betonquest.betonquest.api.quest.event.ComposedEvent;
@@ -23,6 +23,7 @@ public class CitizensNPCTeleportEventFactory extends NPCTeleportEventFactory imp
      * @param data the data to use for syncing to the primary server thread
      */
     public CitizensNPCTeleportEventFactory(final PrimaryServerThreadData data) {
+        super();
         this.data = data;
     }
 
