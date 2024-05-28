@@ -16,7 +16,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
-import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
@@ -45,17 +44,11 @@ import java.util.ListIterator;
  */
 @SuppressWarnings({"PMD.GodClass", "PMD.TooManyMethods", "PMD.CommentRequired", "PMD.CyclomaticComplexity"})
 public class QuestItemHandler implements Listener {
-    private static final HandlerList HANDLERS = new HandlerList();
-
     /**
      * Registers the quest item handler as Listener.
      */
     public QuestItemHandler() {
         Bukkit.getPluginManager().registerEvents(this, BetonQuest.getInstance());
-    }
-
-    public static HandlerList getHandlerList() {
-        return HANDLERS;
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
@@ -310,9 +303,5 @@ public class QuestItemHandler implements Listener {
 
     private boolean isJournalSlotLocked() {
         return Boolean.parseBoolean(Config.getString("config.journal.lock_default_journal_slot"));
-    }
-
-    public HandlerList getHandlers() {
-        return HANDLERS;
     }
 }
