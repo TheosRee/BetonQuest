@@ -1,38 +1,33 @@
 package org.betonquest.betonquest.item.typehandler;
 
 import org.betonquest.betonquest.exceptions.InstructionParseException;
-import org.betonquest.betonquest.item.QuestItem.Existence;
 import org.betonquest.betonquest.utils.Utils;
 import org.bukkit.Bukkit;
 import org.bukkit.Color;
+import org.jetbrains.annotations.Nullable;
 
-@SuppressWarnings("PMD.CommentRequired")
-public class ColorHandler {
-    private Color color = Bukkit.getServer().getItemFactory().getDefaultLeatherColor();
-
-    private Existence colorE = Existence.WHATEVER;
-
+/**
+ * Holds and checks {@link Color} on a QuestItem.
+ */
+public class ColorHandler extends AhDefaultTStuff<Color> {
+    /**
+     * Construct a new ColorHandler with Default Leather Color.
+     */
     public ColorHandler() {
+        super(true, Bukkit.getServer().getItemFactory().getDefaultLeatherColor());
     }
 
-    public void set(final String string) throws InstructionParseException {
-        if ("none".equalsIgnoreCase(string)) {
-            colorE = Existence.FORBIDDEN;
-            return;
-        }
-        color = Utils.getColor(string);
-        colorE = Existence.REQUIRED;
+    @Override
+    protected Color convertStringToValue(final String value) throws InstructionParseException {
+        return Utils.getColor(value);
     }
 
-    public Color get() {
-        return color;
-    }
-
-    public boolean check(final Color color) {
-        return switch (colorE) {
+    @Override
+    public boolean check(@Nullable final Color color) {
+        return switch (existence) {
             case WHATEVER -> true;
             case REQUIRED, FORBIDDEN -> // if it's forbidden, this.color is default leather color (undyed)
-                    color.equals(this.color);
+                    get().equals(color);
         };
     }
 }
