@@ -3,7 +3,6 @@ package org.betonquest.betonquest.item.typehandler;
 import io.papermc.lib.PaperLib;
 import org.betonquest.betonquest.BetonQuest;
 import org.betonquest.betonquest.api.profiles.Profile;
-import org.betonquest.betonquest.item.QuestItem;
 import org.betonquest.betonquest.utils.PlayerConverter;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
@@ -39,37 +38,24 @@ public abstract class HeadHandler {
     private static final String VARIABLE_PLAYER_NAME = "%player%";
 
     /**
-     * Existence of the player UUID.
-     */
-    private QuestItem.Existence playerIdE = QuestItem.Existence.WHATEVER;
-
-    /**
-     * Existence of the encoded texture.
-     */
-    private QuestItem.Existence textureE = QuestItem.Existence.WHATEVER;
-
-    /**
      * An optional player name owner of the skull.
      */
-    @Nullable
-    private String owner;
+    public final AhProfileSomething owner = new AhProfileSomething();
 
     /**
      * An optional player ID owner of the skull, used in conjunction with the encoded texture.
      */
-    @Nullable
-    private UUID playerId;
+    public final AhTStuff<UUID> playerId = new AhTStuff<>(false) {
+        @Override
+        protected UUID convertStringToValue(final String value) {
+            return UUID.fromString(value);
+        }
+    };
 
     /**
      * An optional encoded texture URL of the skull, used in conjunction with the player UUID.
      */
-    @Nullable
-    private String texture;
-
-    /**
-     * Existence of the owner.
-     */
-    private QuestItem.Existence ownerE = QuestItem.Existence.WHATEVER;
+    public final AhStringStuff texture = new AhStringStuff(false);
 
     /**
      * Construct a new HeadHandler.
@@ -109,121 +95,6 @@ public abstract class HeadHandler {
     }
 
     /**
-     * Set the owner name to the specified value.
-     *
-     * @param string The new String name for the owner.
-     */
-    public void setOwner(final String string) {
-        if ("none".equalsIgnoreCase(string)) {
-            ownerE = QuestItem.Existence.FORBIDDEN;
-        } else {
-            owner = string;
-            ownerE = QuestItem.Existence.REQUIRED;
-        }
-    }
-
-    /**
-     * Get the profile of the skull's owner.
-     * Also resolves the owner name to a player if it is a variable.
-     *
-     * @param profile The Profile that the item is made for
-     * @return The profile of the skull's owner.
-     */
-    @Nullable
-    public Profile getOwner(@Nullable final Profile profile) {
-        if (profile != null && VARIABLE_PLAYER_NAME.equals(owner)) {
-            return profile;
-        }
-        if (owner != null) {
-            final OfflinePlayer player = Bukkit.getOfflinePlayer(owner);
-            return PlayerConverter.getID(player);
-        }
-        return null;
-    }
-
-    /**
-     * Get the player UUID.
-     *
-     * @return The player ID.
-     */
-    @Nullable
-    public UUID getPlayerId() {
-        return playerId;
-    }
-
-    /**
-     * Set the player UUID to the specified value.
-     *
-     * @param playerId The new UUID player ID.
-     */
-    public void setPlayerId(final String playerId) {
-        this.playerId = UUID.fromString(playerId);
-        this.playerIdE = QuestItem.Existence.REQUIRED;
-    }
-
-    /**
-     * Get the encoded texture.
-     *
-     * @return The encoded texture.
-     */
-    @Nullable
-    public String getTexture() {
-        return texture;
-    }
-
-    /**
-     * Set the encoded texture to the specified value.
-     *
-     * @param texture The new encoded texture.
-     */
-    public void setTexture(final String texture) {
-        this.texture = texture;
-        this.textureE = QuestItem.Existence.REQUIRED;
-    }
-
-    /**
-     * Check to see if the specified owner name matches this HeadHandler metadata.
-     *
-     * @param string The owner to check.
-     * @return True if this metadata is required and matches, false otherwise.
-     */
-    public boolean checkOwner(@Nullable final String string) {
-        return switch (ownerE) {
-            case WHATEVER -> true;
-            case REQUIRED -> string != null && string.equals(owner);
-            case FORBIDDEN -> string == null;
-        };
-    }
-
-    /**
-     * Check to see if the specified player UUID matches this HeadHandler metadata.
-     *
-     * @param playerId The player UUID to check.
-     * @return True if this metadata is required and matches, false otherwise.
-     */
-    public boolean checkPlayerId(@Nullable final UUID playerId) {
-        return switch (playerIdE) {
-            case WHATEVER -> true;
-            case REQUIRED -> playerId != null && playerId.equals(this.playerId);
-            case FORBIDDEN -> playerId == null;
-        };
-    }
-
-    /**
-     * Check to see if the specified encoded texture matches this HeadHandler metadata.
-     *
-     * @param string The encoded texture to check.
-     * @return True if this metadata is required and matches, false otherwise.
-     */
-    public boolean checkTexture(@Nullable final String string) {
-        return switch (textureE) {
-            case WHATEVER -> true;
-            case REQUIRED -> string != null && string.equals(texture);
-            case FORBIDDEN -> string == null;
-        };
-    }
-
-    /**
      * Reconstitute this head data into the specified skullMeta object.
      *
      * @param skullMeta The SkullMeta object to populate.
@@ -238,4 +109,35 @@ public abstract class HeadHandler {
      * @return True if this metadata is required and matches, false otherwise.
      */
     public abstract boolean check(SkullMeta skullMeta);
+
+    public class AhProfileSomething extends AhStringStuff {
+        public AhProfileSomething() {
+            super(true);
+        }
+
+        @Nullable
+        @Override
+        public String get() {
+            throw new IllegalStateException("Use #getvalue(Profile profile)!");
+        }
+
+        /**
+         * Get the profile of the skull's owner.
+         * Also resolves the owner name to a player if it is a variable.
+         *
+         * @param profile The Profile that the item is made for
+         * @return The profile of the skull's owner.
+         */
+        @Nullable
+        public Profile getOwner(@Nullable final Profile profile) {
+            if (profile != null && VARIABLE_PLAYER_NAME.equals(owner.get())) {
+                return profile;
+            }
+            if (owner.get() != null) {
+                final OfflinePlayer player = Bukkit.getOfflinePlayer(owner.get());
+                return PlayerConverter.getID(player);
+            }
+            return null;
+        }
+    }
 }

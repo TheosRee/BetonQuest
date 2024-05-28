@@ -152,9 +152,9 @@ public class QuestItem {
                 }
                 case "effects" -> potion.setCustom(data);
                 case "effects-containing" -> potion.setNotExact();
-                case HeadHandler.META_OWNER -> head.setOwner(data);
-                case HeadHandler.META_PLAYER_ID -> head.setPlayerId(data);
-                case HeadHandler.META_TEXTURE -> head.setTexture(data);
+                case HeadHandler.META_OWNER -> head.owner.set(data);
+                case HeadHandler.META_PLAYER_ID -> head.playerId.set(data);
+                case HeadHandler.META_TEXTURE -> head.texture.set(data);
                 case "color" -> color.set(data);
                 case "firework" -> firework.setEffects(data);
                 case "power" -> firework.setPower(data);
@@ -605,7 +605,7 @@ public class QuestItem {
      */
     @Nullable
     public Profile getOwner() {
-        return head.getOwner(null);
+        return head.owner.getOwner(null);
     }
 
     /**
@@ -613,7 +613,7 @@ public class QuestItem {
      */
     @Nullable
     public UUID getPlayerId() {
-        return head.getPlayerId();
+        return head.playerId.get();
     }
 
     /**
@@ -621,7 +621,7 @@ public class QuestItem {
      */
     @Nullable
     public String getTexture() {
-        return head.getTexture();
+        return head.texture.get();
     }
 
     /**

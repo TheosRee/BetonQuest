@@ -62,9 +62,9 @@ public class PaperHeadHandler extends HeadHandler {
 
     @Override
     public void populate(final SkullMeta skullMeta, @Nullable final Profile profile) {
-        final Profile owner = getOwner(profile);
-        final UUID playerId = getPlayerId();
-        final String texture = getTexture();
+        final Profile owner = super.owner.getOwner(profile);
+        final UUID playerId = super.playerId.get();
+        final String texture = super.texture.get();
 
         if (owner != null) {
             skullMeta.setOwningPlayer(owner.getPlayer());
@@ -84,9 +84,9 @@ public class PaperHeadHandler extends HeadHandler {
         if (playerProfile != null) {
             final UUID playerUniqueId = playerProfile.getId();
             final String texture = encodeSkin(playerProfile);
-            return checkOwner(ownerName) && checkPlayerId(playerUniqueId) && checkTexture(texture);
+            return super.owner.check(ownerName) && super.playerId.check(playerUniqueId) && super.texture.check(texture);
         } else {
-            return checkOwner(ownerName);
+            return super.owner.check(ownerName);
         }
     }
 }

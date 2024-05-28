@@ -84,9 +84,9 @@ public class SpigotHeadHandler extends HeadHandler {
 
     @Override
     public void populate(final SkullMeta skullMeta, @Nullable final Profile profile) {
-        final Profile owner = getOwner(profile);
-        final UUID playerId = getPlayerId();
-        final String texture = getTexture();
+        final Profile owner = super.owner.getOwner(profile);
+        final UUID playerId = super.playerId.get();
+        final String texture = super.texture.get();
 
         if (owner != null) {
             skullMeta.setOwningPlayer(owner.getPlayer());
@@ -119,12 +119,12 @@ public class SpigotHeadHandler extends HeadHandler {
             final URL skin = playerProfile.getTextures().getSkin();
             if (skin != null) {
                 final String texture = encodeSkin(skin);
-                return checkOwner(ownerName) && checkPlayerId(playerUniqueId) && checkTexture(texture);
+                return owner.check(ownerName) && playerId.check(playerUniqueId) && super.texture.check(texture);
             } else {
-                return checkOwner(ownerName);
+                return owner.check(ownerName);
             }
         } else {
-            return checkOwner(ownerName);
+            return owner.check(ownerName);
         }
     }
 }
