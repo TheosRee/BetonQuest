@@ -132,9 +132,9 @@ public class QuestItem {
                 }
                 case "custom-model-data" -> customModelData.parse(data);
                 case "no-custom-model-data" -> customModelData.forbid();
-                case "title" -> book.setTitle(data);
-                case "author" -> book.setAuthor(data);
-                case "text" -> book.setText(data);
+                case "title" -> book.title.set(data);
+                case "author" -> book.author.set(data);
+                case "text" -> book.text.set(data);
                 case "type" -> potion.setType(data);
                 case "extended" -> {
                     if ("extended".equals(data)) {
@@ -421,13 +421,13 @@ public class QuestItem {
             }
         }
         if (meta instanceof final BookMeta bookMeta) {
-            if (!book.checkTitle(bookMeta.getTitle())) {
+            if (!book.title.check(bookMeta.getTitle())) {
                 return false;
             }
-            if (!book.checkAuthor(bookMeta.getAuthor())) {
+            if (!book.author.check(bookMeta.getAuthor())) {
                 return false;
             }
-            if (!book.checkText(bookMeta.getPages())) {
+            if (!book.text.check(bookMeta.getPages())) {
                 return false;
             }
         }
@@ -504,9 +504,9 @@ public class QuestItem {
             }
         }
         if (meta instanceof final BookMeta bookMeta) {
-            bookMeta.setTitle(book.getTitle());
-            bookMeta.setAuthor(book.getAuthor());
-            bookMeta.setPages(book.getText());
+            bookMeta.setTitle(book.title.get());
+            bookMeta.setAuthor(book.author.get());
+            bookMeta.setPages(book.text.get());
         }
         if (meta instanceof SkullMeta) {
             head.populate((SkullMeta) meta, profile);
@@ -569,21 +569,21 @@ public class QuestItem {
      * @return the title of a book or null if it's not a book
      */
     public String getTitle() {
-        return book.getTitle();
+        return book.title.get();
     }
 
     /**
      * @return the author of a book or null if it's not a book
      */
     public String getAuthor() {
-        return book.getAuthor();
+        return book.author.get();
     }
 
     /**
      * @return the pages from the book or null if it's not a book
      */
     public List<String> getText() {
-        return book.getText();
+        return book.text.get();
     }
 
     /**

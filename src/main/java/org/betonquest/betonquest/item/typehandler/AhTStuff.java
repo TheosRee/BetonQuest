@@ -16,7 +16,7 @@ public abstract class AhTStuff<T> {
      * Set value.
      */
     @Nullable
-    private T value;
+    protected T value;
 
     /**
      * @param noneAble if "none" as value should forbid a value
