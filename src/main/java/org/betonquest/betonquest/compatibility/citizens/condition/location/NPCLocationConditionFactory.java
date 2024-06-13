@@ -7,6 +7,7 @@ import org.betonquest.betonquest.api.quest.condition.PlayerlessCondition;
 import org.betonquest.betonquest.api.quest.condition.PlayerlessConditionFactory;
 import org.betonquest.betonquest.api.quest.condition.nullable.NullableConditionAdapter;
 import org.betonquest.betonquest.exceptions.InstructionParseException;
+import org.betonquest.betonquest.instruction.VariableArgument;
 import org.betonquest.betonquest.instruction.variable.VariableNumber;
 import org.betonquest.betonquest.instruction.variable.location.VariableLocation;
 import org.betonquest.betonquest.quest.PrimaryServerThreadData;
@@ -46,8 +47,8 @@ public class NPCLocationConditionFactory implements PlayerConditionFactory, Play
         if (npcId < 0) {
             throw new InstructionParseException("NPC ID cannot be less than 0");
         }
-        final VariableLocation location = instruction.getLocation();
-        final VariableNumber radius = instruction.getVarNum();
+        final VariableLocation location = instruction.fun(VariableArgument.LOCATION);
+        final VariableNumber radius = instruction.fun(VariableArgument.NUMBER);
         return new NullableConditionAdapter(new NPCLocationCondition(npcId, location, radius));
     }
 }

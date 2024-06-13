@@ -11,6 +11,7 @@ import org.betonquest.betonquest.id.ID;
 import org.betonquest.betonquest.id.ItemID;
 import org.betonquest.betonquest.id.NoID;
 import org.betonquest.betonquest.id.ObjectiveID;
+import org.betonquest.betonquest.instruction.VariableArgument;
 import org.betonquest.betonquest.instruction.tokenizer.QuotingTokenizer;
 import org.betonquest.betonquest.instruction.tokenizer.Tokenizer;
 import org.betonquest.betonquest.instruction.tokenizer.TokenizerException;
@@ -274,6 +275,19 @@ public class Instruction {
             }
         }
         return false;
+    }
+
+    public <T> T fun(final VariableArgument<T> argument) throws InstructionParseException {
+        return fun(argument, next());
+    }
+
+    @Contract("_, !null -> !null")
+    @Nullable
+    public <T> T fun(final VariableArgument<T> argument, @Nullable final String string) throws InstructionParseException {
+        if (string == null) {
+            return null;
+        }
+        return argument.convert(BetonQuest.getInstance().getVariableProcessor(), pack, string);
     }
 
     public VariableLocation getLocation() throws InstructionParseException {
