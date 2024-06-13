@@ -32,8 +32,8 @@ public class NPCLocationCondition extends Condition {
         if (npcId < 0) {
             throw new InstructionParseException("NPC ID cannot be less than 0");
         }
-        location = instruction.getLocation();
-        radius = instruction.getVarNum();
+        location = instruction.fun(Instruction.Argument.LOCATION);
+        radius = instruction.fun(Instruction.Argument.NUMBER);
     }
 
     @Override

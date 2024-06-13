@@ -280,6 +280,17 @@ public class Instruction {
     ///    OBJECTS    ///
     /////////////////////
 
+    public <T> T fun(final Argument<T> argument) throws InstructionParseException {
+        return fun(argument, next());
+    }
+
+    public <T> T fun(final Argument<T> argument, @Nullable final String string) throws InstructionParseException {
+        if (string == null) {
+            return null;
+        }
+        return argument.convert(pack, string);
+    }
+
     public CompoundLocation getLocation() throws InstructionParseException {
         return getLocation(next());
     }
@@ -688,6 +699,33 @@ public class Instruction {
 
     public interface Converter<T> {
         T convert(String string) throws InstructionParseException;
+    }
+
+    /**
+     * Objectified getters for the Instruction.
+     *
+     * @param <T> what the argument returns
+     */
+    public interface Argument<T> {
+        /**
+         * {@link CompoundLocation} argument.
+         */
+        Argument<CompoundLocation> LOCATION = CompoundLocation::new;
+
+        /**
+         * {@link VariableNumber} argument.
+         */
+        Argument<VariableNumber> NUMBER = VariableNumber::new;
+
+        /**
+         * Gets a {@link T} from string.
+         *
+         * @param pack   the source package
+         * @param string the string to parse
+         * @return the {@link T}
+         * @throws InstructionParseException when the string cannot be parsed as {@link T}
+         */
+        T convert(QuestPackage pack, String string) throws InstructionParseException;
     }
 
     @SuppressWarnings("PMD.ShortClassName")
