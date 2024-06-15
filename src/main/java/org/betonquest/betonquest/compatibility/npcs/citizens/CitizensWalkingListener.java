@@ -1,4 +1,4 @@
-package org.betonquest.betonquest.compatibility.citizens;
+package org.betonquest.betonquest.compatibility.npcs.citizens;
 
 import net.citizensnpcs.api.ai.Navigator;
 import net.citizensnpcs.api.event.SpawnReason;
@@ -121,5 +121,4 @@ public class CitizensWalkingListener implements Listener {
     public void setNewTargetLocation(final NPC npc, final Location location) {
         npcs.computeIfPresent(npc, (k, pair) -> Pair.of(pair.getKey(), location));
     }
-
 }

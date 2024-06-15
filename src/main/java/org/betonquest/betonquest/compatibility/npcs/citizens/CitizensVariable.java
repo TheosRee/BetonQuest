@@ -1,4 +1,4 @@
-package org.betonquest.betonquest.compatibility.citizens;
+package org.betonquest.betonquest.compatibility.npcs.citizens;
 
 import net.citizensnpcs.api.CitizensAPI;
 import net.citizensnpcs.api.npc.NPC;
@@ -75,7 +75,7 @@ public class CitizensVariable extends Variable {
                         new NoID(instruction.getPackage()),
                         "location." + String.join(".", instruction.getRemainingParts())
                 ));
-            } catch (ObjectNotFoundException e) {
+            } catch (final ObjectNotFoundException e) {
                 throw new InstructionParseException("Could not generate dynamic location variable", e);
             }
         } else {

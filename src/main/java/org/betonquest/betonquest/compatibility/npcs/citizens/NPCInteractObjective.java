@@ -1,4 +1,4 @@
-package org.betonquest.betonquest.compatibility.citizens;
+package org.betonquest.betonquest.compatibility.npcs.citizens;
 
 import net.citizensnpcs.api.event.NPCClickEvent;
 import net.citizensnpcs.api.event.NPCLeftClickEvent;
@@ -114,5 +114,4 @@ public class NPCInteractObjective extends Objective implements Listener {
     public String getProperty(final String name, final Profile profile) {
         return "";
     }
-
 }

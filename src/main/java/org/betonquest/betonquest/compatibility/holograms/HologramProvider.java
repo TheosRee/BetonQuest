@@ -7,7 +7,7 @@ import org.betonquest.betonquest.api.logger.BetonQuestLogger;
 import org.betonquest.betonquest.api.logger.BetonQuestLoggerFactory;
 import org.betonquest.betonquest.compatibility.Compatibility;
 import org.betonquest.betonquest.compatibility.Integrator;
-import org.betonquest.betonquest.compatibility.citizens.CitizensHologramLoop;
+import org.betonquest.betonquest.compatibility.npcs.citizens.CitizensHologramLoop;
 import org.betonquest.betonquest.exceptions.HookException;
 import org.betonquest.betonquest.utils.PlayerConverter;
 import org.bukkit.Bukkit;
@@ -195,7 +195,6 @@ public class HologramProvider implements Integrator {
                 }
             }
         }
-
     }
 
     /**

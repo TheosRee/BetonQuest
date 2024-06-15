@@ -1,4 +1,4 @@
-package org.betonquest.betonquest.compatibility.citizens;
+package org.betonquest.betonquest.compatibility.npcs.citizens;
 
 import net.citizensnpcs.api.CitizensAPI;
 import net.citizensnpcs.api.event.CitizensReloadEvent;
