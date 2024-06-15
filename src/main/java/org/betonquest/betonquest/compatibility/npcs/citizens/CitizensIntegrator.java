@@ -17,6 +17,7 @@ import org.betonquest.betonquest.compatibility.protocollib.hider.UpdateVisibilit
 import org.betonquest.betonquest.quest.PrimaryServerThreadData;
 import org.betonquest.betonquest.quest.registry.QuestTypeRegistries;
 import org.betonquest.betonquest.quest.registry.type.ConditionTypeRegistry;
+import org.betonquest.betonquest.quest.registry.type.EventTypeRegistry;
 import org.bukkit.Server;
 import org.bukkit.event.HandlerList;
 import org.bukkit.scheduler.BukkitScheduler;
@@ -73,9 +74,10 @@ public class CitizensIntegrator implements Integrator {
         plugin.registerObjectives("npcinteract", NPCInteractObjective.class);
         plugin.registerObjectives("npcrange", NPCRangeObjective.class);
         server.getPluginManager().registerEvents(citizensMoveController, plugin);
-        plugin.registerNonStaticEvent("movenpc", new CitizensMoveEventFactory(server, scheduler, plugin, citizensMoveController));
+        final EventTypeRegistry eventTypes = questRegistries.getEventTypes();
+        eventTypes.register("movenpc", new CitizensMoveEventFactory(primaryServerThreadData, citizensMoveController));
+        eventTypes.register("stopnpc", new CitizensStopEventFactory(primaryServerThreadData, citizensMoveController));
         plugin.registerEvents("teleportnpc", NPCTeleportEvent.class);
-        plugin.registerEvent("stopnpc", new CitizensStopEventFactory(server, scheduler, plugin, citizensMoveController));
         plugin.registerConversationIO("chest", CitizensInventoryConvIO.class);
         plugin.registerConversationIO("combined", CitizensInventoryConvIO.CitizensCombined.class);
         questRegistries.getVariableTypes().register("citizen", new CitizensVariableFactory(loggerFactory));
