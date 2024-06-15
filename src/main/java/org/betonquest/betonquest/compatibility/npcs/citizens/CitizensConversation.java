@@ -1,4 +1,4 @@
-package org.betonquest.betonquest.compatibility.citizens;
+package org.betonquest.betonquest.compatibility.npcs.citizens;
 
 import net.citizensnpcs.api.npc.NPC;
 import org.betonquest.betonquest.api.logger.BetonQuestLogger;
@@ -30,5 +30,4 @@ public class CitizensConversation extends Conversation {
     public NPC getNPC() {
         return npc;
     }
-
 }

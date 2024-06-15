@@ -8,7 +8,7 @@ import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 import org.betonquest.betonquest.BetonQuest;
 import org.betonquest.betonquest.compatibility.Compatibility;
 import org.betonquest.betonquest.compatibility.Integrator;
-import org.betonquest.betonquest.compatibility.citizens.NPCRegionCondition;
+import org.betonquest.betonquest.compatibility.npcs.citizens.NPCRegionCondition;
 import org.bukkit.Location;
 import org.jetbrains.annotations.Nullable;
 
@@ -41,7 +41,6 @@ public class WorldGuardIntegrator implements Integrator {
 
         final ProtectedRegion region = manager.getRegion(regionName);
         return region != null && region.contains(BukkitAdapter.asBlockVector(loc));
-
     }
 
     @Override
