@@ -1,4 +1,4 @@
-package org.betonquest.betonquest.compatibility.citizens;
+package org.betonquest.betonquest.compatibility.npcs.citizens;
 
 import net.citizensnpcs.api.CitizensAPI;
 import net.citizensnpcs.api.npc.NPC;
@@ -8,32 +8,26 @@ import org.betonquest.betonquest.api.profiles.Profile;
 import org.betonquest.betonquest.exceptions.InstructionParseException;
 import org.betonquest.betonquest.exceptions.QuestRuntimeException;
 import org.betonquest.betonquest.instruction.variable.VariableNumber;
-import org.betonquest.betonquest.instruction.variable.location.VariableLocation;
-import org.bukkit.Location;
+import org.bukkit.entity.Player;
 
 /**
- * Checks if a npc is at a specific location
+ * Checks if the player is close to a npc
  * <p>
- * Created on 01.10.2018.
+ * Created on 30.09.2018.
  */
 @SuppressWarnings("PMD.CommentRequired")
-public class NPCLocationCondition extends Condition {
+public class NPCDistanceCondition extends Condition {
     private final int npcId;
 
-    private final VariableLocation location;
+    private final VariableNumber distance;
 
-    private final VariableNumber radius;
-
-    public NPCLocationCondition(final Instruction instruction) throws InstructionParseException {
+    public NPCDistanceCondition(final Instruction instruction) throws InstructionParseException {
         super(instruction, true);
-        super.persistent = true;
-        super.staticness = true;
         npcId = instruction.getInt();
         if (npcId < 0) {
             throw new InstructionParseException("NPC ID cannot be less than 0");
         }
-        location = instruction.getLocation();
-        radius = instruction.getVarNum();
+        distance = instruction.getVarNum();
     }
 
     @Override
@@ -42,11 +36,11 @@ public class NPCLocationCondition extends Condition {
         if (npc == null) {
             throw new QuestRuntimeException("NPC with ID " + npcId + " does not exist");
         }
-        final Location location = this.location.getValue(profile);
-        if (!location.getWorld().equals(npc.getStoredLocation().getWorld())) {
+        final Player player = profile.getOnlineProfile().get().getPlayer();
+        if (!player.getWorld().equals(npc.getStoredLocation().getWorld())) {
             return false;
         }
-        final double radius = this.radius.getValue(profile).doubleValue();
-        return npc.getStoredLocation().distanceSquared(location) <= radius * radius;
+        final double distance = this.distance.getValue(profile).doubleValue();
+        return npc.getStoredLocation().distanceSquared(player.getLocation()) <= distance * distance;
     }
 }

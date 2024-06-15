@@ -1,13 +1,13 @@
-package org.betonquest.betonquest.compatibility.citizens;
+package org.betonquest.betonquest.compatibility.npcs.citizens;
 
 import org.betonquest.betonquest.BetonQuest;
 import org.betonquest.betonquest.api.logger.BetonQuestLoggerFactory;
 import org.betonquest.betonquest.compatibility.Compatibility;
 import org.betonquest.betonquest.compatibility.Integrator;
-import org.betonquest.betonquest.compatibility.citizens.events.move.CitizensMoveController;
-import org.betonquest.betonquest.compatibility.citizens.events.move.CitizensMoveEvent;
-import org.betonquest.betonquest.compatibility.citizens.events.move.CitizensMoveEventFactory;
-import org.betonquest.betonquest.compatibility.citizens.events.move.CitizensStopEventFactory;
+import org.betonquest.betonquest.compatibility.npcs.citizens.events.move.CitizensMoveController;
+import org.betonquest.betonquest.compatibility.npcs.citizens.events.move.CitizensMoveEvent;
+import org.betonquest.betonquest.compatibility.npcs.citizens.events.move.CitizensMoveEventFactory;
+import org.betonquest.betonquest.compatibility.npcs.citizens.events.move.CitizensStopEventFactory;
 import org.betonquest.betonquest.compatibility.protocollib.hider.NPCHider;
 import org.betonquest.betonquest.compatibility.protocollib.hider.UpdateVisibilityNowEvent;
 import org.bukkit.Server;

@@ -1,4 +1,4 @@
-package org.betonquest.betonquest.compatibility.citizens;
+package org.betonquest.betonquest.compatibility.npcs.citizens;
 
 import net.citizensnpcs.trait.SkinTrait;
 import org.betonquest.betonquest.BetonQuest;
@@ -114,5 +114,4 @@ public class CitizensInventoryConvIO extends InventoryConvIO {
             super.printMessages = true;
         }
     }
-
 }
