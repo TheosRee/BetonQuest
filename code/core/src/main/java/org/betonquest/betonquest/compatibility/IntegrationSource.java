@@ -5,7 +5,6 @@ import java.util.List;
 /**
  * Holds all possible integrations for a single plugin.
  */
-@FunctionalInterface
 public interface IntegrationSource {
 
     /**
@@ -14,4 +13,11 @@ public interface IntegrationSource {
      * @return immutable list of data
      */
     List<IntegrationData> getDataList();
+
+    /**
+     * Gets the name of the source.
+     *
+     * @return source name to display
+     */
+    String getName();
 }

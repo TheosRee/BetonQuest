@@ -1503,13 +1503,23 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
         final String updateCommand = "/" + commandAlias + " update";
 
         final Component hooked = displayVersionInfoHooked(compatibility.getBetonQuestSource());
+
+        final TextComponent.Builder externalHooked = Component.text();
+        for (final IntegrationSource source : compatibility.getExternalSources()) {
+            final VariableComponent external = new VariableComponent(pluginMessage.getMessage(null, "command_version_output.external_hook",
+                    new VariableReplacement("plugin", Component.text(source.getName())),
+                    new VariableReplacement("hooked", displayVersionInfoHooked(source))));
+            externalHooked.append(external.resolve());
+        }
+
         final Component update = displayVersionInfoUpdate(instance.getUpdater());
         final Component copy = displayVersionInfoCopy(sender);
 
         final VariableComponent baseContent = new VariableComponent(pluginMessage.getMessage(null, "command_version_output.info",
                 new VariableReplacement("version", Component.text(instance.getDescription().getVersion())),
                 new VariableReplacement("server", Component.text(Bukkit.getServer().getVersion())),
-                new VariableReplacement("hooked", hooked)));
+                new VariableReplacement("hooked", hooked),
+                new VariableReplacement("external_hooks", externalHooked.build())));
         final Component copyContent = baseContent.resolve(
                 new VariableReplacement("update", Component.empty()),
                 new VariableReplacement("copy", Component.empty()));
