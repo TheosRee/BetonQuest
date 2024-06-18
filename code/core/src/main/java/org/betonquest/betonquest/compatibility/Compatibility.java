@@ -27,6 +27,7 @@ import java.util.stream.Stream;
 /**
  * Loads compatibility with other plugins.
  */
+@SuppressWarnings({"PMD.CouplingBetweenObjects", "PMD.TooManyMethods"})
 public class Compatibility {
 
     /**
@@ -50,6 +51,11 @@ public class Compatibility {
     private final String version;
 
     /**
+     * External integrations to add.
+     */
+    private final CompIntegrations integrations;
+
+    /**
      * Integrations requiring a specific Minecraft version.
      * The key is the version string, the value data containing all integration factories and instances from it.
      */
@@ -60,6 +66,11 @@ public class Compatibility {
      * The key is the name of the plugin, the value data containing all integration factories and instances from it.
      */
     private final Map<String, List<PluginIntegrationData>> pluginData = new TreeMap<>();
+
+    /**
+     * All external integrations by their source name.
+     */
+    private final Map<String, BaseIntegrationSource> external = new TreeMap<>();
 
     /**
      * BetonQuest provided integrations.
@@ -79,20 +90,24 @@ public class Compatibility {
      * @param config        the config to check if an Integrator should be activated/hooked
      * @param betonQuestApi the BetonQuest API used to hook plugins
      * @param version       the plugin version used in error messages
+     * @param integrations  the external integrations to add
      */
     public Compatibility(final BetonQuestLogger log, final BetonQuestApi betonQuestApi, final ConfigAccessor config,
-                         final String version) {
+                         final String version, final CompIntegrations integrations) {
         this.log = log;
         this.betonQuestApi = betonQuestApi;
         this.config = config;
         this.version = version;
-        this.betonQuestSource = new BaseIntegrationSource();
+        this.integrations = integrations;
+        this.betonQuestSource = new BaseIntegrationSource("BetonQuest");
     }
 
     /**
      * Integrate plugins.
      */
     public void init() {
+        integrations.init(log, this, external);
+
         vanillaData.headMap(new MinecraftVersion(), true).forEach((version, dataList) -> {
             log.info("Integrating into Minecraft " + version);
             dataList.forEach(VanillaIntegrationData::integrate);
@@ -101,14 +116,21 @@ public class Compatibility {
             integratePlugin(plugin);
         }
 
-        final String hooks = betonQuestSource.dataList.stream()
+        logSource(betonQuestSource, " ");
+        external.forEach((name, source) ->
+                logSource(source, " from plugin '" + name + "' "));
+
+        postHook();
+    }
+
+    private void logSource(final BaseIntegrationSource source, final String name) {
+        final String hooks = source.dataList.stream()
                 .filter(IntegrationData::isIntegrated)
                 .map(data -> data.getName() + " (" + data.getVersion() + ")")
                 .collect(Collectors.joining(", "));
         if (!hooks.isEmpty()) {
-            log.info("Enabled compatibility for " + hooks + "!");
+            log.info("Enabled compatibility" + name + "for " + hooks + "!");
         }
-        postHook();
     }
 
     /**
@@ -132,6 +154,15 @@ public class Compatibility {
      */
     public IntegrationSource getBetonQuestSource() {
         return betonQuestSource;
+    }
+
+    /**
+     * Gets the External integration source.
+     *
+     * @return external provided integrations
+     */
+    public List<IntegrationSource> getExternalSources() {
+        return List.copyOf(external.values());
     }
 
     /**
@@ -220,8 +251,12 @@ public class Compatibility {
      * @param integrator the integrator factory
      */
     public void registerPlugin(final String name, final IntegratorFactory integrator) {
+        registerPlugin(name, integrator, betonQuestSource);
+    }
+
+    /* default */ void registerPlugin(final String name, final IntegratorFactory integrator, final BaseIntegrationSource source) {
         final PluginIntegrationData data = new PluginIntegrationData(name, integrator);
-        betonQuestSource.dataList.add(data);
+        source.dataList.add(data);
         pluginData.computeIfAbsent(name, ignored -> new ArrayList<>()).add(data);
     }
 
@@ -232,27 +267,42 @@ public class Compatibility {
      * @param integrator the integrator factory
      */
     public void registerVanilla(final String version, final IntegratorFactory integrator) {
+        registerVanilla(version, integrator, betonQuestSource);
+    }
+
+    /* default */ void registerVanilla(final String version, final IntegratorFactory integrator, final BaseIntegrationSource source) {
         final VanillaIntegrationData data = new VanillaIntegrationData(version, integrator);
-        betonQuestSource.dataList.add(data);
+        source.dataList.add(data);
         vanillaData.computeIfAbsent(new Version(version), ignored -> new ArrayList<>()).add(data);
     }
 
     /**
      * Holds integration factories and their created integrations from a single plugin.
      */
-    private static final class BaseIntegrationSource implements IntegrationSource {
+    /* default */ static final class BaseIntegrationSource implements IntegrationSource {
 
         /**
          * List of integration data for the plugin.
          */
         private final List<BaseIntegrationData> dataList = new ArrayList<>();
 
-        private BaseIntegrationSource() {
+        /**
+         * Source plugin name.
+         */
+        private final String name;
+
+        /* default */ BaseIntegrationSource(final String name) {
+            this.name = name;
         }
 
         @Override
         public List<IntegrationData> getDataList() {
             return List.copyOf(dataList);
+        }
+
+        @Override
+        public String getName() {
+            return name;
         }
     }
 
