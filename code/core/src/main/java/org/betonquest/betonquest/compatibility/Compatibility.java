@@ -27,7 +27,8 @@ import java.util.stream.Stream;
 /**
  * Loads compatibility with other plugins.
  */
-public class Compatibility {
+@SuppressWarnings({"PMD.CouplingBetweenObjects", "PMD.TooManyMethods"})
+public class Compatibility implements Integrations {
 
     /**
      * Custom {@link BetonQuestLogger} instance for this class.
@@ -62,9 +63,19 @@ public class Compatibility {
     private final Map<String, List<PluginIntegrationData>> pluginData = new TreeMap<>();
 
     /**
+     * All external integrations by their source name.
+     */
+    private final Map<String, BaseIntegrationSource> external = new TreeMap<>();
+
+    /**
      * BetonQuest provided integrations.
      */
     private final BaseIntegrationSource betonQuestSource;
+
+    /**
+     * If the compatibility already initialized and new integrators should be denied.
+     */
+    private boolean freeze;
 
     /**
      * The instance of the HologramProvider.
@@ -86,13 +97,15 @@ public class Compatibility {
         this.betonQuestApi = betonQuestApi;
         this.config = config;
         this.version = version;
-        this.betonQuestSource = new BaseIntegrationSource();
+        this.betonQuestSource = new BaseIntegrationSource("BetonQuest");
     }
 
     /**
      * Integrate plugins.
      */
     public void init() {
+        freeze = true;
+
         vanillaData.headMap(new MinecraftVersion(), true).forEach((version, dataList) -> {
             log.info("Integrating into Minecraft " + version);
             dataList.forEach(VanillaIntegrationData::integrate);
@@ -101,14 +114,21 @@ public class Compatibility {
             integratePlugin(plugin);
         }
 
-        final String hooks = betonQuestSource.dataList.stream()
+        logSource(betonQuestSource, " ");
+        external.forEach((name, source) ->
+                logSource(source, " from plugin '" + name + "' "));
+
+        postHook();
+    }
+
+    private void logSource(final BaseIntegrationSource source, final String name) {
+        final String hooks = source.dataList.stream()
                 .filter(IntegrationData::isIntegrated)
                 .map(data -> data.getName() + " (" + data.getVersion() + ")")
                 .collect(Collectors.joining(", "));
         if (!hooks.isEmpty()) {
-            log.info("Enabled compatibility for " + hooks + "!");
+            log.info("Enabled compatibility" + name + "for " + hooks + "!");
         }
-        postHook();
     }
 
     /**
@@ -132,6 +152,15 @@ public class Compatibility {
      */
     public IntegrationSource getBetonQuestSource() {
         return betonQuestSource;
+    }
+
+    /**
+     * Gets the External integration source.
+     *
+     * @return external provided integrations
+     */
+    public List<IntegrationSource> getExternalSources() {
+        return List.copyOf(external.values());
     }
 
     /**
@@ -220,8 +249,12 @@ public class Compatibility {
      * @param integrator the integrator factory
      */
     public void registerPlugin(final String name, final IntegratorFactory integrator) {
+        registerPlugin(name, integrator, betonQuestSource);
+    }
+
+    private void registerPlugin(final String name, final IntegratorFactory integrator, final BaseIntegrationSource source) {
         final PluginIntegrationData data = new PluginIntegrationData(name, integrator);
-        betonQuestSource.dataList.add(data);
+        source.dataList.add(data);
         pluginData.computeIfAbsent(name, ignored -> new ArrayList<>()).add(data);
     }
 
@@ -232,9 +265,33 @@ public class Compatibility {
      * @param integrator the integrator factory
      */
     public void registerVanilla(final String version, final IntegratorFactory integrator) {
+        registerVanilla(version, integrator, betonQuestSource);
+    }
+
+    private void registerVanilla(final String version, final IntegratorFactory integrator, final BaseIntegrationSource source) {
         final VanillaIntegrationData data = new VanillaIntegrationData(version, integrator);
-        betonQuestSource.dataList.add(data);
+        source.dataList.add(data);
         vanillaData.computeIfAbsent(new Version(version), ignored -> new ArrayList<>()).add(data);
+    }
+
+    @Override
+    public void registerPlugin(final String name, final IntegratorFactory integrator, final Plugin plugin) {
+        if (freeze) {
+            throw new IllegalStateException("Cannot register new integrator after hooking!");
+        }
+        log.debug("Receiving external integration for " + name + " from " + plugin.getName());
+        final BaseIntegrationSource source = external.computeIfAbsent(plugin.getName(), BaseIntegrationSource::new);
+        registerPlugin(name, integrator, source);
+    }
+
+    @Override
+    public void registerVanilla(final String version, final IntegratorFactory integrator, final Plugin plugin) {
+        if (freeze) {
+            throw new IllegalStateException("Cannot register new integrator after hooking!");
+        }
+        log.debug("Receiving external integration for Minecraft " + version + " from " + plugin.getName());
+        final BaseIntegrationSource source = external.computeIfAbsent(plugin.getName(), BaseIntegrationSource::new);
+        registerVanilla(version, integrator, source);
     }
 
     /**
@@ -247,12 +304,23 @@ public class Compatibility {
          */
         private final List<BaseIntegrationData> dataList = new ArrayList<>();
 
-        private BaseIntegrationSource() {
+        /**
+         * Source plugin name.
+         */
+        private final String name;
+
+        private BaseIntegrationSource(final String name) {
+            this.name = name;
         }
 
         @Override
         public List<IntegrationData> getDataList() {
             return List.copyOf(dataList);
+        }
+
+        @Override
+        public String getName() {
+            return name;
         }
     }
 

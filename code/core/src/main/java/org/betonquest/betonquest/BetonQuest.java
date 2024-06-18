@@ -32,6 +32,7 @@ import org.betonquest.betonquest.command.JournalCommand;
 import org.betonquest.betonquest.command.LangCommand;
 import org.betonquest.betonquest.command.QuestCommand;
 import org.betonquest.betonquest.compatibility.Compatibility;
+import org.betonquest.betonquest.compatibility.Integrations;
 import org.betonquest.betonquest.config.DefaultConfigAccessorFactory;
 import org.betonquest.betonquest.config.PluginMessage;
 import org.betonquest.betonquest.config.QuestManager;
@@ -839,6 +840,15 @@ public class BetonQuest extends JavaPlugin implements BetonQuestApi, LanguagePro
      * @return the compatibility
      */
     protected Compatibility getCompatibility() {
+        return compatibility;
+    }
+
+    /**
+     * Gets the integrations to add new integration factories to the hook system.
+     *
+     * @return the integrator registrations
+     */
+    public Integrations getIntegrations() {
         return compatibility;
     }
 }
