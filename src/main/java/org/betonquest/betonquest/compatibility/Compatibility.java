@@ -89,6 +89,8 @@ public class Compatibility implements Listener {
 
         registerCompatiblePlugins();
 
+        catchExternalHooks();
+
         Bukkit.getPluginManager().registerEvents(this, betonQuest);
 
         // Integrate already enabled plugins in case Bukkit messes up the loading order
@@ -157,6 +159,14 @@ public class Compatibility implements Listener {
                     .filter(Objects::nonNull)
                     .forEach(Integrator::close);
         }
+    }
+
+    private void catchExternalHooks() {
+        final Map<String, Pair<Class<? extends Integrator>, Integrator>> externalIntegrators = new HashMap<>();
+        final BetonQuestLogger eventLogger = betonQuest.getLoggerFactory().create(RegisterHooksEvent.class);
+        final RegisterHooksEvent registerHooksEvent = new RegisterHooksEvent(externalIntegrators, eventLogger);
+        Bukkit.getPluginManager().callEvent(registerHooksEvent);
+        integrators.putAll(externalIntegrators);
     }
 
     private String buildHookedPluginsMessage() {
