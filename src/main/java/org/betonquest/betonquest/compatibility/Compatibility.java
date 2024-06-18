@@ -182,8 +182,9 @@ public class Compatibility implements Listener {
             return;
         }
 
-        final boolean isEnabled = BetonQuest.getInstance().getPluginConfig().getBoolean("hook." + name.toLowerCase(Locale.ROOT));
+        final boolean isEnabled = BetonQuest.getInstance().getPluginConfig().getBoolean("hook." + name.toLowerCase(Locale.ROOT), true);
         if (!isEnabled) {
+            LOG.debug("Did not hook " + name + " because it is disabled");
             return;
         }
 
