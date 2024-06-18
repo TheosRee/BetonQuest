@@ -37,7 +37,9 @@ import org.betonquest.betonquest.command.CompassCommand;
 import org.betonquest.betonquest.command.JournalCommand;
 import org.betonquest.betonquest.command.LangCommand;
 import org.betonquest.betonquest.command.QuestCommand;
+import org.betonquest.betonquest.compatibility.CompIntegrations;
 import org.betonquest.betonquest.compatibility.Compatibility;
+import org.betonquest.betonquest.compatibility.Integrations;
 import org.betonquest.betonquest.config.DefaultConfigAccessorFactory;
 import org.betonquest.betonquest.config.PluginMessage;
 import org.betonquest.betonquest.config.QuestManager;
@@ -268,6 +270,8 @@ public class BetonQuest extends JavaPlugin implements BetonQuestApi, LanguagePro
      */
     private Compatibility compatibility;
 
+    private CompIntegrations integrations;
+
     /**
      * The required default constructor without arguments for plugin creation.
      */
@@ -413,7 +417,8 @@ public class BetonQuest extends JavaPlugin implements BetonQuestApi, LanguagePro
             throw new IllegalStateException("Could not load conversation colors! " + e.getMessage(), e);
         }
 
-        compatibility = new Compatibility(loggerFactory.create(Compatibility.class), this, config, version);
+        integrations = new CompIntegrations();
+        compatibility = new Compatibility(loggerFactory.create(Compatibility.class), this, config, version, integrations);
 
         registerCommands(receiverSelector, debugHistoryHandler, playerDataFactory);
 
@@ -879,5 +884,14 @@ public class BetonQuest extends JavaPlugin implements BetonQuestApi, LanguagePro
      */
     protected Compatibility getCompatibility() {
         return compatibility;
+    }
+
+    /**
+     * Gets the integrations to add new integration factories to the hook system.
+     *
+     * @return the integrator registrations
+     */
+    public Integrations getIntegrations() {
+        return integrations;
     }
 }
