@@ -4,6 +4,7 @@ import org.betonquest.betonquest.Instruction;
 import org.betonquest.betonquest.api.quest.condition.Condition;
 import org.betonquest.betonquest.api.quest.condition.ConditionFactory;
 import org.betonquest.betonquest.compatibility.npcs.abstractnpc.BQNPCAdapter;
+import org.betonquest.betonquest.compatibility.npcs.abstractnpc.NPCFactory;
 import org.betonquest.betonquest.compatibility.npcs.abstractnpc.NPCSupplierStandard;
 import org.betonquest.betonquest.exceptions.InstructionParseException;
 import org.betonquest.betonquest.instruction.variable.VariableNumber;
@@ -14,11 +15,14 @@ import java.util.function.Supplier;
 /**
  * Factory to create {@link NPCLocationCondition}s from {@link Instruction}s.
  */
-public abstract class NPCLocationConditionFactory implements ConditionFactory, NPCSupplierStandard {
+public class NPCLocationConditionFactory extends NPCFactory implements ConditionFactory {
     /**
-     * The default Constructor.
+     * Create a new factory for NPC Location Conditions.
+     *
+     * @param supplierSupplier the supplier providing the npc adapter supplier
      */
-    public NPCLocationConditionFactory() {
+    public NPCLocationConditionFactory(final Supplier<NPCSupplierStandard> supplierSupplier) {
+        super(supplierSupplier);
     }
 
     @Override

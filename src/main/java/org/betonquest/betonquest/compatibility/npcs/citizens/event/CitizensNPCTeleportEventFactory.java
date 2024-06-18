@@ -11,7 +11,7 @@ import org.betonquest.betonquest.quest.event.PrimaryServerThreadComposedEvent;
 /**
  * Citizens implementation for {@link NPCTeleportEventFactory}.
  */
-public class CitizensNPCTeleportEventFactory extends NPCTeleportEventFactory implements CitizensNPCSupplier {
+public class CitizensNPCTeleportEventFactory extends NPCTeleportEventFactory {
     /**
      * Data to use for syncing to the primary server thread.
      */
@@ -23,7 +23,7 @@ public class CitizensNPCTeleportEventFactory extends NPCTeleportEventFactory imp
      * @param data the data to use for syncing to the primary server thread
      */
     public CitizensNPCTeleportEventFactory(final PrimaryServerThreadData data) {
-        super();
+        super(() -> CitizensNPCSupplier::getSupplierByIDStatic);
         this.data = data;
     }
 
