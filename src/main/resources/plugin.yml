@@ -36,6 +36,7 @@ softdepend:
   - AuraSkills
   - fake-block
   - RedisChat
+  - FancyNpcs
 commands:
   betonquest:
     description: General quest command
@@ -82,4 +83,3 @@ permissions:
     default: true
   betonquest.language:
     default: true
-
