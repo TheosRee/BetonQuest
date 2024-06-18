@@ -3,6 +3,7 @@ package org.betonquest.betonquest.compatibility;
 import org.apache.commons.lang3.tuple.MutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.betonquest.betonquest.BetonQuest;
+import org.betonquest.betonquest.api.bukkit.event.RegisterHooksEvent;
 import org.betonquest.betonquest.api.logger.BetonQuestLogger;
 import org.betonquest.betonquest.compatibility.auraskills.AuraSkillsIntegrator;
 import org.betonquest.betonquest.compatibility.brewery.BreweryIntegrator;
@@ -88,6 +89,8 @@ public class Compatibility implements Listener {
 
         registerCompatiblePlugins();
 
+        catchExternalHooks();
+
         Bukkit.getPluginManager().registerEvents(this, betonQuest);
 
         // Integrate already enabled plugins in case Bukkit messes up the loading order
@@ -156,6 +159,14 @@ public class Compatibility implements Listener {
                     .filter(Objects::nonNull)
                     .forEach(Integrator::close);
         }
+    }
+
+    private void catchExternalHooks() {
+        final Map<String, Pair<Class<? extends Integrator>, Integrator>> externalIntegrators = new HashMap<>();
+        final BetonQuestLogger eventLogger = betonQuest.getLoggerFactory().create(RegisterHooksEvent.class);
+        final RegisterHooksEvent registerHooksEvent = new RegisterHooksEvent(externalIntegrators, eventLogger);
+        Bukkit.getPluginManager().callEvent(registerHooksEvent);
+        integrators.putAll(externalIntegrators);
     }
 
     private String buildHookedPluginsMessage() {
