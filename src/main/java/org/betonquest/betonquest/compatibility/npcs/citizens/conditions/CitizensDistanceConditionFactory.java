@@ -12,7 +12,7 @@ import org.betonquest.betonquest.quest.condition.PrimaryServerThreadPlayerCondit
 /**
  * Citizens implementation of {@link NPCDistanceCondition}.
  */
-public class CitizensDistanceConditionFactory extends NPCDistanceConditionFactory implements CitizensNPCSupplier {
+public class CitizensDistanceConditionFactory extends NPCDistanceConditionFactory {
     /**
      * Data used for primary server thread access.
      */
@@ -24,7 +24,7 @@ public class CitizensDistanceConditionFactory extends NPCDistanceConditionFactor
      * @param data the data used for primary server thread access
      */
     public CitizensDistanceConditionFactory(final PrimaryServerThreadData data) {
-        super();
+        super(() -> CitizensNPCSupplier::getSupplierByIDStatic);
         this.data = data;
     }
 
