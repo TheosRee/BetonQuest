@@ -1,7 +1,5 @@
 package org.betonquest.betonquest.compatibility;
 
-import org.apache.commons.lang3.tuple.MutablePair;
-import org.apache.commons.lang3.tuple.Pair;
 import org.betonquest.betonquest.api.BetonQuestApi;
 import org.betonquest.betonquest.api.config.ConfigAccessor;
 import org.betonquest.betonquest.api.logger.BetonQuestLogger;
@@ -80,10 +78,10 @@ public class Compatibility implements Listener {
 
     /**
      * A map of all integrators.
-     * The key is the name of the plugin, the value a pair of the integrator class and an instance of it.
+     * The key is the name of the plugin, the value a list of pairs of the integrator factory and instance from it.
      * The instance must only exist if the plugin was hooked.
      */
-    private final Map<String, Pair<IntegratorFactory, Integrator>> integrators = new TreeMap<>();
+    private final Map<String, IntegrationTarget> integrators = new TreeMap<>();
 
     /**
      * The instance of the HologramProvider.
@@ -108,7 +106,9 @@ public class Compatibility implements Listener {
 
         registerCompatiblePlugins();
 
-        // Integrate already enabled plugins in case Bukkit messes up the loading order
+        addExternalHooks();
+
+        // Integrate already enabled plugins
         for (final Plugin plugin : Bukkit.getPluginManager().getPlugins()) {
             integratePlugin(plugin);
         }
@@ -120,8 +120,9 @@ public class Compatibility implements Listener {
      * @return the list of hooked plugins
      */
     public List<String> getHooked() {
-        return integrators.entrySet().stream().filter(entry -> entry.getValue().getRight() != null)
+        return integrators.entrySet().stream().filter(entry -> entry.getValue().integrated)
                 .map(Map.Entry::getKey).toList();
+        // TODO sort per supplying plugin
     }
 
     /**
@@ -134,20 +135,21 @@ public class Compatibility implements Listener {
             log.info("Enabled compatibility for " + hooks + "!");
         }
         final List<HologramIntegrator> hologramIntegrators = new ArrayList<>();
-        integrators.values().stream()
-                .filter(pair -> pair.getRight() != null)
-                .forEach(pair -> {
-                    final Integrator integrator = pair.getRight();
+        integrators.values().forEach(target -> target.dataList.stream()
+                .filter(data -> data.integrator != null)
+                .forEach(data -> {
+                    final Integrator integrator = data.integrator;
                     try {
                         integrator.postHook();
                         if (integrator instanceof final HologramIntegrator hologramIntegrator) {
                             hologramIntegrators.add(hologramIntegrator);
                         }
                     } catch (final HookException e) {
-                        log.warn("Error while enabling some features while post hooking into " + pair.getLeft()
-                                + " reason: " + e.getMessage(), e);
+                        final String source = data.source == null ? "" : " ( from " + data.source.getName() + ") ";
+                        log.warn("Error while enabling some features while post hooking into " + target.name
+                                + source + " reason: " + e.getMessage(), e);
                     }
-                });
+                }));
         hologramProvider = new HologramProvider(hologramIntegrators);
         hologramProvider.hook(betonQuestApi);
     }
@@ -156,10 +158,10 @@ public class Compatibility implements Listener {
      * Reloads all loaded integrators.
      */
     public void reload() {
-        integrators.values().stream()
-                .map(Pair::getRight)
+        integrators.values().forEach(target -> target.dataList.stream()
+                .map(integrationData -> integrationData.integrator)
                 .filter(Objects::nonNull)
-                .forEach(Integrator::reload);
+                .forEach(Integrator::reload));
         if (hologramProvider != null) {
             hologramProvider.reload();
         }
@@ -169,13 +171,22 @@ public class Compatibility implements Listener {
      * Disables all loaded integrators.
      */
     public void disable() {
-        integrators.values().stream()
-                .map(Pair::getRight)
+        integrators.values().forEach(integrationTarget -> integrationTarget.dataList.stream()
+                .map(integrationData -> integrationData.integrator)
                 .filter(Objects::nonNull)
-                .forEach(Integrator::close);
+                .forEach(Integrator::close));
         if (hologramProvider != null) {
             hologramProvider.close();
         }
+    }
+
+    private void addExternalHooks() {
+        log.debug("Adding external integrators…");
+        ExternalHooks.getINTEGRATORS().forEach((name, list) -> list.forEach(pair -> {
+            log.debug("Receiving new hook for " + name + " from " + pair.getValue().getName());
+            integrators.computeIfAbsent(name, IntegrationTarget::new).dataList
+                    .add(new IntegrationData(pair.getValue(), pair.getKey()));
+        }));
     }
 
     /**
@@ -188,13 +199,13 @@ public class Compatibility implements Listener {
         integratePlugin(event.getPlugin());
     }
 
-    @SuppressWarnings("PMD.AvoidCatchingGenericException")
     private void integratePlugin(final Plugin hookedPlugin) {
         if (!hookedPlugin.isEnabled()) {
             return;
         }
         final String name = hookedPlugin.getName();
-        if (!integrators.containsKey(name) || integrators.get(name).getRight() != null) {
+        final IntegrationTarget list = integrators.get(name);
+        if (list == null || list.integrated) {
             return;
         }
 
@@ -204,12 +215,17 @@ public class Compatibility implements Listener {
             return;
         }
 
-        final Integrator integrator = integrators.get(name).getKey().getIntegrator();
         log.info("Hooking into " + name);
+        list.dataList.forEach(integrationData -> integrate(hookedPlugin, name, integrationData));
+        list.integrated = true;
+    }
 
+    @SuppressWarnings("PMD.AvoidCatchingGenericException")
+    private void integrate(final Plugin hookedPlugin, final String name, final IntegrationData data) {
         try {
+            final Integrator integrator = data.integratorFactory.getIntegrator();
             integrator.hook(betonQuestApi);
-            integrators.get(name).setValue(integrator);
+            data.integrator = integrator;
         } catch (final HookException exception) {
             final String message = String.format("Could not hook into %s %s! %s",
                     hookedPlugin.getName(),
@@ -269,6 +285,58 @@ public class Compatibility implements Listener {
     }
 
     private void register(final String name, final IntegratorFactory integrator) {
-        integrators.put(name, new MutablePair<>(integrator, null));
+        integrators.computeIfAbsent(name, IntegrationTarget::new).dataList
+                .add(new IntegrationData(null, integrator));
+    }
+
+    /**
+     * Holds integration for a single plugin.
+     */
+    private static final class IntegrationTarget {
+        /**
+         * List of integrations for the plugin.
+         */
+        private final List<IntegrationData> dataList = new ArrayList<>();
+
+        /**
+         * Name of the target plugin.
+         */
+        private final String name;
+
+        /**
+         * If the plugin was already integrated.
+         */
+        private boolean integrated;
+
+        private IntegrationTarget(final String name) {
+            this.name = name;
+        }
+    }
+
+    /**
+     * Data for a specific integration of a plugin.
+     */
+    private static final class IntegrationData {
+        /**
+         * The source plugin, null if BetonQuest.
+         */
+        @Nullable
+        private final Plugin source;
+
+        /**
+         * The factory to create a new Integration.
+         */
+        private final IntegratorFactory integratorFactory;
+
+        /**
+         * The created Integrator.
+         */
+        @Nullable
+        private Integrator integrator;
+
+        private IntegrationData(@Nullable final Plugin source, final IntegratorFactory integratorFactory) {
+            this.source = source;
+            this.integratorFactory = integratorFactory;
+        }
     }
 }
