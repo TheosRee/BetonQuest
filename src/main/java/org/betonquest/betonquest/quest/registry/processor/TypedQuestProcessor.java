@@ -6,7 +6,6 @@ import org.betonquest.betonquest.bstats.CompositeInstructionMetricsSupplier;
 import org.betonquest.betonquest.exceptions.InstructionParseException;
 import org.betonquest.betonquest.exceptions.ObjectNotFoundException;
 import org.betonquest.betonquest.id.ID;
-import org.betonquest.betonquest.quest.legacy.LegacyTypeFactory;
 import org.betonquest.betonquest.quest.registry.type.QuestTypeRegistry;
 import org.bukkit.configuration.ConfigurationSection;
 
@@ -17,13 +16,14 @@ import java.util.Map;
  * Also provides their BStats metrics.
  *
  * @param <I> the {@link ID} identifying the type
- * @param <T> the legacy type
+ * @param <S> the playerless type
+ * @param <P> the player type
  */
-public abstract class TypedQuestProcessor<I extends ID, T> extends QuestProcessor<I, T> {
+public abstract class TypedQuestProcessor<I extends ID, S, P> extends QuestProcessor<I, TrippleWrapper<S, P>> {
     /**
      * Available types.
      */
-    protected final QuestTypeRegistry<?, ?, ?, T> types;
+    protected final QuestTypeRegistry<P, S, ?, ?> types;
 
     /**
      * Type name used for logging.
@@ -43,7 +43,7 @@ public abstract class TypedQuestProcessor<I extends ID, T> extends QuestProcesso
      * @param readable the type name used for logging, with first letter in upper case
      * @param internal the section name and/or bstats topic identifier
      */
-    public TypedQuestProcessor(final BetonQuestLogger log, final QuestTypeRegistry<?, ?, ?, T> types,
+    public TypedQuestProcessor(final BetonQuestLogger log, final QuestTypeRegistry<P, S, ?, ?> types,
                                final String readable, final String internal) {
         super(log);
         this.types = types;
@@ -91,7 +91,7 @@ public abstract class TypedQuestProcessor<I extends ID, T> extends QuestProcesso
             log.warn(pack, readable + " type not defined in '" + packName + "." + key + "'", e);
             return;
         }
-        final LegacyTypeFactory<T> factory = types.getFactory(type);
+        final TrippleFactory<S, P> factory = types.getFactory(type);
         if (factory == null) {
             log.warn(pack, readable + " type " + type + " is not registered, check if it's"
                     + " spelled correctly in '" + identifier + "' " + readable + ".");
@@ -99,7 +99,7 @@ public abstract class TypedQuestProcessor<I extends ID, T> extends QuestProcesso
         }
 
         try {
-            final T parsed = factory.parseInstruction(identifier.getInstruction());
+            final TrippleWrapper<S, P> parsed = factory.parseInstruction(identifier.getInstruction());
             values.put(identifier, parsed);
             log.debug(pack, "  " + readable + " '" + identifier + "' loaded");
         } catch (final InstructionParseException e) {
@@ -108,7 +108,7 @@ public abstract class TypedQuestProcessor<I extends ID, T> extends QuestProcesso
     }
 
     /**
-     * Creates a new type ID to store the created {@link T} with it.
+     * Creates a new type ID to store the created type with it.
      *
      * @param pack       the package the ID is in
      * @param identifier the id instruction string

@@ -1,10 +1,11 @@
 package org.betonquest.betonquest.quest.registry.processor;
 
 import io.papermc.lib.PaperLib;
-import org.betonquest.betonquest.api.Condition;
 import org.betonquest.betonquest.api.config.quest.QuestPackage;
 import org.betonquest.betonquest.api.logger.BetonQuestLogger;
 import org.betonquest.betonquest.api.profiles.Profile;
+import org.betonquest.betonquest.api.quest.condition.PlayerCondition;
+import org.betonquest.betonquest.api.quest.condition.PlayerlessCondition;
 import org.betonquest.betonquest.exceptions.ObjectNotFoundException;
 import org.betonquest.betonquest.exceptions.QuestRuntimeException;
 import org.betonquest.betonquest.id.ConditionID;
@@ -20,7 +21,7 @@ import java.util.concurrent.ExecutionException;
 /**
  * Does the logic around Conditions.
  */
-public class ConditionProcessor extends TypedQuestProcessor<ConditionID, Condition> {
+public class ConditionProcessor extends TypedQuestProcessor<ConditionID, PlayerlessCondition, PlayerCondition> {
     /**
      * Create a new Condition Processor to store Conditions and checks them.
      *
@@ -93,25 +94,27 @@ public class ConditionProcessor extends TypedQuestProcessor<ConditionID, Conditi
      * @param profile     the {@link Profile} of the player which should be checked
      * @return if the condition is met
      */
-    @SuppressWarnings("PMD.CyclomaticComplexity")
     public boolean check(@Nullable final Profile profile, final ConditionID conditionID) {
-        final Condition condition = values.get(conditionID);
+        final TrippleWrapper<PlayerlessCondition, PlayerCondition> condition = values.get(conditionID);
         if (condition == null) {
             log.warn(conditionID.getPackage(), "The condition " + conditionID + " is not defined!");
             return false;
         }
-        if (profile == null && !condition.isStatic()) {
-            log.warn(conditionID.getPackage(),
-                    "Cannot check non-static condition '" + conditionID + "' without a player, returning false");
-            return false;
+        if (profile != null && condition.playerType() != null) {
+            return getOutcome(() -> condition.playerType().check(profile), conditionID, profile);
         }
-        if (profile != null && profile.getOnlineProfile().isEmpty() && !condition.isPersistent()) {
-            log.debug(conditionID.getPackage(), "Player was offline, condition is not persistent, returning false");
-            return false;
+        if (condition.playerlessType() != null) {
+            return getOutcome(() -> condition.playerlessType().check(), conditionID, profile);
         }
+        log.warn(conditionID.getPackage(),
+                "Cannot check non-static condition '" + conditionID + "' without a player, returning false");
+        return false;
+    }
+
+    private boolean getOutcome(final QREThrowingSupplier supplier, final ConditionID conditionID, @Nullable final Profile profile) {
         final boolean outcome;
         try {
-            outcome = condition.handle(profile);
+            outcome = supplier.doStuff();
         } catch (final QuestRuntimeException e) {
             log.warn(conditionID.getPackage(), "Error while checking '" + conditionID + "' condition: " + e.getMessage(), e);
             return false;
@@ -121,5 +124,9 @@ public class ConditionProcessor extends TypedQuestProcessor<ConditionID, Conditi
                 (isMet ? "TRUE" : "FALSE") + ": " + (conditionID.inverted() ? "inverted" : "") + " condition "
                         + conditionID + " for " + profile);
         return isMet;
+    }
+
+    private interface QREThrowingSupplier {
+        boolean doStuff() throws QuestRuntimeException;
     }
 }

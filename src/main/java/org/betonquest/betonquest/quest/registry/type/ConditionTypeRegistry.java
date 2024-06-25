@@ -30,7 +30,7 @@ public class ConditionTypeRegistry extends QuestTypeRegistry<PlayerCondition, Pl
     }
 
     @Override
-    protected LegacyTypeFactory<org.betonquest.betonquest.api.Condition> getFromClassLegacyTypeFactory(
+    protected FactoryEntry<PlayerlessCondition, PlayerCondition> getFromClassLegacyTypeFactory(
             final BetonQuestLogger log, final Class<? extends org.betonquest.betonquest.api.Condition> conditionClass) {
         return new FromClassLegacyTypeFactory<>(log, conditionClass, "condition");
     }

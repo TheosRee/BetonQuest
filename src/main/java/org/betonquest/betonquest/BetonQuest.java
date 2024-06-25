@@ -25,6 +25,8 @@ import org.betonquest.betonquest.api.quest.QuestFactory;
 import org.betonquest.betonquest.api.quest.event.ComposedEventFactory;
 import org.betonquest.betonquest.api.quest.event.EventFactory;
 import org.betonquest.betonquest.api.quest.event.StaticEventFactory;
+import org.betonquest.betonquest.api.quest.variable.PlayerVariable;
+import org.betonquest.betonquest.api.quest.variable.PlayerlessVariable;
 import org.betonquest.betonquest.api.schedule.Schedule;
 import org.betonquest.betonquest.api.schedule.Scheduler;
 import org.betonquest.betonquest.bstats.BStatsMetrics;
@@ -109,10 +111,10 @@ import org.betonquest.betonquest.notify.SubTitleNotifyIO;
 import org.betonquest.betonquest.notify.SuppressNotifyIO;
 import org.betonquest.betonquest.notify.TitleNotifyIO;
 import org.betonquest.betonquest.notify.TotemNotifyIO;
-import org.betonquest.betonquest.quest.legacy.LegacyTypeFactory;
 import org.betonquest.betonquest.quest.registry.CoreQuestTypes;
 import org.betonquest.betonquest.quest.registry.QuestRegistry;
 import org.betonquest.betonquest.quest.registry.QuestTypeRegistries;
+import org.betonquest.betonquest.quest.registry.processor.TrippleWrapper;
 import org.betonquest.betonquest.quest.registry.processor.VariableProcessor;
 import org.betonquest.betonquest.quest.registry.type.QuestTypeRegistry;
 import org.betonquest.betonquest.utils.PlayerConverter;
@@ -313,7 +315,8 @@ public class BetonQuest extends JavaPlugin {
      * @return the Variable instance
      * @throws InstructionParseException when the variable parsing fails
      */
-    public static Variable createVariable(@Nullable final QuestPackage pack, final String instruction)
+    public static TrippleWrapper<PlayerlessVariable, PlayerVariable> createVariable(
+            @Nullable final QuestPackage pack, final String instruction)
             throws InstructionParseException {
         return instance.questRegistry.variables().create(pack, instruction);
     }
@@ -1072,21 +1075,6 @@ public class BetonQuest extends JavaPlugin {
             log.warn(e.getMessage(), e);
             return "";
         }
-    }
-
-    /**
-     * Fetches the factory to create the event registered with the given name.
-     *
-     * @param name the name of the event
-     * @return a factory to create the event
-     * @deprecated in favor of direct usage of {@link #getQuestRegistries()}
-     * further {@link QuestTypeRegistries#getEventTypes()}
-     * further {@link QuestTypeRegistry#getFactory(String)}
-     */
-    @Deprecated
-    @Nullable
-    public LegacyTypeFactory<QuestEvent> getEventFactory(final String name) {
-        return questTypeRegistries.getEventTypes().getFactory(name);
     }
 
     /**

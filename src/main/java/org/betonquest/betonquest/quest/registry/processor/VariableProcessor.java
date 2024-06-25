@@ -1,22 +1,22 @@
 package org.betonquest.betonquest.quest.registry.processor;
 
 import org.betonquest.betonquest.Instruction;
-import org.betonquest.betonquest.api.Variable;
 import org.betonquest.betonquest.api.config.quest.QuestPackage;
 import org.betonquest.betonquest.api.logger.BetonQuestLogger;
 import org.betonquest.betonquest.api.logger.BetonQuestLoggerFactory;
 import org.betonquest.betonquest.api.profiles.Profile;
+import org.betonquest.betonquest.api.quest.variable.PlayerVariable;
+import org.betonquest.betonquest.api.quest.variable.PlayerlessVariable;
 import org.betonquest.betonquest.exceptions.InstructionParseException;
 import org.betonquest.betonquest.exceptions.ObjectNotFoundException;
 import org.betonquest.betonquest.id.VariableID;
-import org.betonquest.betonquest.quest.legacy.LegacyTypeFactory;
 import org.betonquest.betonquest.quest.registry.type.VariableTypeRegistry;
 import org.jetbrains.annotations.Nullable;
 
 /**
  * Stores Variables and resolve them.
  */
-public class VariableProcessor extends TypedQuestProcessor<VariableID, Variable> {
+public class VariableProcessor extends TypedQuestProcessor<VariableID, PlayerlessVariable, PlayerVariable> {
     /**
      * Logger Factory for new custom logger.
      */
@@ -54,7 +54,7 @@ public class VariableProcessor extends TypedQuestProcessor<VariableID, Variable>
      * @return the Variable instance
      * @throws InstructionParseException when the variable parsing fails
      */
-    public Variable create(@Nullable final QuestPackage pack, final String instruction)
+    public TrippleWrapper<PlayerlessVariable, PlayerVariable> create(@Nullable final QuestPackage pack, final String instruction)
             throws InstructionParseException {
         final VariableID variableID;
         try {
@@ -62,17 +62,17 @@ public class VariableProcessor extends TypedQuestProcessor<VariableID, Variable>
         } catch (final ObjectNotFoundException e) {
             throw new InstructionParseException("Could not load variable: " + e.getMessage(), e);
         }
-        final Variable existingVariable = values.get(variableID);
+        final TrippleWrapper<PlayerlessVariable, PlayerVariable> existingVariable = values.get(variableID);
         if (existingVariable != null) {
             return existingVariable;
         }
         final Instruction instructionVar = variableID.getInstruction();
-        final LegacyTypeFactory<Variable> variableFactory = types.getFactory(instructionVar.current());
+        final TrippleFactory<PlayerlessVariable, PlayerVariable> variableFactory = types.getFactory(instructionVar.current());
         if (variableFactory == null) {
             throw new InstructionParseException("Variable type " + instructionVar.current() + " is not registered");
         }
 
-        final Variable variable = variableFactory.parseInstruction(instructionVar);
+        final TrippleWrapper<PlayerlessVariable, PlayerVariable> variable = variableFactory.parseInstruction(instructionVar);
         values.put(variableID, variable);
         log.debug(pack, "Variable " + variableID + " loaded");
         return variable;
@@ -88,15 +88,18 @@ public class VariableProcessor extends TypedQuestProcessor<VariableID, Variable>
      * @throws InstructionParseException if the variable could not be created
      */
     public String getValue(final QuestPackage pack, final String name, @Nullable final Profile profile) throws InstructionParseException {
-        final Variable var;
+        final TrippleWrapper<PlayerlessVariable, PlayerVariable> var;
         try {
             var = create(pack, name);
         } catch (final InstructionParseException e) {
             throw new InstructionParseException("Could not create variable '" + name + "': " + e.getMessage(), e);
         }
-        if (profile == null && !var.isStaticness()) {
-            throw new InstructionParseException("Non-static variable '" + name + "' cannot be executed without a profile reference!");
+        if (profile != null && var.playerType() != null) {
+            return var.playerType().getValue(profile);
         }
-        return var.getValue(profile);
+        if (var.playerlessType() != null) {
+            return var.playerlessType().getValue();
+        }
+        throw new InstructionParseException("Non-static variable '" + name + "' cannot be executed without a profile reference!");
     }
 }

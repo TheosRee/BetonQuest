@@ -1,12 +1,15 @@
 package org.betonquest.betonquest.quest.registry.type;
 
+import org.betonquest.betonquest.Instruction;
 import org.betonquest.betonquest.api.logger.BetonQuestLogger;
 import org.betonquest.betonquest.api.logger.BetonQuestLoggerFactory;
 import org.betonquest.betonquest.api.quest.PlayerQuestFactory;
 import org.betonquest.betonquest.api.quest.PlayerlessQuestFactory;
 import org.betonquest.betonquest.api.quest.QuestFactory;
+import org.betonquest.betonquest.exceptions.InstructionParseException;
 import org.betonquest.betonquest.quest.QuestTypeAdapter;
 import org.betonquest.betonquest.quest.legacy.LegacyTypeFactory;
+import org.betonquest.betonquest.quest.registry.processor.TrippleFactory;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
@@ -41,7 +44,7 @@ public abstract class QuestTypeRegistry<P, S, T, L> {
     /**
      * Map of registered legacy factories.
      */
-    private final Map<String, LegacyTypeFactory<L>> types = new HashMap<>();
+    private final Map<String, TrippleFactory<S, P>> types = new HashMap<>();
 
     /**
      * Create a new type registry.
@@ -76,7 +79,7 @@ public abstract class QuestTypeRegistry<P, S, T, L> {
      * @param lClass the class object for the type
      * @return the legacy factory to store
      */
-    protected abstract LegacyTypeFactory<L> getFromClassLegacyTypeFactory(BetonQuestLogger log, Class<? extends L> lClass);
+    protected abstract TrippleFactory<S, P> getFromClassLegacyTypeFactory(BetonQuestLogger log, Class<? extends L> lClass);
 
     /**
      * Registers a type that does not support playerless execution with its name
@@ -148,7 +151,7 @@ public abstract class QuestTypeRegistry<P, S, T, L> {
     private void registerInternal(final String name, @Nullable final PlayerQuestFactory<P> playerFactory,
                                   @Nullable final PlayerlessQuestFactory<S> playerlessFactory) {
         log.debug("Registering " + name + " " + typeName + " type");
-        types.put(name, getLegacyFactoryAdapter(playerFactory, playerlessFactory));
+        types.put(name, new FactoryEntry<>(playerlessFactory, playerFactory));
     }
 
     /**
@@ -171,7 +174,7 @@ public abstract class QuestTypeRegistry<P, S, T, L> {
      * @return a factory to create the type
      */
     @Nullable
-    public LegacyTypeFactory<L> getFactory(final String name) {
+    public TrippleFactory<S, P> getFactory(final String name) {
         return types.get(name);
     }
 
@@ -182,5 +185,21 @@ public abstract class QuestTypeRegistry<P, S, T, L> {
      */
     public Set<String> keySet() {
         return types.keySet();
+    }
+
+    public record FactoryEntry<S, P>(@Nullable PlayerlessQuestFactory<S> playerlessFactory,
+                                     @Nullable PlayerQuestFactory<P> playerFactory) implements TrippleFactory<S, P> {
+        public FactoryEntry {
+            if (playerlessFactory == null && playerFactory == null) {
+                throw new IllegalArgumentException("Either the playerless or player factory must be present!");
+            }
+        }
+
+        @Override
+        public ActualEntry<S, P> parseInstruction(final Instruction instruction) throws InstructionParseException {
+            final S playerlessType = playerlessFactory == null ? null : playerlessFactory.parsePlayerless(instruction.copy());
+            final P playerType = playerFactory == null ? null : playerFactory.parsePlayer(instruction.copy());
+            return new ActualEntry<>(instruction, playerlessType, playerType);
+        }
     }
 }

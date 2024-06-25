@@ -5,15 +5,19 @@ import org.betonquest.betonquest.Instruction;
 import org.betonquest.betonquest.api.Condition;
 import org.betonquest.betonquest.api.logger.BetonQuestLogger;
 import org.betonquest.betonquest.api.profiles.Profile;
+import org.betonquest.betonquest.api.quest.condition.PlayerCondition;
+import org.betonquest.betonquest.api.quest.condition.PlayerlessCondition;
 import org.betonquest.betonquest.exceptions.InstructionParseException;
 import org.betonquest.betonquest.exceptions.ObjectNotFoundException;
 import org.betonquest.betonquest.exceptions.QuestRuntimeException;
 import org.betonquest.betonquest.id.NoID;
-import org.betonquest.betonquest.quest.legacy.LegacyTypeFactory;
+import org.betonquest.betonquest.quest.registry.processor.TrippleFactory;
+import org.betonquest.betonquest.quest.registry.processor.TrippleWrapper;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Allows for checking multiple conditions with one instruction string.
@@ -27,7 +31,7 @@ public class CheckCondition extends Condition {
     /**
      * Conditions that will be checked by this condition. All must be true for this condition to be true as well.
      */
-    private final List<Condition> internalConditions = new ArrayList<>();
+    private final List<TrippleWrapper<PlayerlessCondition, PlayerCondition>> internalConditions = new ArrayList<>();
 
     /**
      * Create a check condition for the given instruction.
@@ -63,12 +67,12 @@ public class CheckCondition extends Condition {
      * Constructs a condition with given instruction and returns it.
      */
     @Nullable
-    private Condition createCondition(final String instruction) throws InstructionParseException {
+    private TrippleWrapper<PlayerlessCondition, PlayerCondition> createCondition(final String instruction) throws InstructionParseException {
         final String[] parts = instruction.split(" ");
         if (parts.length == 0) {
             throw new InstructionParseException("Not enough arguments in internal condition");
         }
-        final LegacyTypeFactory<Condition> conditionFactory = BetonQuest.getInstance().getQuestRegistries().getConditionTypes().getFactory(parts[0]);
+        final TrippleFactory<PlayerlessCondition, PlayerCondition> conditionFactory = BetonQuest.getInstance().getQuestRegistries().getConditionTypes().getFactory(parts[0]);
         if (conditionFactory == null) {
             // if it's null then there is no such type registered, log an error
             throw new InstructionParseException("Condition type " + parts[0] + " is not registered, check if it's"
@@ -89,11 +93,18 @@ public class CheckCondition extends Condition {
 
     @Override
     protected Boolean execute(final Profile profile) throws QuestRuntimeException {
-        for (final Condition condition : internalConditions) {
-            if (!condition.handle(profile)) {
+        for (final TrippleWrapper<PlayerlessCondition, PlayerCondition> condition : internalConditions) {
+            if (!handle(condition, profile)) {
                 return false;
             }
         }
         return true;
+    }
+
+    private boolean handle(final TrippleWrapper<PlayerlessCondition, PlayerCondition> wrapper, final Profile profile) throws QuestRuntimeException {
+        if (wrapper.playerType() != null) {
+            return wrapper.playerType().check(profile);
+        }
+        return Objects.requireNonNull(wrapper.playerlessType()).check();
     }
 }
