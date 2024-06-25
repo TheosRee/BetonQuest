@@ -81,6 +81,15 @@ public abstract class QuestEvent extends ForceSyncHandler<Void> {
     }
 
     /**
+     * Get the staticness of the event.
+     *
+     * @return if the event can be executed without a player
+     */
+    public boolean isStaticness() {
+        return staticness;
+    }
+
+    /**
      * This method is called by BetonQuest to execute the event. Therefore, it must contain all logic for firing the event.
      * Use the data parsed in the event's constructor to fire the event based on the users settings.
      *

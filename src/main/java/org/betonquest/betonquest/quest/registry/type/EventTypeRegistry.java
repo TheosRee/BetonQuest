@@ -12,8 +12,10 @@ import org.betonquest.betonquest.api.quest.event.StaticEvent;
 import org.betonquest.betonquest.quest.QuestTypeAdapter;
 import org.betonquest.betonquest.quest.event.ComposedEventFactoryAdapter;
 import org.betonquest.betonquest.quest.legacy.FromClassLegacyTypeFactory;
+import org.betonquest.betonquest.quest.legacy.FromEventClassToTrippleFactoryAdapter;
 import org.betonquest.betonquest.quest.legacy.LegacyTypeFactory;
 import org.betonquest.betonquest.quest.legacy.QuestEventFactoryAdapter;
+import org.betonquest.betonquest.quest.registry.processor.TrippleFactory;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -31,8 +33,9 @@ public class EventTypeRegistry extends QuestTypeRegistry<Event, StaticEvent, Com
     }
 
     @Override
-    protected LegacyTypeFactory<QuestEvent> getFromClassLegacyTypeFactory(final BetonQuestLogger log, final Class<? extends QuestEvent> questEventClass) {
-        return new FromClassLegacyTypeFactory<>(log, questEventClass, "event");
+    @Deprecated
+    protected TrippleFactory<StaticEvent, Event> getFromClassLegacyTypeFactory(final FromClassLegacyTypeFactory<? extends QuestEvent, QuestEvent> factory) {
+        return new FromEventClassToTrippleFactoryAdapter(factory);
     }
 
     @Override

@@ -8,6 +8,7 @@ import org.betonquest.betonquest.api.quest.PlayerlessQuestFactory;
 import org.betonquest.betonquest.api.quest.QuestFactory;
 import org.betonquest.betonquest.exceptions.InstructionParseException;
 import org.betonquest.betonquest.quest.QuestTypeAdapter;
+import org.betonquest.betonquest.quest.legacy.FromClassLegacyTypeFactory;
 import org.betonquest.betonquest.quest.legacy.LegacyTypeFactory;
 import org.betonquest.betonquest.quest.registry.processor.TrippleFactory;
 import org.jetbrains.annotations.Nullable;
@@ -69,17 +70,18 @@ public abstract class QuestTypeRegistry<P, S, T, L> {
     @Deprecated
     public void register(final String name, final Class<? extends L> lClass) {
         log.debug("Registering " + name + " [legacy]" + typeName + " type");
-        types.put(name, getFromClassLegacyTypeFactory(loggerFactory.create(lClass), lClass));
+        types.put(name, getFromClassLegacyTypeFactory(new FromClassLegacyTypeFactory<>(loggerFactory.create(lClass), lClass, typeName)));
     }
 
     /**
      * Create a new legacy type factory which will be used to create new instances of the {@link L}.
      *
-     * @param log    the log to use in the factory
-     * @param lClass the class object for the type
+     * @param factory the legacy factory to adapt to new format
      * @return the legacy factory to store
+     * @deprecated only used for legacy type converting
      */
-    protected abstract TrippleFactory<S, P> getFromClassLegacyTypeFactory(BetonQuestLogger log, Class<? extends L> lClass);
+    @Deprecated
+    protected abstract TrippleFactory<S, P> getFromClassLegacyTypeFactory(FromClassLegacyTypeFactory<? extends L, L> factory);
 
     /**
      * Registers a type that does not support playerless execution with its name

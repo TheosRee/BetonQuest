@@ -10,8 +10,10 @@ import org.betonquest.betonquest.api.quest.variable.PlayerlessVariable;
 import org.betonquest.betonquest.api.quest.variable.Variable;
 import org.betonquest.betonquest.quest.QuestTypeAdapter;
 import org.betonquest.betonquest.quest.legacy.FromClassLegacyTypeFactory;
+import org.betonquest.betonquest.quest.legacy.FromVariableClassToTrippleFactoryAdapter;
 import org.betonquest.betonquest.quest.legacy.LegacyTypeFactory;
 import org.betonquest.betonquest.quest.legacy.LegacyVariableFactoryAdapter;
+import org.betonquest.betonquest.quest.registry.processor.TrippleFactory;
 import org.betonquest.betonquest.quest.variable.VariableFactoryAdapter;
 import org.jetbrains.annotations.Nullable;
 
@@ -30,9 +32,9 @@ public class VariableTypeRegistry extends QuestTypeRegistry<PlayerVariable, Play
     }
 
     @Override
-    protected LegacyTypeFactory<org.betonquest.betonquest.api.Variable> getFromClassLegacyTypeFactory(
-            final BetonQuestLogger log, final Class<? extends org.betonquest.betonquest.api.Variable> lClass) {
-        return new FromClassLegacyTypeFactory<>(log, lClass, "variable");
+    @Deprecated
+    protected TrippleFactory<PlayerlessVariable, PlayerVariable> getFromClassLegacyTypeFactory(final FromClassLegacyTypeFactory<? extends org.betonquest.betonquest.api.Variable, org.betonquest.betonquest.api.Variable> factory) {
+        return new FromVariableClassToTrippleFactoryAdapter(factory);
     }
 
     @Override

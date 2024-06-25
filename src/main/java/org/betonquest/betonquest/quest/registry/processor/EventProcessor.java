@@ -90,7 +90,7 @@ public class EventProcessor extends TypedQuestProcessor<EventID, StaticEvent, Ev
     }
 
     private boolean handleOfflineProfile(final Profile profile, final Event event, final QuestPackage pack, final ConditionID... conditions) throws QuestRuntimeException {
-        if (persistent) {
+        if (true) { // TODO third state required (Online-/Profile
             log.debug(pack, "Persistent event will be fired for offline profile.");
             event.execute(profile);
             return true;
