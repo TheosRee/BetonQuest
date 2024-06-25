@@ -16,6 +16,7 @@ import org.betonquest.betonquest.compatibility.holograms.HologramProvider;
 import org.betonquest.betonquest.exceptions.HookException;
 import org.betonquest.betonquest.exceptions.InstructionParseException;
 import org.betonquest.betonquest.quest.registry.processor.TrippleFactory;
+import org.betonquest.betonquest.quest.registry.processor.VariableProcessor;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 
@@ -64,10 +65,11 @@ public class HolographicDisplaysIntegrator extends HologramIntegrator {
         /* We must convert a normal BetonQuest variable such as "%pack:objective.kills.left%" to
            "{bq:pack:objective.kills.left}" which is parsed by HolographicDisplays as a custom API placeholder. */
         final Matcher matcher = HologramProvider.VARIABLE_VALIDATOR.matcher(text);
+        final VariableProcessor variableProcessor = BetonQuest.getInstance().getVariableProcessor();
         return matcher.replaceAll(match -> {
             final String group = match.group();
             try {
-                final TrippleFactory.Wrapper<PlayerlessVariable, PlayerVariable> variable = BetonQuest.createVariable(pack, group);
+                final TrippleFactory.Wrapper<PlayerlessVariable, PlayerVariable> variable = variableProcessor.create(pack, group);
                 final Instruction instruction = variable.instruction();
                 final String prefix = variable.playerlessType() != null ? "{bqg:" : "{bq:";
                 return prefix + instruction.getPackage().getQuestPath() + ":" + instruction.getInstruction() + "}";

@@ -25,8 +25,6 @@ import org.betonquest.betonquest.api.quest.QuestFactory;
 import org.betonquest.betonquest.api.quest.event.ComposedEventFactory;
 import org.betonquest.betonquest.api.quest.event.EventFactory;
 import org.betonquest.betonquest.api.quest.event.StaticEventFactory;
-import org.betonquest.betonquest.api.quest.variable.PlayerVariable;
-import org.betonquest.betonquest.api.quest.variable.PlayerlessVariable;
 import org.betonquest.betonquest.api.schedule.Schedule;
 import org.betonquest.betonquest.api.schedule.Scheduler;
 import org.betonquest.betonquest.bstats.BStatsMetrics;
@@ -114,7 +112,6 @@ import org.betonquest.betonquest.notify.TotemNotifyIO;
 import org.betonquest.betonquest.quest.registry.CoreQuestTypes;
 import org.betonquest.betonquest.quest.registry.QuestRegistry;
 import org.betonquest.betonquest.quest.registry.QuestTypeRegistries;
-import org.betonquest.betonquest.quest.registry.processor.TrippleFactory;
 import org.betonquest.betonquest.quest.registry.processor.VariableProcessor;
 import org.betonquest.betonquest.quest.registry.type.QuestTypeRegistry;
 import org.betonquest.betonquest.utils.PlayerConverter;
@@ -304,21 +301,6 @@ public class BetonQuest extends JavaPlugin {
      */
     public static void resumeObjective(final Profile profile, final ObjectiveID objectiveID, final String instruction) {
         instance.questRegistry.objectives().resume(profile, objectiveID, instruction);
-    }
-
-    /**
-     * Generates new instance of a Variable. If a similar one was already
-     * created, it will return it instead of creating a new one.
-     *
-     * @param pack        package in which the variable is defined
-     * @param instruction instruction of the variable, including both % characters.
-     * @return the Variable instance
-     * @throws InstructionParseException when the variable parsing fails
-     */
-    public static TrippleFactory.Wrapper<PlayerlessVariable, PlayerVariable> createVariable(
-            @Nullable final QuestPackage pack, final String instruction)
-            throws InstructionParseException {
-        return instance.questRegistry.variables().create(pack, instruction);
     }
 
     public static boolean isVariableType(final String type) {
