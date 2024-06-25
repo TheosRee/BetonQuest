@@ -1,11 +1,13 @@
 package org.betonquest.betonquest.utils.math;
 
-import org.betonquest.betonquest.api.Variable;
 import org.betonquest.betonquest.api.config.quest.QuestPackage;
 import org.betonquest.betonquest.api.profiles.Profile;
+import org.betonquest.betonquest.api.quest.variable.PlayerVariable;
+import org.betonquest.betonquest.api.quest.variable.PlayerlessVariable;
 import org.betonquest.betonquest.exceptions.InstructionParseException;
 import org.betonquest.betonquest.exceptions.QuestRuntimeException;
 import org.betonquest.betonquest.modules.logger.util.BetonQuestLoggerService;
+import org.betonquest.betonquest.quest.registry.processor.TrippleFactory;
 import org.betonquest.betonquest.quest.registry.processor.VariableProcessor;
 import org.betonquest.betonquest.utils.math.tokens.Token;
 import org.junit.jupiter.api.BeforeAll;
@@ -1111,9 +1113,16 @@ class TokenizerTest {
 
     private void withVariables(final ProtoVariable... variables) throws Throwable {
         for (final ProtoVariable variableTemplate : variables) {
-            final Variable var = mock(Variable.class);
-            when(var.getValue(TEST_PLAYER_PROFILE)).thenReturn(variableTemplate.value());
-            when(variableProcessor.create(TEST_PACK, "%" + variableTemplate.key() + "%")).thenReturn(var);
+            final TrippleFactory.Wrapper<PlayerlessVariable, PlayerVariable> wrapper = mock(TrippleFactory.Wrapper.class);
+            when(variableProcessor.create(TEST_PACK, "%" + variableTemplate.key() + "%")).thenReturn(wrapper);
+
+            final PlayerlessVariable playerlessVar = mock(PlayerlessVariable.class);
+            when(playerlessVar.getValue()).thenReturn(variableTemplate.value());
+            when(wrapper.playerlessType()).thenReturn(playerlessVar);
+
+            final PlayerVariable playerVar = mock(PlayerVariable.class);
+            when(playerVar.getValue(TEST_PLAYER_PROFILE)).thenReturn(variableTemplate.value());
+            when(wrapper.playerType()).thenReturn(playerVar);
         }
     }
 

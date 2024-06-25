@@ -16,7 +16,7 @@ import java.lang.reflect.InvocationTargetException;
  * @deprecated new events must use an {@link EventFactory} instead
  */
 @Deprecated
-public class FromClassLegacyTypeFactory<T extends L, L> implements LegacyTypeFactory<L> {
+public class FromClassLegacyTypeFactory<T extends L, L> {
     /**
      * Custom {@link BetonQuestLogger} instance for this class.
      */
@@ -45,7 +45,13 @@ public class FromClassLegacyTypeFactory<T extends L, L> implements LegacyTypeFac
         this.typeName = typeName;
     }
 
-    @Override
+    /**
+     * Parse an instruction to create a {@link T}.
+     *
+     * @param instruction instruction to parse for the {@link T}
+     * @return {@link T} represented by the instruction
+     * @throws InstructionParseException when the instruction cannot be parsed
+     */
     public L parseInstruction(final Instruction instruction) throws InstructionParseException {
         final Throwable error;
         try {
