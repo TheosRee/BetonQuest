@@ -9,7 +9,6 @@ import org.betonquest.betonquest.api.quest.QuestFactory;
 import org.betonquest.betonquest.exceptions.InstructionParseException;
 import org.betonquest.betonquest.quest.QuestTypeAdapter;
 import org.betonquest.betonquest.quest.legacy.FromClassLegacyTypeFactory;
-import org.betonquest.betonquest.quest.legacy.LegacyTypeFactory;
 import org.betonquest.betonquest.quest.registry.processor.TrippleFactory;
 import org.jetbrains.annotations.Nullable;
 
@@ -148,26 +147,13 @@ public abstract class QuestTypeRegistry<P, S, T, L> {
     /**
      * Either the player factory or the playerless factory has to be present.
      *
-     * @see #getLegacyFactoryAdapter(PlayerQuestFactory, PlayerlessQuestFactory)
+     * @see FactoryEntry
      */
     private void registerInternal(final String name, @Nullable final PlayerQuestFactory<P> playerFactory,
                                   @Nullable final PlayerlessQuestFactory<S> playerlessFactory) {
         log.debug("Registering " + name + " " + typeName + " type");
         types.put(name, new FactoryEntry<>(playerlessFactory, playerFactory));
     }
-
-    /**
-     * Get a new adapter to the legacy factory from the new type format.
-     * <p>
-     * Either the player factory or the playerless factory has to be present.
-     *
-     * @param playerFactory     the player factory to create the type
-     * @param playerlessFactory the playerless factory to create the type
-     * @return the legacy factory to store
-     */
-    protected abstract LegacyTypeFactory<L> getLegacyFactoryAdapter(
-            @Nullable PlayerQuestFactory<P> playerFactory,
-            @Nullable PlayerlessQuestFactory<S> playerlessFactory);
 
     /**
      * Fetches the factory to create the type registered with the given name.

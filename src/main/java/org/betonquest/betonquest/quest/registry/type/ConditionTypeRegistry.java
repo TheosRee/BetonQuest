@@ -2,8 +2,6 @@ package org.betonquest.betonquest.quest.registry.type;
 
 import org.betonquest.betonquest.api.logger.BetonQuestLogger;
 import org.betonquest.betonquest.api.logger.BetonQuestLoggerFactory;
-import org.betonquest.betonquest.api.quest.PlayerQuestFactory;
-import org.betonquest.betonquest.api.quest.PlayerlessQuestFactory;
 import org.betonquest.betonquest.api.quest.QuestFactory;
 import org.betonquest.betonquest.api.quest.condition.Condition;
 import org.betonquest.betonquest.api.quest.condition.PlayerCondition;
@@ -12,10 +10,7 @@ import org.betonquest.betonquest.quest.QuestTypeAdapter;
 import org.betonquest.betonquest.quest.condition.ConditionFactoryAdapter;
 import org.betonquest.betonquest.quest.legacy.FromClassLegacyTypeFactory;
 import org.betonquest.betonquest.quest.legacy.FromConditionClassToTrippleFactoryAdapter;
-import org.betonquest.betonquest.quest.legacy.LegacyConditionFactoryAdapter;
-import org.betonquest.betonquest.quest.legacy.LegacyTypeFactory;
 import org.betonquest.betonquest.quest.registry.processor.TrippleFactory;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Stores the condition types that can be used in BetonQuest.
@@ -36,13 +31,6 @@ public class ConditionTypeRegistry extends QuestTypeRegistry<PlayerCondition, Pl
     protected TrippleFactory<PlayerlessCondition, PlayerCondition> getFromClassLegacyTypeFactory(
             final FromClassLegacyTypeFactory<? extends org.betonquest.betonquest.api.Condition, org.betonquest.betonquest.api.Condition> factory) {
         return new FromConditionClassToTrippleFactoryAdapter(factory);
-    }
-
-    @Override
-    protected LegacyTypeFactory<org.betonquest.betonquest.api.Condition> getLegacyFactoryAdapter(
-            @Nullable final PlayerQuestFactory<PlayerCondition> playerFactory,
-            @Nullable final PlayerlessQuestFactory<PlayerlessCondition> playerlessFactory) {
-        return new LegacyConditionFactoryAdapter(playerFactory, playerlessFactory);
     }
 
     @Override
