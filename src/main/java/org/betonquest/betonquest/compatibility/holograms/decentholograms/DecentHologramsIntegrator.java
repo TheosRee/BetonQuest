@@ -13,7 +13,7 @@ import org.betonquest.betonquest.compatibility.holograms.HologramIntegrator;
 import org.betonquest.betonquest.compatibility.holograms.HologramProvider;
 import org.betonquest.betonquest.exceptions.HookException;
 import org.betonquest.betonquest.exceptions.InstructionParseException;
-import org.betonquest.betonquest.quest.registry.processor.TrippleWrapper;
+import org.betonquest.betonquest.quest.registry.processor.TrippleFactory;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 
@@ -61,7 +61,7 @@ public class DecentHologramsIntegrator extends HologramIntegrator {
         return matcher.replaceAll(match -> {
             final String group = match.group();
             try {
-                final TrippleWrapper<PlayerlessVariable, PlayerVariable> variable = BetonQuest.createVariable(pack, group);
+                final TrippleFactory.Wrapper<PlayerlessVariable, PlayerVariable> variable = BetonQuest.createVariable(pack, group);
                 final Instruction instruction = variable.instruction();
                 return "%betonquest_" + instruction.getPackage().getQuestPath() + ":" + instruction.getInstruction() + "%";
             } catch (final InstructionParseException exception) {

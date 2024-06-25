@@ -19,7 +19,7 @@ import java.util.Map;
  * @param <S> the playerless type
  * @param <P> the player type
  */
-public abstract class TypedQuestProcessor<I extends ID, S, P> extends QuestProcessor<I, TrippleWrapper<S, P>> {
+public abstract class TypedQuestProcessor<I extends ID, S, P> extends QuestProcessor<I, TrippleFactory.Wrapper<S, P>> {
     /**
      * Available types.
      */
@@ -99,7 +99,7 @@ public abstract class TypedQuestProcessor<I extends ID, S, P> extends QuestProce
         }
 
         try {
-            final TrippleWrapper<S, P> parsed = factory.parseInstruction(identifier.getInstruction());
+            final TrippleFactory.Wrapper<S, P> parsed = factory.parseInstruction(identifier.getInstruction());
             values.put(identifier, parsed);
             log.debug(pack, "  " + readable + " '" + identifier + "' loaded");
         } catch (final InstructionParseException e) {

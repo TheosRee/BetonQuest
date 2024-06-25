@@ -12,7 +12,6 @@ import org.betonquest.betonquest.exceptions.ObjectNotFoundException;
 import org.betonquest.betonquest.exceptions.QuestRuntimeException;
 import org.betonquest.betonquest.id.NoID;
 import org.betonquest.betonquest.quest.registry.processor.TrippleFactory;
-import org.betonquest.betonquest.quest.registry.processor.TrippleWrapper;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -31,7 +30,7 @@ public class CheckCondition extends Condition {
     /**
      * Conditions that will be checked by this condition. All must be true for this condition to be true as well.
      */
-    private final List<TrippleWrapper<PlayerlessCondition, PlayerCondition>> internalConditions = new ArrayList<>();
+    private final List<TrippleFactory.Wrapper<PlayerlessCondition, PlayerCondition>> internalConditions = new ArrayList<>();
 
     /**
      * Create a check condition for the given instruction.
@@ -67,7 +66,7 @@ public class CheckCondition extends Condition {
      * Constructs a condition with given instruction and returns it.
      */
     @Nullable
-    private TrippleWrapper<PlayerlessCondition, PlayerCondition> createCondition(final String instruction) throws InstructionParseException {
+    private TrippleFactory.Wrapper<PlayerlessCondition, PlayerCondition> createCondition(final String instruction) throws InstructionParseException {
         final String[] parts = instruction.split(" ");
         if (parts.length == 0) {
             throw new InstructionParseException("Not enough arguments in internal condition");
@@ -93,7 +92,7 @@ public class CheckCondition extends Condition {
 
     @Override
     protected Boolean execute(final Profile profile) throws QuestRuntimeException {
-        for (final TrippleWrapper<PlayerlessCondition, PlayerCondition> condition : internalConditions) {
+        for (final TrippleFactory.Wrapper<PlayerlessCondition, PlayerCondition> condition : internalConditions) {
             if (!handle(condition, profile)) {
                 return false;
             }
@@ -101,7 +100,7 @@ public class CheckCondition extends Condition {
         return true;
     }
 
-    private boolean handle(final TrippleWrapper<PlayerlessCondition, PlayerCondition> wrapper, final Profile profile) throws QuestRuntimeException {
+    private boolean handle(final TrippleFactory.Wrapper<PlayerlessCondition, PlayerCondition> wrapper, final Profile profile) throws QuestRuntimeException {
         if (wrapper.playerType() != null) {
             return wrapper.playerType().check(profile);
         }

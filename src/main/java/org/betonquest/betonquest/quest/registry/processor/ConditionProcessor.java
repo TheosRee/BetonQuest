@@ -95,7 +95,7 @@ public class ConditionProcessor extends TypedQuestProcessor<ConditionID, Playerl
      * @return if the condition is met
      */
     public boolean check(@Nullable final Profile profile, final ConditionID conditionID) {
-        final TrippleWrapper<PlayerlessCondition, PlayerCondition> condition = values.get(conditionID);
+        final TrippleFactory.Wrapper<PlayerlessCondition, PlayerCondition> condition = values.get(conditionID);
         if (condition == null) {
             log.warn(conditionID.getPackage(), "The condition " + conditionID + " is not defined!");
             return false;

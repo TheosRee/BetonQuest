@@ -198,10 +198,10 @@ public abstract class QuestTypeRegistry<P, S, T, L> {
         }
 
         @Override
-        public ActualEntry<S, P> parseInstruction(final Instruction instruction) throws InstructionParseException {
+        public Wrapper<S, P> parseInstruction(final Instruction instruction) throws InstructionParseException {
             final S playerlessType = playerlessFactory == null ? null : playerlessFactory.parsePlayerless(instruction.copy());
             final P playerType = playerFactory == null ? null : playerFactory.parsePlayer(instruction.copy());
-            return new ActualEntry<>(instruction, playerlessType, playerType);
+            return new Wrapper<>(instruction, playerlessType, playerType);
         }
     }
 }

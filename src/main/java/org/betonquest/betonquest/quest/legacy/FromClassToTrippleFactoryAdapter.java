@@ -3,7 +3,6 @@ package org.betonquest.betonquest.quest.legacy;
 import org.betonquest.betonquest.Instruction;
 import org.betonquest.betonquest.exceptions.InstructionParseException;
 import org.betonquest.betonquest.quest.registry.processor.TrippleFactory;
-import org.betonquest.betonquest.quest.registry.processor.TrippleWrapper;
 import org.jetbrains.annotations.Nullable;
 
 @Deprecated
@@ -15,9 +14,9 @@ public abstract class FromClassToTrippleFactoryAdapter<L, S, P> implements Tripp
     }
 
     @Override
-    public TrippleWrapper<S, P> parseInstruction(final Instruction instruction) throws InstructionParseException {
+    public Wrapper<S, P> parseInstruction(final Instruction instruction) throws InstructionParseException {
         final L legacy = factory.parseInstruction(instruction);
-        return new ActualEntry<>(instruction, playerless(legacy), player(legacy));
+        return new Wrapper<>(instruction, playerless(legacy), player(legacy));
     }
 
     @Nullable

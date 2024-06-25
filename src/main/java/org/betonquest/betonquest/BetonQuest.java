@@ -114,7 +114,7 @@ import org.betonquest.betonquest.notify.TotemNotifyIO;
 import org.betonquest.betonquest.quest.registry.CoreQuestTypes;
 import org.betonquest.betonquest.quest.registry.QuestRegistry;
 import org.betonquest.betonquest.quest.registry.QuestTypeRegistries;
-import org.betonquest.betonquest.quest.registry.processor.TrippleWrapper;
+import org.betonquest.betonquest.quest.registry.processor.TrippleFactory;
 import org.betonquest.betonquest.quest.registry.processor.VariableProcessor;
 import org.betonquest.betonquest.quest.registry.type.QuestTypeRegistry;
 import org.betonquest.betonquest.utils.PlayerConverter;
@@ -315,7 +315,7 @@ public class BetonQuest extends JavaPlugin {
      * @return the Variable instance
      * @throws InstructionParseException when the variable parsing fails
      */
-    public static TrippleWrapper<PlayerlessVariable, PlayerVariable> createVariable(
+    public static TrippleFactory.Wrapper<PlayerlessVariable, PlayerVariable> createVariable(
             @Nullable final QuestPackage pack, final String instruction)
             throws InstructionParseException {
         return instance.questRegistry.variables().create(pack, instruction);

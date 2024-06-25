@@ -10,12 +10,10 @@ import org.betonquest.betonquest.exceptions.InstructionParseException;
 import org.betonquest.betonquest.exceptions.QuestRuntimeException;
 import org.betonquest.betonquest.item.typehandler.HandlerUtil;
 import org.betonquest.betonquest.quest.registry.processor.TrippleFactory;
-import org.betonquest.betonquest.quest.registry.processor.TrippleWrapper;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * Allows for running multiple events with one instruction string.
@@ -24,7 +22,7 @@ public class RunEvent extends QuestEvent {
     /**
      * Events that the run event will execute.
      */
-    private final List<TrippleWrapper<StaticEvent, Event>> internalEvents = new ArrayList<>();
+    private final List<TrippleFactory.Wrapper<StaticEvent, Event>> internalEvents = new ArrayList<>();
 
     /**
      * Create a run event from the given instruction.
@@ -57,7 +55,7 @@ public class RunEvent extends QuestEvent {
     /**
      * Constructs an event with given instruction and returns it.
      */
-    private TrippleWrapper<StaticEvent, Event> createEvent(final String instruction) throws InstructionParseException {
+    private TrippleFactory.Wrapper<StaticEvent, Event> createEvent(final String instruction) throws InstructionParseException {
         final String[] parts = HandlerUtil.getNNSplit(instruction, "Not enough arguments in internal event", " ");
         final TrippleFactory<StaticEvent, Event> eventFactory = BetonQuest.getInstance().getQuestRegistries().getEventTypes().getFactory(parts[0]);
         if (eventFactory == null) {
@@ -70,12 +68,14 @@ public class RunEvent extends QuestEvent {
 
     @Override
     protected Void execute(@Nullable final Profile profile) throws QuestRuntimeException {
-        for (final TrippleWrapper<StaticEvent, Event> event : internalEvents) {
+        for (final TrippleFactory.Wrapper<StaticEvent, Event> event : internalEvents) {
             if (profile != null && event.playerType() != null) {
                 event.playerType().execute(profile);
+            } else if (event.playerlessType() != null) {
+                event.playerlessType().execute();
             } else {
-                Objects.requireNonNull(event.playerlessType()).execute();
-            } // TODO replace with spin? Synthetic event to register and call
+                throw new QuestRuntimeException("Cannot fire non-static event '" + instruction.getID() + "' without a player!");
+            }
         }
         return null;
     }

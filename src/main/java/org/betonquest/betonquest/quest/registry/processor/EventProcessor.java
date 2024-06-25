@@ -41,7 +41,7 @@ public class EventProcessor extends TypedQuestProcessor<EventID, StaticEvent, Ev
      * @return true if the event was run even if there was an exception during execution
      */
     public boolean execute(@Nullable final Profile profile, final EventID eventID) {
-        final TrippleWrapper<StaticEvent, Event> event = values.get(eventID);
+        final TrippleFactory.Wrapper<StaticEvent, Event> event = values.get(eventID);
         if (event == null) {
             log.warn(eventID.getPackage(), "Event " + eventID + " is not defined");
             return false;

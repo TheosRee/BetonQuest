@@ -54,7 +54,7 @@ public class VariableProcessor extends TypedQuestProcessor<VariableID, Playerles
      * @return the Variable instance
      * @throws InstructionParseException when the variable parsing fails
      */
-    public TrippleWrapper<PlayerlessVariable, PlayerVariable> create(@Nullable final QuestPackage pack, final String instruction)
+    public TrippleFactory.Wrapper<PlayerlessVariable, PlayerVariable> create(@Nullable final QuestPackage pack, final String instruction)
             throws InstructionParseException {
         final VariableID variableID;
         try {
@@ -62,7 +62,7 @@ public class VariableProcessor extends TypedQuestProcessor<VariableID, Playerles
         } catch (final ObjectNotFoundException e) {
             throw new InstructionParseException("Could not load variable: " + e.getMessage(), e);
         }
-        final TrippleWrapper<PlayerlessVariable, PlayerVariable> existingVariable = values.get(variableID);
+        final TrippleFactory.Wrapper<PlayerlessVariable, PlayerVariable> existingVariable = values.get(variableID);
         if (existingVariable != null) {
             return existingVariable;
         }
@@ -72,7 +72,7 @@ public class VariableProcessor extends TypedQuestProcessor<VariableID, Playerles
             throw new InstructionParseException("Variable type " + instructionVar.current() + " is not registered");
         }
 
-        final TrippleWrapper<PlayerlessVariable, PlayerVariable> variable = variableFactory.parseInstruction(instructionVar);
+        final TrippleFactory.Wrapper<PlayerlessVariable, PlayerVariable> variable = variableFactory.parseInstruction(instructionVar);
         values.put(variableID, variable);
         log.debug(pack, "Variable " + variableID + " loaded");
         return variable;
@@ -88,7 +88,7 @@ public class VariableProcessor extends TypedQuestProcessor<VariableID, Playerles
      * @throws InstructionParseException if the variable could not be created
      */
     public String getValue(final QuestPackage pack, final String name, @Nullable final Profile profile) throws InstructionParseException {
-        final TrippleWrapper<PlayerlessVariable, PlayerVariable> var;
+        final TrippleFactory.Wrapper<PlayerlessVariable, PlayerVariable> var;
         try {
             var = create(pack, name);
         } catch (final InstructionParseException e) {

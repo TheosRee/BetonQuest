@@ -2,8 +2,11 @@ package org.betonquest.betonquest.instruction.variable;
 
 import org.betonquest.betonquest.api.config.quest.QuestPackage;
 import org.betonquest.betonquest.api.profiles.Profile;
+import org.betonquest.betonquest.api.quest.variable.PlayerVariable;
+import org.betonquest.betonquest.api.quest.variable.PlayerlessVariable;
 import org.betonquest.betonquest.exceptions.InstructionParseException;
 import org.betonquest.betonquest.exceptions.QuestRuntimeException;
+import org.betonquest.betonquest.quest.registry.processor.TrippleFactory;
 import org.betonquest.betonquest.quest.registry.processor.VariableProcessor;
 import org.jetbrains.annotations.Nullable;
 
@@ -43,7 +46,7 @@ public class Variable<T> {
      */
     public Variable(final VariableProcessor variableProcessor, final QuestPackage pack, final String input,
                     final TypeResolver<T> resolver) throws InstructionParseException {
-        final Map<String, org.betonquest.betonquest.api.Variable> variables = getVariables(variableProcessor, pack, input);
+        final Map<String, TrippleFactory.Wrapper<PlayerlessVariable, PlayerVariable>> variables = getVariables(variableProcessor, pack, input);
         if (variables.isEmpty()) {
             try {
                 final T resolved = resolver.resolve(input);
@@ -56,14 +59,13 @@ public class Variable<T> {
         }
     }
 
-    private Map<String, org.betonquest.betonquest.api.Variable> getVariables(final VariableProcessor variableProcessor,
-                                                                             final QuestPackage pack,
-                                                                             final String input)
+    private Map<String, TrippleFactory.Wrapper<PlayerlessVariable, PlayerVariable>> getVariables(
+            final VariableProcessor variableProcessor, final QuestPackage pack, final String input)
             throws InstructionParseException {
-        final Map<String, org.betonquest.betonquest.api.Variable> variables = new HashMap<>();
+        final Map<String, TrippleFactory.Wrapper<PlayerlessVariable, PlayerVariable>> variables = new HashMap<>();
         for (final String variable : resolveVariables(input)) {
             try {
-                final org.betonquest.betonquest.api.Variable variable1 = variableProcessor.create(pack, replaceEscapedPercent(variable));
+                final TrippleFactory.Wrapper<PlayerlessVariable, PlayerVariable> variable1 = variableProcessor.create(pack, replaceEscapedPercent(variable));
                 variables.put(variable, variable1);
             } catch (final InstructionParseException exception) {
                 throw new InstructionParseException("Could not create variable '" + variable + "': "
@@ -79,20 +81,31 @@ public class Variable<T> {
                 .collect(Collectors.toSet());
     }
 
-    private String getString(final String input, final Map<String, org.betonquest.betonquest.api.Variable> variables,
+    private String getString(final String input, final Map<String, TrippleFactory.Wrapper<PlayerlessVariable, PlayerVariable>> variables,
                              @Nullable final Profile profile) throws QuestRuntimeException {
         final Matcher matcher = VARIABLE_PATTERN.matcher(input);
         final StringBuilder resolvedString = new StringBuilder();
         while (matcher.find()) {
             final String variable = matcher.group();
-            final org.betonquest.betonquest.api.Variable resolvedVariable = variables.get(variable);
+            final TrippleFactory.Wrapper<PlayerlessVariable, PlayerVariable> resolvedVariable = variables.get(variable);
             if (resolvedVariable == null) {
                 throw new QuestRuntimeException("Could not resolve variable '" + variable + "'");
             }
-            matcher.appendReplacement(resolvedString, Matcher.quoteReplacement(resolvedVariable.getValue(profile)));
+            matcher.appendReplacement(resolvedString, Matcher.quoteReplacement(getValidValue(profile, resolvedVariable)));
         }
         matcher.appendTail(resolvedString);
         return resolvedString.toString();
+    }
+
+    private String getValidValue(@Nullable final Profile profile, final TrippleFactory.Wrapper<PlayerlessVariable, PlayerVariable> wrapper) throws QuestRuntimeException {
+        if (profile != null && wrapper.playerType() != null) {
+            return wrapper.playerType().getValue(profile);
+        }
+        if (wrapper.playerlessType() != null) {
+            return wrapper.playerlessType().getValue();
+        }
+        final String name = wrapper.instruction().getID().toString();
+        throw new QuestRuntimeException("Non-static variable '" + name + "' cannot be executed without a profile reference!");
     }
 
     private String replaceEscapedPercent(final String input) {
