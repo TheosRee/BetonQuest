@@ -101,10 +101,12 @@ public class ConditionProcessor extends TypedQuestProcessor<ConditionID, Playerl
             return false;
         }
         if (profile != null && condition.playerType() != null) {
-            return getOutcome(() -> condition.playerType().check(profile), conditionID, profile);
+            final PlayerCondition playerCondition = condition.playerType();
+            return getOutcome(() -> playerCondition.check(profile), conditionID, profile);
         }
         if (condition.playerlessType() != null) {
-            return getOutcome(() -> condition.playerlessType().check(), conditionID, profile);
+            final PlayerlessCondition playerlessType = condition.playerlessType();
+            return getOutcome(playerlessType::check, conditionID, profile);
         }
         log.warn(conditionID.getPackage(),
                 "Cannot check non-static condition '" + conditionID + "' without a player, returning false");
