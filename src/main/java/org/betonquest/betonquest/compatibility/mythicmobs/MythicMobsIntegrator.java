@@ -1,11 +1,16 @@
 package org.betonquest.betonquest.compatibility.mythicmobs;
 
 import io.lumine.mythic.bukkit.BukkitAPIHelper;
-import org.betonquest.betonquest.BetonQuest;
+import io.lumine.mythic.core.mobs.ActiveMob;
 import org.betonquest.betonquest.compatibility.Compatibility;
-import org.betonquest.betonquest.compatibility.Integrator;
 import org.betonquest.betonquest.compatibility.mythicmobs.conditions.MythicMobDistanceConditionFactory;
 import org.betonquest.betonquest.compatibility.mythicmobs.events.MythicSpawnMobEventFactory;
+import org.betonquest.betonquest.compatibility.mythicmobs.npc.MMBQAdapter;
+import org.betonquest.betonquest.compatibility.mythicmobs.npc.MMConversationStarter;
+import org.betonquest.betonquest.compatibility.mythicmobs.npc.objectives.MMInteractObjective;
+import org.betonquest.betonquest.compatibility.mythicmobs.npc.objectives.MMRangeObjective;
+import org.betonquest.betonquest.compatibility.npcs.abstractnpc.BQNPCAdapter;
+import org.betonquest.betonquest.compatibility.npcs.abstractnpc.NPCIntegrator;
 import org.betonquest.betonquest.compatibility.protocollib.hider.MythicHider;
 import org.betonquest.betonquest.exceptions.HookException;
 import org.betonquest.betonquest.exceptions.UnsupportedVersionException;
@@ -16,15 +21,38 @@ import org.betonquest.betonquest.quest.PrimaryServerThreadData;
 import org.betonquest.betonquest.quest.registry.QuestTypeRegistries;
 import org.bukkit.Bukkit;
 import org.bukkit.Server;
+import org.bukkit.entity.Entity;
 import org.bukkit.plugin.Plugin;
 
-@SuppressWarnings("PMD.CommentRequired")
-public class MythicMobsIntegrator implements Integrator {
+import java.util.UUID;
+import java.util.function.Supplier;
 
-    private final BetonQuest plugin;
-
+/**
+ * Integrator for <a href="https://git.mythiccraft.io/mythiccraft/MythicMobs/-/wikis/API">MythicMobs</a>.
+ */
+public class MythicMobsIntegrator extends NPCIntegrator<ActiveMob> {
+    /**
+     * The default Constructor.
+     */
     public MythicMobsIntegrator() {
-        plugin = BetonQuest.getInstance();
+
+    }
+
+    /**
+     * Gets a MythicMobs BQ NPC Adapter from its UUID.
+     *
+     * @param npcId the {@link UUID} as string
+     * @return the supplier for new NPC Wrapper
+     */
+    public static Supplier<BQNPCAdapter<?>> getSupplierByIDStatic(final String npcId) {
+        return () -> {
+            final Entity entity = Bukkit.getEntity(UUID.fromString(npcId));
+            if (entity == null) {
+                return null;
+            }
+            final ActiveMob activeMob = new BukkitAPIHelper().getMythicMobInstance(entity);
+            return activeMob == null ? null : new MMBQAdapter(activeMob);
+        };
     }
 
     @Override
@@ -42,6 +70,10 @@ public class MythicMobsIntegrator implements Integrator {
         if (Compatibility.getHooked().contains("ProtocolLib")) {
             MythicHider.start();
         }
+        
+        hook("mm", () -> MythicMobsIntegrator::getSupplierByIDStatic,
+                loggerFactory -> new MMConversationStarter(loggerFactory, loggerFactory.create(MMConversationStarter.class)),
+                MMInteractObjective.class, MMRangeObjective.class);
     }
 
     /**
@@ -58,15 +90,5 @@ public class MythicMobsIntegrator implements Integrator {
         if (comparator.isOtherNewerThanCurrent(mythicMobsVersion, new Version("5.0.0"))) {
             throw new UnsupportedVersionException(mythicMobs, "5.0.0+");
         }
-    }
-
-    @Override
-    public void reload() {
-        // Empty
-    }
-
-    @Override
-    public void close() {
-        // Empty
     }
 }
