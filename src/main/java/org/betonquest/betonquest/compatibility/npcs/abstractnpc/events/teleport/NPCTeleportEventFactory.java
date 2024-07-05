@@ -27,7 +27,7 @@ public class NPCTeleportEventFactory extends NPCFactory implements ComposedEvent
     @Override
     public ComposedEvent parseComposedEvent(final Instruction instruction) throws InstructionParseException {
         final String npcId = instruction.next();
-        final Supplier<BQNPCAdapter> npcSupplier = getSupplierByID(npcId);
+        final Supplier<BQNPCAdapter<?>> npcSupplier = getSupplierByID(npcId);
         final VariableLocation location = instruction.getLocation();
         return new NPCTeleportEvent(npcId, npcSupplier, location);
     }

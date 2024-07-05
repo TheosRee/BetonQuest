@@ -12,18 +12,18 @@ import java.util.function.Supplier;
  */
 @SuppressWarnings("PMD.CommentRequired")
 public class NPCRegionCondition implements PlayerlessCondition {
-    private final Supplier<BQNPCAdapter> npcSupplier;
+    private final Supplier<BQNPCAdapter<?>> npcSupplier;
 
     private final String region;
 
-    public NPCRegionCondition(final Supplier<BQNPCAdapter> npcSupplier, final String region) {
+    public NPCRegionCondition(final Supplier<BQNPCAdapter<?>> npcSupplier, final String region) {
         this.npcSupplier = npcSupplier;
         this.region = region;
     }
 
     @Override
     public boolean check() throws QuestRuntimeException {
-        final BQNPCAdapter npc = npcSupplier.get();
+        final BQNPCAdapter<?> npc = npcSupplier.get();
         return npc != null && WorldGuardIntegrator.isInsideRegion(npc.getLocation(), region);
     }
 }

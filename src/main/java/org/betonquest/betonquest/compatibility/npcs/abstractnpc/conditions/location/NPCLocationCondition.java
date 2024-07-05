@@ -18,13 +18,13 @@ import java.util.function.Supplier;
 public class NPCLocationCondition implements Condition {
     private final String npcId;
 
-    private final Supplier<BQNPCAdapter> npcSupplier;
+    private final Supplier<BQNPCAdapter<?>> npcSupplier;
 
     private final VariableLocation location;
 
     private final VariableNumber radius;
 
-    public NPCLocationCondition(final String npcId, final Supplier<BQNPCAdapter> npcSupplier,
+    public NPCLocationCondition(final String npcId, final Supplier<BQNPCAdapter<?>> npcSupplier,
                                 final VariableLocation location, final VariableNumber radius) {
         this.npcId = npcId;
         this.npcSupplier = npcSupplier;
