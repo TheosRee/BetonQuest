@@ -47,7 +47,7 @@ public class NPCVariableFactory extends NPCFactory implements PlayerlessVariable
 
     @Override
     public PlayerlessVariable parsePlayerless(final Instruction instruction) throws InstructionParseException {
-        final Supplier<BQNPCAdapter> npcSupplier = getSupplierByID(instruction.next());
+        final Supplier<BQNPCAdapter<?>> npcSupplier = getSupplierByID(instruction.next());
         final Argument key = instruction.getEnum(Argument.class);
         final LocationVariable location = key == Argument.LOCATION ? parseLocation(instruction) : null;
         return new NPCVariable(npcSupplier, key, location);

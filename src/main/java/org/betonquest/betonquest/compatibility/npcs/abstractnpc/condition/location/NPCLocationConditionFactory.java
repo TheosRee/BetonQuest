@@ -28,7 +28,7 @@ public class NPCLocationConditionFactory extends NPCFactory implements Condition
     @Override
     public Condition parse(final Instruction instruction) throws InstructionParseException {
         final String npcId = instruction.next();
-        final Supplier<BQNPCAdapter> supplier = getSupplierByID(npcId);
+        final Supplier<BQNPCAdapter<?>> supplier = getSupplierByID(npcId);
         final VariableLocation location = instruction.getLocation();
         final VariableNumber radius = instruction.getVarNum();
         return new NPCLocationCondition(npcId, supplier, location, radius);
