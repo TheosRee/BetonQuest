@@ -20,6 +20,7 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.Serial;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -320,6 +321,30 @@ public class NewInstruction {
             return new String[0];
         }
         return StringUtils.split(string, ",");
+    }
+
+    public <T> T[] getArray(final Converter<T> converter) throws InstructionParseException {
+        return getArray(next(), converter);
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T> T[] getArray(@Nullable final String string, final Converter<T> converter) throws InstructionParseException {
+        if (string == null) {
+            return (T[]) new Object[0];
+        }
+        final String[] array = getArray(string);
+        if (array.length == 0) {
+            return (T[]) new Object[0];
+        }
+
+        final T first = converter.convert(array[0]);
+        final T[] result = (T[]) Array.newInstance(first.getClass(), array.length);
+        result[0] = first;
+
+        for (int i = 1; i < array.length; i++) {
+            result[i] = converter.convert(array[i]);
+        }
+        return result;
     }
 
     public <T> List<T> getList(final Converter<T> converter) throws InstructionParseException {
