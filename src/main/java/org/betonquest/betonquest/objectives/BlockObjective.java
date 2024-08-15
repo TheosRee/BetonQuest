@@ -8,6 +8,7 @@ import org.betonquest.betonquest.api.profiles.OnlineProfile;
 import org.betonquest.betonquest.api.profiles.Profile;
 import org.betonquest.betonquest.exceptions.InstructionParseException;
 import org.betonquest.betonquest.exceptions.QuestRuntimeException;
+import org.betonquest.betonquest.instruction.variable.VariableNumber;
 import org.betonquest.betonquest.instruction.variable.location.VariableLocation;
 import org.betonquest.betonquest.utils.BlockSelector;
 import org.betonquest.betonquest.utils.PlayerConverter;
@@ -67,12 +68,12 @@ public class BlockObjective extends CountingObjective implements Listener {
     public BlockObjective(final Instruction instruction) throws InstructionParseException {
         super(instruction);
         logger = BetonQuest.getInstance().getLoggerFactory().create(BetonQuest.getInstance());
-        selector = instruction.getBlockSelector();
+        selector = instruction.fun(BlockSelector::new);
         exactMatch = instruction.hasArgument("exactMatch");
-        targetAmount = instruction.getVarNum();
+        targetAmount = instruction.fun(VariableNumber::new);
         noSafety = instruction.hasArgument("noSafety");
-        location = instruction.getLocation(instruction.getOptional("loc"));
-        region = instruction.getLocation(instruction.getOptional("region"));
+        location = instruction.fun(VariableLocation::new, instruction.getOptional("loc"));
+        region = instruction.fun(VariableLocation::new, instruction.getOptional("region"));
         ignorecancel = instruction.hasArgument("ignorecancel");
     }
 
