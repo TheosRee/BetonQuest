@@ -31,7 +31,7 @@ public class AlternativeCondition extends Condition {
         staticness = true;
         persistent = true;
         this.log = BetonQuest.getInstance().getLoggerFactory().create(getClass());
-        conditionIDs = instruction.getList(instruction::getCondition);
+        conditionIDs = instruction.getList(string -> instruction.getID(ConditionID::new));
     }
 
     @SuppressWarnings("PMD.CognitiveComplexity")

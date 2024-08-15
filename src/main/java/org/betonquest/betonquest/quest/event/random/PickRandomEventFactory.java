@@ -96,7 +96,7 @@ public class PickRandomEventFactory implements EventFactory, StaticEventFactory 
                 final VariableNumber chance = new VariableNumber(variableProcessor, instruction.getPackage(), "%" + parts[1] + "%");
                 return new RandomEvent(eventID, chance);
             }
-            throw new InstructionParseException("Error while loading event: '" + instruction.getEvent().getFullID() + "'. Wrong number of % detected. Check your event.");
+            throw new InstructionParseException("Error while loading event: '" + instruction.getID(EventID::new).getFullID() + "'. Wrong number of % detected. Check your event.");
         });
         final VariableNumber amount = instruction.getVarNum(instruction.getOptional("amount"));
         return new NullableEventAdapter(new PickRandomEvent(events, amount));

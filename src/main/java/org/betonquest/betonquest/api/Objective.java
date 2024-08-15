@@ -248,7 +248,9 @@ public abstract class Objective {
             Config.sendNotify(instruction.getPackage(), onlineProfile, messageName, stringVariables, messageName + ",info");
         } catch (final QuestRuntimeException exception) {
             try {
-                log.warn(instruction.getPackage(), "The notify system was unable to play a sound for the '" + messageName + "' category in '" + instruction.getObjective().getFullID() + "'. Error was: '" + exception.getMessage() + "'");
+                log.warn(instruction.getPackage(), "The notify system was unable to play a sound for the '"
+                        + messageName + "' category in '" + instruction.getID(ObjectiveID::new)
+                        + "'. Error was: '" + exception.getMessage() + "'");
             } catch (final InstructionParseException e) {
                 log.reportException(instruction.getPackage(), e);
             }

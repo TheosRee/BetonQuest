@@ -73,7 +73,7 @@ public class ActionObjective extends Objective implements Listener {
         if (ANY.equalsIgnoreCase(instruction.next())) {
             selector = null;
         } else {
-            selector = instruction.getBlockSelector(instruction.current());
+            selector = instruction.fun(BlockSelector::new, instruction.current());
         }
         exactMatch = instruction.hasArgument("exactMatch");
         loc = instruction.getLocation(instruction.getOptional("loc"));
@@ -169,5 +169,4 @@ public class ActionObjective extends Objective implements Listener {
                     || this == LEFT && (action == LEFT_CLICK_AIR || action == LEFT_CLICK_BLOCK);
         }
     }
-
 }

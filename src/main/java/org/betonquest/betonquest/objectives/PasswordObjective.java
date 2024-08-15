@@ -42,7 +42,7 @@ public class PasswordObjective extends Objective implements Listener {
         regex = Pattern.compile(pattern, regexFlags);
         final String prefix = instruction.getOptional("prefix");
         passwordPrefix = prefix == null || prefix.isEmpty() ? prefix : prefix + ": ";
-        failEvents = instruction.getList(instruction.getOptional("fail"), instruction::getEvent).toArray(new EventID[0]);
+        failEvents = instruction.getArray(instruction.getOptional("fail"), string -> instruction.getID(EventID::new));
     }
 
     @EventHandler(priority = EventPriority.LOW, ignoreCancelled = true)
@@ -103,5 +103,4 @@ public class PasswordObjective extends Objective implements Listener {
     public String getProperty(final String name, final Profile profile) {
         return "";
     }
-
 }

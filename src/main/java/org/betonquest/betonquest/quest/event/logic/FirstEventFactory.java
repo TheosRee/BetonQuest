@@ -32,7 +32,7 @@ public class FirstEventFactory implements EventFactory, StaticEventFactory {
     }
 
     private NullableEventAdapter createFirstEvent(final Instruction instruction) throws InstructionParseException {
-        final List<EventID> list = instruction.getList(instruction::getEvent);
+        final List<EventID> list = instruction.getList(string -> instruction.getID(EventID::new));
         return new NullableEventAdapter(new FirstEvent(list));
     }
 }

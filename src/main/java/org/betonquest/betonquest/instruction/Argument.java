@@ -1,7 +1,6 @@
 package org.betonquest.betonquest.instruction;
 
 import org.betonquest.betonquest.exceptions.InstructionParseException;
-import org.betonquest.betonquest.utils.BlockSelector;
 
 /**
  * Objectified parser for the Instruction.
@@ -9,11 +8,6 @@ import org.betonquest.betonquest.utils.BlockSelector;
  * @param <T> what the argument returns
  */
 public interface Argument<T> {
-    /**
-     * {@link BlockSelector} argument.
-     */
-    Argument<BlockSelector> BLOCK_SELECTOR = BlockSelector::new;
-
     /**
      * Gets a {@link T} from string.
      *

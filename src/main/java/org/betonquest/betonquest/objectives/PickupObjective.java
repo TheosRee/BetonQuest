@@ -6,7 +6,7 @@ import org.betonquest.betonquest.Instruction.Item;
 import org.betonquest.betonquest.api.CountingObjective;
 import org.betonquest.betonquest.api.profiles.OnlineProfile;
 import org.betonquest.betonquest.exceptions.InstructionParseException;
-import org.betonquest.betonquest.instruction.variable.VariableNumber;
+import org.betonquest.betonquest.instruction.VariableArgument;
 import org.betonquest.betonquest.utils.PlayerConverter;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -24,7 +24,7 @@ public class PickupObjective extends CountingObjective implements Listener {
     public PickupObjective(final Instruction instruction) throws InstructionParseException {
         super(instruction, "items_to_pickup");
         pickupItems = instruction.getItemList();
-        targetAmount = instruction.getVarNum(instruction.getOptional("amount", "1"), VariableNumber.NOT_LESS_THAN_ONE_CHECKER);
+        targetAmount = instruction.fun(VariableArgument.NUMBER_NOT_LESS_THAN_ONE, instruction.getOptional("amount", "1"));
     }
 
     @EventHandler(ignoreCancelled = true)

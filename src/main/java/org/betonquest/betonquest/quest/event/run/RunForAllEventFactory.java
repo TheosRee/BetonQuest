@@ -23,8 +23,8 @@ public class RunForAllEventFactory implements StaticEventFactory {
 
     @Override
     public StaticEvent parseStaticEvent(final Instruction instruction) throws InstructionParseException {
-        final List<EventID> events = instruction.getList(instruction.getOptional("events"), instruction::getEvent);
-        final List<ConditionID> conditions = instruction.getList(instruction.getOptional("where"), instruction::getCondition);
+        final List<EventID> events = instruction.getList(instruction.getOptional("events"), string -> instruction.getID(EventID::new));
+        final List<ConditionID> conditions = instruction.getList(instruction.getOptional("where"), string -> instruction.getID(ConditionID::new));
         return new RunForAllEvent(PlayerConverter::getOnlineProfiles, events, conditions);
     }
 }
