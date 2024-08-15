@@ -18,7 +18,7 @@ public class ConditionVariableFactory implements PlayerVariableFactory {
 
     @Override
     public PlayerVariable parsePlayer(final Instruction instruction) throws InstructionParseException {
-        final ConditionID conditionId = instruction.getCondition();
+        final ConditionID conditionId = instruction.getID(ConditionID::new);
         final boolean papiMode = instruction.hasArgument("papiMode");
         return new ConditionVariable(conditionId, papiMode);
     }
