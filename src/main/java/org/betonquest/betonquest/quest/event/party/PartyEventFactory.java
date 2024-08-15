@@ -30,10 +30,10 @@ public class PartyEventFactory implements EventFactory {
 
     @Override
     public Event parseEvent(final Instruction instruction) throws InstructionParseException {
-        final VariableNumber range = instruction.getVarNum();
-        final VariableNumber amount = instruction.getVarNum(instruction.getOptional("amount"));
-        final ConditionID[] conditions = instruction.getList(instruction::getCondition).toArray(new ConditionID[0]);
-        final EventID[] events = instruction.getList(instruction::getEvent).toArray(new EventID[0]);
+        final VariableNumber range = instruction.fun(VariableNumber::new);
+        final VariableNumber amount = instruction.fun(VariableNumber::new, instruction.getOptional("amount"));
+        final ConditionID[] conditions = instruction.getArray(string -> instruction.getID(ConditionID::new, string));
+        final EventID[] events = instruction.getArray(string -> instruction.getID(EventID::new, string));
         return new OnlineEventAdapter(
                 new PartyEvent(range, amount, conditions, events),
                 loggerFactory.create(PartyEvent.class),

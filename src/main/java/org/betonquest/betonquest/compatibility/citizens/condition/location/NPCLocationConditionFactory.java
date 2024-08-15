@@ -7,7 +7,7 @@ import org.betonquest.betonquest.api.quest.condition.PlayerlessCondition;
 import org.betonquest.betonquest.api.quest.condition.PlayerlessConditionFactory;
 import org.betonquest.betonquest.api.quest.condition.nullable.NullableConditionAdapter;
 import org.betonquest.betonquest.exceptions.InstructionParseException;
-import org.betonquest.betonquest.instruction.VariableArgument;
+import org.betonquest.betonquest.instruction.argument.VariableArgument;
 import org.betonquest.betonquest.instruction.variable.VariableNumber;
 import org.betonquest.betonquest.instruction.variable.location.VariableLocation;
 import org.betonquest.betonquest.quest.PrimaryServerThreadData;

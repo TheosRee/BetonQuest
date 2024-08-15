@@ -29,8 +29,8 @@ public class LookingAtCondition extends Condition {
 
     public LookingAtCondition(final Instruction instruction) throws InstructionParseException {
         super(instruction, true);
-        loc = instruction.getLocation(instruction.getOptional("loc"));
-        selector = instruction.getBlockSelector(instruction.getOptional("type"));
+        loc = instruction.fun(VariableLocation::new, instruction.getOptional("loc"));
+        selector = instruction.fun(BlockSelector::new, instruction.getOptional("type"));
         exactMatch = instruction.hasArgument("exactMatch");
         if (loc == null && selector == null) {
             throw new InstructionParseException("You must define either 'loc:' or 'type:' optional");
@@ -52,5 +52,4 @@ public class LookingAtCondition extends Condition {
         }
         return selector == null || selector.match(lookingAt, exactMatch);
     }
-
 }

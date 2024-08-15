@@ -5,7 +5,7 @@ import org.betonquest.betonquest.Instruction;
 import org.betonquest.betonquest.api.CountingObjective;
 import org.betonquest.betonquest.api.profiles.OnlineProfile;
 import org.betonquest.betonquest.exceptions.InstructionParseException;
-import org.betonquest.betonquest.instruction.variable.VariableNumber;
+import org.betonquest.betonquest.instruction.argument.VariableArgument;
 import org.betonquest.betonquest.utils.PlayerConverter;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.EntityType;
@@ -27,12 +27,12 @@ public class TameObjective extends CountingObjective implements Listener {
     public TameObjective(final Instruction instruction) throws InstructionParseException {
         super(instruction, "animals_to_tame");
 
-        type = instruction.getEntity();
+        type = instruction.getEnum(EntityType.class);
         if (type.getEntityClass() == null || !Tameable.class.isAssignableFrom(type.getEntityClass())) {
             throw new InstructionParseException("Entity cannot be tamed: " + type);
         }
 
-        targetAmount = instruction.getVarNum(VariableNumber.NOT_LESS_THAN_ONE_CHECKER);
+        targetAmount = instruction.fun(VariableArgument.NUMBER_NOT_LESS_THAN_ONE);
     }
 
     @EventHandler(ignoreCancelled = true)

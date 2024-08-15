@@ -38,7 +38,7 @@ public class CommandObjective extends Objective implements Listener {
         ignoreCase = instruction.hasArgument("ignoreCase");
         exact = instruction.hasArgument("exact");
         cancel = instruction.hasArgument("cancel");
-        failEvents = instruction.getList(instruction.getOptional("failEvents"), instruction::getEvent).toArray(new EventID[0]);
+        failEvents = instruction.getArray(instruction.getOptional("failEvents"), string -> instruction.getID(EventID::new, string));
     }
 
     @SuppressWarnings("PMD.AvoidDeeplyNestedIfStmts")
@@ -89,5 +89,4 @@ public class CommandObjective extends Objective implements Listener {
                     : StringUtils.startsWith(commandExecuted, commandRequired);
         }
     }
-
 }

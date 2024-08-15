@@ -42,19 +42,21 @@ public class EffectEventFactory implements EventFactory {
         if (effect == null) {
             throw new InstructionParseException("Unknown effect type: " + instruction.current());
         }
+        final VariableNumber duration;
+        final VariableNumber level;
         try {
-            final VariableNumber duration = instruction.getVarNum();
-            final VariableNumber level = instruction.getVarNum();
-            final boolean ambient = instruction.hasArgument("ambient");
-            final boolean hidden = instruction.hasArgument("hidden");
-            final boolean icon = !instruction.hasArgument("noicon");
-            return new PrimaryServerThreadEvent(new OnlineEventAdapter(
-                    new EffectEvent(effect, duration, level, ambient, hidden, icon),
-                    loggerFactory.create(EffectEvent.class),
-                    instruction.getPackage()
-            ), data);
+            duration = instruction.getVarNum();
+            level = instruction.getVarNum();
         } catch (final InstructionParseException e) {
-            throw new InstructionParseException("Could not parse effect duration and amplifier", e);
+            throw new InstructionParseException("Could not parse effect duration/amplifier", e);
         }
+        final boolean ambient = instruction.hasArgument("ambient");
+        final boolean hidden = instruction.hasArgument("hidden");
+        final boolean icon = !instruction.hasArgument("noicon");
+        return new PrimaryServerThreadEvent(new OnlineEventAdapter(
+                new EffectEvent(effect, duration, level, ambient, hidden, icon),
+                loggerFactory.create(EffectEvent.class),
+                instruction.getPackage()
+        ), data);
     }
 }

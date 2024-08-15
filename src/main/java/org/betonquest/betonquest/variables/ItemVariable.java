@@ -6,6 +6,7 @@ import org.betonquest.betonquest.api.Variable;
 import org.betonquest.betonquest.api.profiles.OnlineProfile;
 import org.betonquest.betonquest.api.profiles.Profile;
 import org.betonquest.betonquest.exceptions.InstructionParseException;
+import org.betonquest.betonquest.id.ItemID;
 import org.betonquest.betonquest.item.QuestItem;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -64,7 +65,7 @@ public class ItemVariable extends Variable {
         }
         if (pos == 3) {
             final String path = instruction.getPart(1) + "." + instruction.getPart(2);
-            questItem = instruction.getQuestItem(path);
+            questItem = new QuestItem(instruction.getID(ItemID::new, path));
         } else {
             questItem = instruction.getQuestItem();
         }

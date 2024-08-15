@@ -37,7 +37,7 @@ public class VariableEventFactory implements EventFactory {
 
     @Override
     public Event parseEvent(final Instruction instruction) throws InstructionParseException {
-        final ObjectiveID objectiveID = instruction.getObjective();
+        final ObjectiveID objectiveID = instruction.getID(ObjectiveID::new);
         final VariableString key = new VariableString(variableProcessor, instruction.getPackage(), instruction.next(), true);
         final VariableString value = new VariableString(variableProcessor, instruction.getPackage(), instruction.next(), true);
         return new VariableEvent(objectiveID, key, value, betonQuest);

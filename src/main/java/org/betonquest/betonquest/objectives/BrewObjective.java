@@ -34,8 +34,7 @@ import java.util.stream.Collectors;
  * Requires the player to manually brew a potion.
  */
 @SuppressWarnings("PMD.CommentRequired")
-public class
-BrewObjective extends CountingObjective implements Listener {
+public class BrewObjective extends CountingObjective implements Listener {
     private final QuestItem potion;
 
     private final Map<Location, Profile> locations = new HashMap<>();
