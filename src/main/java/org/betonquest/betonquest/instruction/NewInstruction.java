@@ -320,6 +320,23 @@ public class NewInstruction {
         return string.split(",");
     }
 
+    public <T> T[] getArray(final Converter<T> converter) throws InstructionParseException {
+        return getArray(next(), converter);
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T> T[] getArray(@Nullable final String string, final Converter<T> converter) throws InstructionParseException {
+        if (string == null) {
+            return (T[]) new Object[0];
+        }
+        final String[] array = getArray(string);
+        final T[] result = (T[]) new Object[array.length];
+        for (int i = 0; i < array.length; i++) {
+            result[i] = converter.convert(array[i]);
+        }
+        return result;
+    }
+
     public <T> List<T> getList(final Converter<T> converter) throws InstructionParseException {
         return getList(next(), converter);
     }
