@@ -23,6 +23,12 @@ public interface VariableArgument<T> {
     VariableArgument<VariableNumber> NUMBER = VariableNumber::new;
 
     /**
+     * {@link VariableNumber} argument with {@link VariableNumber#NOT_LESS_THAN_ONE_CHECKER}.
+     */
+    VariableArgument<VariableNumber> NUMBER_NOT_LESS_THAN_ONE = (variableProcessor, pack, input) ->
+            new VariableNumber(variableProcessor, pack, input, VariableNumber.NOT_LESS_THAN_ONE_CHECKER);
+
+    /**
      * Gets a {@link T} from string.
      *
      * @param variableProcessor the variable processor for resolving
