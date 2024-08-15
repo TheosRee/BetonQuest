@@ -5,6 +5,7 @@ import org.betonquest.betonquest.Instruction;
 import org.betonquest.betonquest.api.quest.condition.PlayerCondition;
 import org.betonquest.betonquest.api.quest.condition.PlayerConditionFactory;
 import org.betonquest.betonquest.exceptions.InstructionParseException;
+import org.betonquest.betonquest.id.ObjectiveID;
 
 /**
  * A factory for creating ObjectiveConditions.
@@ -27,6 +28,6 @@ public class ObjectiveConditionFactory implements PlayerConditionFactory {
 
     @Override
     public PlayerCondition parsePlayer(final Instruction instruction) throws InstructionParseException {
-        return new ObjectiveCondition(instruction.getObjective(), betonQuest);
+        return new ObjectiveCondition(instruction.getID(ObjectiveID::new), betonQuest);
     }
 }

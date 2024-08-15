@@ -64,9 +64,9 @@ public class SpawnMobEventFactory implements EventFactory, StaticEventFactory {
      * @throws InstructionParseException if the instruction could not be parsed
      */
     public NullableEventAdapter createSpawnMobEvent(final Instruction instruction) throws InstructionParseException {
-        final VariableLocation loc = instruction.getLocation();
-        final EntityType type = instruction.getEntity();
-        final VariableNumber amount = instruction.getVarNum();
+        final VariableLocation loc = instruction.fun(VariableLocation::new);
+        final EntityType type = instruction.getEnum(EntityType.class);
+        final VariableNumber amount = instruction.fun(VariableNumber::new);
         final String nameString = instruction.getOptional("name");
         final VariableString name = nameString == null ? null : new VariableString(variableProcessor,
                 instruction.getPackage(),
@@ -91,7 +91,7 @@ public class SpawnMobEventFactory implements EventFactory, StaticEventFactory {
 
     @Nullable
     private QuestItem getQuestItem(final Instruction instruction, final String key) throws InstructionParseException {
-        final ItemID item = instruction.getItem(instruction.getOptional(key));
+        final ItemID item = instruction.getID(ItemID::new, instruction.getOptional(key));
         return item == null ? null : new QuestItem(item);
     }
 }

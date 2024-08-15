@@ -32,12 +32,12 @@ public class IfElseEventFactory implements EventFactory, StaticEventFactory {
     }
 
     private NullableEventAdapter createIfElseEvent(final Instruction instruction) throws InstructionParseException {
-        final ConditionID condition = instruction.getCondition();
-        final EventID event = instruction.getEvent();
+        final ConditionID condition = instruction.getID(ConditionID::new);
+        final EventID event = instruction.getID(EventID::new);
         if (!"else".equalsIgnoreCase(instruction.next())) {
             throw new InstructionParseException("Missing 'else' keyword");
         }
-        final EventID elseEvent = instruction.getEvent();
+        final EventID elseEvent = instruction.getID(EventID::new);
         return new NullableEventAdapter(new IfElseEvent(condition, event, elseEvent));
     }
 }
