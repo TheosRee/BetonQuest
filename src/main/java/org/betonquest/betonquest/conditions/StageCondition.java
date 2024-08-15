@@ -36,7 +36,7 @@ public class StageCondition extends BaseNumberCompareCondition {
      */
     public StageCondition(final Instruction instruction) throws InstructionParseException {
         super(instruction);
-        objectiveID = instruction.getObjective();
+        objectiveID = instruction.getID(ObjectiveID::new);
         operation = fromSymbol(instruction.next());
         targetStage = new VariableString(instruction.getPackage(), instruction.next());
     }

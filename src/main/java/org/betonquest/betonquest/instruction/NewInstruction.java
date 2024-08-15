@@ -278,6 +278,27 @@ public class NewInstruction {
         return argument.convert(BetonQuest.getInstance().getVariableProcessor(), pack, string);
     }
 
+    /////////////////
+    ///    IDs    ///
+    /////////////////
+
+    public <T extends ID> T getID(final IDArgument<T> argument) throws InstructionParseException {
+        return getID(argument, next());
+    }
+
+    @Contract("_, !null -> !null")
+    @Nullable
+    public <T extends ID> T getID(final IDArgument<T> argument, @Nullable final String string) throws InstructionParseException {
+        if (string == null) {
+            return null;
+        }
+        try {
+            return argument.convert(pack, string);
+        } catch (final ObjectNotFoundException e) {
+            throw new PartParseException("Error while loading item: " + e.getMessage(), e);
+        }
+    }
+
     ///////////////////
     ///    Enums    ///
     ///////////////////
