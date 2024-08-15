@@ -295,7 +295,7 @@ public class NewInstruction {
         try {
             return argument.convert(pack, string);
         } catch (final ObjectNotFoundException e) {
-            throw new PartParseException("Error while loading item: " + e.getMessage(), e);
+            throw new PartParseException("Error while loading id: " + e.getMessage(), e);
         }
     }
 
@@ -379,9 +379,7 @@ public class NewInstruction {
     /////////////////////////
 
     public interface Converter<T> {
-        @Contract("null -> null; !null -> !null")
-        @Nullable
-        T convert(@Nullable String string) throws InstructionParseException;
+        T convert(String string) throws InstructionParseException;
     }
 
     @SuppressWarnings("PMD.ShortClassName")
