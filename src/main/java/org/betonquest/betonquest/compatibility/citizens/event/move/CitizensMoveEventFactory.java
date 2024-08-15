@@ -45,8 +45,8 @@ public class CitizensMoveEventFactory implements EventFactory {
             throw new InstructionParseException("Not enough arguments");
         }
         final int waitTicks = instruction.getInt(instruction.getOptional("wait"), 0);
-        final EventID[] doneEvents = instruction.getList(instruction.getOptional("done"), instruction::getEvent).toArray(new EventID[0]);
-        final EventID[] failEvents = instruction.getList(instruction.getOptional("fail"), instruction::getEvent).toArray(new EventID[0]);
+        final EventID[] doneEvents = instruction.getArray(instruction.getOptional("done"), instruction::getEvent);
+        final EventID[] failEvents = instruction.getArray(instruction.getOptional("fail"), instruction::getEvent);
         final boolean blockConversations = instruction.hasArgument("block");
         final CitizensMoveController.MoveData moveAction = new CitizensMoveController.MoveData(locations, waitTicks, doneEvents, failEvents, blockConversations, instruction.getPackage());
         return new PrimaryServerThreadEvent(new CitizensMoveEvent(npcId, citizensMoveController, moveAction), data);
