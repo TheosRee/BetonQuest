@@ -40,15 +40,16 @@ public class CitizensMoveEventFactory implements EventFactory {
     @SuppressWarnings("PMD.PrematureDeclaration")
     public Event parseEvent(final Instruction instruction) throws InstructionParseException {
         final int npcId = instruction.getInt();
-        final List<VariableLocation> locations = instruction.getList(instruction::getLocation);
+        final List<VariableLocation> locations = instruction.getList(string -> instruction.fun(VariableLocation::new));
         if (locations.isEmpty()) {
             throw new InstructionParseException("Not enough arguments");
         }
         final int waitTicks = instruction.getInt(instruction.getOptional("wait"), 0);
-        final EventID[] doneEvents = instruction.getArray(instruction.getOptional("done"), instruction::getEvent);
-        final EventID[] failEvents = instruction.getArray(instruction.getOptional("fail"), instruction::getEvent);
+        final EventID[] doneEvents = instruction.getArray(instruction.getOptional("done"), string -> instruction.getID(EventID::new, string));
+        final EventID[] failEvents = instruction.getArray(instruction.getOptional("fail"), string -> instruction.getID(EventID::new, string));
         final boolean blockConversations = instruction.hasArgument("block");
-        final CitizensMoveController.MoveData moveAction = new CitizensMoveController.MoveData(locations, waitTicks, doneEvents, failEvents, blockConversations, instruction.getPackage());
+        final CitizensMoveController.MoveData moveAction = new CitizensMoveController.MoveData(locations, waitTicks,
+                doneEvents, failEvents, blockConversations, instruction.getPackage());
         return new PrimaryServerThreadEvent(new CitizensMoveEvent(npcId, citizensMoveController, moveAction), data);
     }
 }

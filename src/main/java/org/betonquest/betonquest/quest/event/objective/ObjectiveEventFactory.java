@@ -55,5 +55,4 @@ public class ObjectiveEventFactory implements EventFactory, StaticEventFactory {
         final List<ObjectiveID> objectives = instruction.getList(instruction::getObjective);
         return new NullableEventAdapter(new ObjectiveEvent(betonQuest, loggerFactory.create(ObjectiveEvent.class), instruction.getPackage(), objectives, action));
     }
-
 }

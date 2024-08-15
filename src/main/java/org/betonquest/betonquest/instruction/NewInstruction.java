@@ -10,6 +10,9 @@ import org.betonquest.betonquest.exceptions.ObjectNotFoundException;
 import org.betonquest.betonquest.id.ID;
 import org.betonquest.betonquest.id.ItemID;
 import org.betonquest.betonquest.id.NoID;
+import org.betonquest.betonquest.instruction.argument.Argument;
+import org.betonquest.betonquest.instruction.argument.IDArgument;
+import org.betonquest.betonquest.instruction.argument.VariableArgument;
 import org.betonquest.betonquest.instruction.tokenizer.QuotingTokenizer;
 import org.betonquest.betonquest.instruction.tokenizer.Tokenizer;
 import org.betonquest.betonquest.instruction.tokenizer.TokenizerException;
@@ -27,7 +30,13 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 
+@SuppressWarnings({"PMD.CommentRequired", "PMD.CouplingBetweenObjects", "PMD.GodClass", "PMD.TooManyMethods"})
 public class NewInstruction {
+    /**
+     * A method that does not return null if the second parameter is also not null.
+     */
+    private static final String BLANK_NOT_NULL_NOT_NULL_CONTRACT = "_, !null -> !null";
+
     /**
      * The raw instruction string.
      */
@@ -214,7 +223,7 @@ public class NewInstruction {
      * @param defaultString the default value
      * @return the value or the default value
      */
-    @Contract("_, !null -> !null")
+    @Contract(BLANK_NOT_NULL_NOT_NULL_CONTRACT)
     @Nullable
     public String getOptional(final String prefix, @Nullable final String defaultString) {
         return getOptionalArgument(prefix).orElse(defaultString);
@@ -250,7 +259,7 @@ public class NewInstruction {
         return fun(argument, next());
     }
 
-    @Contract("_, !null -> !null")
+    @Contract(BLANK_NOT_NULL_NOT_NULL_CONTRACT)
     @Nullable
     public <T> T fun(final Argument<T> argument, @Nullable final String string) throws InstructionParseException {
         if (string == null) {
@@ -263,7 +272,7 @@ public class NewInstruction {
         return fun(argument, next());
     }
 
-    @Contract("_, !null -> !null")
+    @Contract(BLANK_NOT_NULL_NOT_NULL_CONTRACT)
     @Nullable
     public <T> T fun(final VariableArgument<T> argument, @Nullable final String string) throws InstructionParseException {
         if (string == null) {
@@ -276,7 +285,7 @@ public class NewInstruction {
         return getID(argument, next());
     }
 
-    @Contract("_, !null -> !null")
+    @Contract(BLANK_NOT_NULL_NOT_NULL_CONTRACT)
     @Nullable
     public <T extends ID> T getID(final IDArgument<T> argument, @Nullable final String string) throws InstructionParseException {
         if (string == null) {

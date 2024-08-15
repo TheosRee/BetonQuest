@@ -8,10 +8,10 @@ import org.betonquest.betonquest.Instruction;
 import org.betonquest.betonquest.api.CountingObjective;
 import org.betonquest.betonquest.api.profiles.OnlineProfile;
 import org.betonquest.betonquest.exceptions.InstructionParseException;
+import org.betonquest.betonquest.instruction.argument.VariableArgument;
 import org.betonquest.betonquest.instruction.variable.VariableNumber;
 import org.betonquest.betonquest.instruction.variable.VariableString;
 import org.betonquest.betonquest.utils.PlayerConverter;
-import org.betonquest.betonquest.utils.Utils;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
@@ -72,23 +72,19 @@ public class MythicMobKillObjective extends CountingObjective implements Listene
         super(instruction, "mobs_to_kill");
 
         Collections.addAll(names, instruction.getArray());
-        targetAmount = instruction.getVarNum(instruction.getOptional("amount", "1"), VariableNumber.NOT_LESS_THAN_ONE_CHECKER);
+        targetAmount = instruction.fun(VariableArgument.NUMBER_NOT_LESS_THAN_ONE, instruction.getOptional("amount", "1"));
 
         final double deathRadiusAllPlayersTemp = instruction.getDouble(instruction.getOptional("deathRadiusAllPlayers"), 0);
-        deathRadiusAllPlayers = Math.pow(deathRadiusAllPlayersTemp, 2);
+        deathRadiusAllPlayers = deathRadiusAllPlayersTemp * deathRadiusAllPlayersTemp;
         final double neutralDeathRadiusAllPlayersTemp = instruction.getDouble(instruction.getOptional("neutralDeathRadiusAllPlayers"), 0);
-        neutralDeathRadiusAllPlayers = Math.pow(neutralDeathRadiusAllPlayersTemp, 2);
+        neutralDeathRadiusAllPlayers = neutralDeathRadiusAllPlayersTemp * neutralDeathRadiusAllPlayersTemp;
 
         final String unsafeMinMobLevel = instruction.getOptional("minLevel");
         final String unsafeMaxMobLevel = instruction.getOptional("maxLevel");
 
-        minMobLevel = instruction.getVarNum(unsafeMinMobLevel == null ? String.valueOf(Double.NEGATIVE_INFINITY) : unsafeMinMobLevel);
-        maxMobLevel = instruction.getVarNum(unsafeMaxMobLevel == null ? String.valueOf(Double.POSITIVE_INFINITY) : unsafeMaxMobLevel);
-        final String markedString = instruction.getOptional("marked");
-        marked = markedString == null ? null : new VariableString(
-                instruction.getPackage(),
-                Utils.addPackage(instruction.getPackage(), markedString)
-        );
+        minMobLevel = instruction.fun(VariableNumber::new, unsafeMinMobLevel == null ? String.valueOf(Double.NEGATIVE_INFINITY) : unsafeMinMobLevel);
+        maxMobLevel = instruction.fun(VariableNumber::new, unsafeMaxMobLevel == null ? String.valueOf(Double.POSITIVE_INFINITY) : unsafeMaxMobLevel);
+        marked = instruction.fun(VariableArgument.STRING_WITH_PACKAGE, instruction.getOptional("marked"));
     }
 
     /**
@@ -143,7 +139,6 @@ public class MythicMobKillObjective extends CountingObjective implements Listene
             getCountingData(onlineProfile).progress();
             completeIfDoneOrNotify(onlineProfile);
         }
-
     }
 
     private boolean matchesMobLevel(final OnlineProfile onlineProfile, final ActiveMob mob) {

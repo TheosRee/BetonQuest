@@ -61,7 +61,7 @@ public class DropEventFactory implements EventFactory, StaticEventFactory {
     }
 
     private Item[] parseItemList(final Instruction instruction) throws InstructionParseException {
-        final Item[] items = instruction.getItemListArgument("items");
+        final Item[] items = instruction.getItemList(instruction.getOptional("items"));
         if (items.length == 0) {
             throw new InstructionParseException("No items to drop defined");
         }

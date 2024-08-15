@@ -77,7 +77,7 @@ public class ActionObjective extends Objective implements Listener {
         if (ANY.equalsIgnoreCase(instruction.next())) {
             selector = null;
         } else {
-            selector = instruction.getBlockSelector(instruction.current());
+            selector = instruction.fun(BlockSelector::new, instruction.current());
         }
         exactMatch = instruction.hasArgument("exactMatch");
         loc = instruction.getLocation(instruction.getOptional("loc"));

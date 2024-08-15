@@ -42,7 +42,7 @@ public class SetBlockEventFactory implements EventFactory, StaticEventFactory {
     }
 
     private NullableEventAdapter createSetBlockEvent(final Instruction instruction) throws InstructionParseException {
-        final BlockSelector blockSelector = instruction.getBlockSelector(instruction.next());
+        final BlockSelector blockSelector = instruction.fun(BlockSelector::new);
         final VariableLocation variableLocation = instruction.getLocation();
         final boolean applyPhysics = !instruction.hasArgument("ignorePhysics");
         return new NullableEventAdapter(new SetBlockEvent(blockSelector, variableLocation, applyPhysics));
