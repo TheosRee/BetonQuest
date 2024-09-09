@@ -7,10 +7,6 @@ import org.betonquest.betonquest.api.quest.PlayerlessQuestFactory;
 import org.betonquest.betonquest.quest.legacy.LegacyTypeFactory;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-
 /**
  * Stores the Types that can be used in BetonQuest.
  *
@@ -19,27 +15,7 @@ import java.util.Set;
  * @param <L> the legacy structure based on the {@link org.betonquest.betonquest.Instruction Instruction}
  *            as defined in the {@link org.betonquest.betonquest.api API package}
  */
-public abstract class QuestTypeRegistry<P, S, L> {
-    /**
-     * Custom {@link BetonQuestLogger} instance for this class.
-     */
-    private final BetonQuestLogger log;
-
-    /**
-     * Logger factory to create class specific logger for quest type factories.
-     */
-    private final BetonQuestLoggerFactory loggerFactory;
-
-    /**
-     * Name of the type to display in register log.
-     */
-    private final String typeName;
-
-    /**
-     * Map of registered legacy factories.
-     */
-    private final Map<String, LegacyTypeFactory<L>> types = new HashMap<>();
-
+public abstract class QuestTypeRegistry<P, S, L> extends TypeRegistry<L> {
     /**
      * Create a new type registry.
      *
@@ -48,9 +24,7 @@ public abstract class QuestTypeRegistry<P, S, L> {
      * @param typeName      the name of the type to use in the register log message
      */
     public QuestTypeRegistry(final BetonQuestLogger log, final BetonQuestLoggerFactory loggerFactory, final String typeName) {
-        this.log = log;
-        this.loggerFactory = loggerFactory;
-        this.typeName = typeName;
+        super(log, loggerFactory, typeName);
     }
 
     /**
@@ -141,24 +115,4 @@ public abstract class QuestTypeRegistry<P, S, L> {
     protected abstract LegacyTypeFactory<L> getLegacyFactoryAdapter(
             @Nullable PlayerQuestFactory<P> playerFactory,
             @Nullable PlayerlessQuestFactory<S> playerlessFactory);
-
-    /**
-     * Fetches the factory to create the type registered with the given name.
-     *
-     * @param name the name of the type
-     * @return a factory to create the type
-     */
-    @Nullable
-    public LegacyTypeFactory<L> getFactory(final String name) {
-        return types.get(name);
-    }
-
-    /**
-     * Gets the keys of all registered types.
-     *
-     * @return the actual key set
-     */
-    public Set<String> keySet() {
-        return types.keySet();
-    }
 }
