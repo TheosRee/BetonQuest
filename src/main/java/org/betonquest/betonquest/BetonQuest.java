@@ -110,6 +110,7 @@ import org.betonquest.betonquest.notify.TotemNotifyIO;
 import org.betonquest.betonquest.quest.registry.CoreQuestTypes;
 import org.betonquest.betonquest.quest.registry.QuestRegistry;
 import org.betonquest.betonquest.quest.registry.QuestTypeRegistries;
+import org.betonquest.betonquest.quest.registry.processor.NpcProcessor;
 import org.betonquest.betonquest.quest.registry.processor.VariableProcessor;
 import org.betonquest.betonquest.quest.registry.type.QuestTypeRegistry;
 import org.betonquest.betonquest.quest.registry.type.TypeFactory;
@@ -1108,5 +1109,14 @@ public class BetonQuest extends JavaPlugin {
      */
     public VariableProcessor getVariableProcessor() {
         return questRegistry.variables();
+    }
+
+    /**
+     * Get the NpcProcessor instance.
+     *
+     * @return the NpcProcessor to start npc conversations
+     */
+    public NpcProcessor getNpcProcessor() {
+        return questRegistry.npcs();
     }
 }
