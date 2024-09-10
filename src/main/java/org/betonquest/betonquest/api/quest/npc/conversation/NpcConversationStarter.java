@@ -32,11 +32,6 @@ public abstract class NpcConversationStarter<T> {
     private final NpcProcessor npcProcessor;
 
     /**
-     * Identifier used to register the {@link #npcFactory}.
-     */
-    private final String prefix;
-
-    /**
      * A listener for right-clicking a Citizens NPC.
      */
     @Nullable
@@ -54,14 +49,12 @@ public abstract class NpcConversationStarter<T> {
      * @param plugin       the plugin to register listener and load config
      * @param npcFactory   the factory to identify the clicked Npc
      * @param npcProcessor the processor to start conversations on Npc interaction
-     * @param prefix       the same as used to register the {@code npcFactory}
      */
     @SuppressWarnings("PMD.ConstructorCallsOverridableMethod")
-    public NpcConversationStarter(final BetonQuest plugin, final NpcFactory<T> npcFactory, final NpcProcessor npcProcessor, final String prefix) {
+    public NpcConversationStarter(final BetonQuest plugin, final NpcFactory<T> npcFactory, final NpcProcessor npcProcessor) {
         this.plugin = plugin;
         this.npcFactory = npcFactory;
         this.npcProcessor = npcProcessor;
-        this.prefix = prefix + " "; // TODO das ist verdammt hässlich!
         reload();
     }
 

@@ -104,11 +104,10 @@ public class CitizensIntegrator implements Integrator {
         conditionTypes.register("npcdistance", new NPCDistanceConditionFactory(data, loggerFactory));
         conditionTypes.registerCombined("npclocation", new NPCLocationConditionFactory(data));
 
-        final String npc = "citizens";
         final CitizensNpcFactory citizensNpcFactory = new CitizensNpcFactory();
         this.zwei = new org.betonquest.betonquest.api.quest.npc.feature_citizens.CitizensConversationStarter(
-                plugin, citizensNpcFactory, plugin.getNpcProcessor(), npc, citizensMoveController);
-        questRegistries.getNpcTypes().register(npc, citizensNpcFactory, zwei);
+                plugin, citizensNpcFactory, plugin.getNpcProcessor(), citizensMoveController);
+        questRegistries.getNpcTypes().register("citizens", citizensNpcFactory, zwei);
     }
 
     @Override

@@ -27,12 +27,11 @@ public class CitizensConversationStarter extends NpcConversationStarter<NPC> {
      * @param plugin                 the plugin to register listener and load config
      * @param npcFactory             the factory to identify the clicked Npc
      * @param npcProcessor           the processor to start conversations on Npc interaction
-     * @param prefix                 the same as used to register the {@code npcFactory}
      * @param citizensMoveController the move controller to check if the NPC currently blocks conversations
      */
     public CitizensConversationStarter(final BetonQuest plugin, final NpcFactory<NPC> npcFactory, final NpcProcessor npcProcessor,
-                                       final String prefix, final CitizensMoveController citizensMoveController) {
-        super(plugin, npcFactory, npcProcessor, prefix);
+                                       final CitizensMoveController citizensMoveController) {
+        super(plugin, npcFactory, npcProcessor);
         this.citizensMoveController = citizensMoveController;
     }
 
