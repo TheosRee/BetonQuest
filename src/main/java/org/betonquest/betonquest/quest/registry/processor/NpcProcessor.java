@@ -164,8 +164,8 @@ public class NpcProcessor extends TypedQuestProcessor<NpcID, NpcWrapper<?>> {
         if (npcsByName) {
             selector = npc.getName();
         } else {
-            final NpcTypeRegistry types1 = (NpcTypeRegistry) types;
-            selector = types1.getFactoryIdentifier(npcFactory) + " " + npcFactory.npcToInstructionString(npc);
+            // TODO find a better way for this…
+            selector = ((NpcTypeRegistry) types).getFactoryIdentifier(npcFactory) + " " + npcFactory.npcToInstructionString(npc);
         }
         final ConversationID conversationID = assignedConversations.get(selector);
 
