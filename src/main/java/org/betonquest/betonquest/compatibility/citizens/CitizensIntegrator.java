@@ -2,6 +2,7 @@ package org.betonquest.betonquest.compatibility.citizens;
 
 import org.betonquest.betonquest.BetonQuest;
 import org.betonquest.betonquest.api.logger.BetonQuestLoggerFactory;
+import org.betonquest.betonquest.api.quest.npc.feature_citizens.CitizensNpcFactory;
 import org.betonquest.betonquest.compatibility.Compatibility;
 import org.betonquest.betonquest.compatibility.Integrator;
 import org.betonquest.betonquest.compatibility.citizens.condition.distance.NPCDistanceConditionFactory;
@@ -52,6 +53,8 @@ public class CitizensIntegrator implements Integrator {
      * Handles NPC movement of the {@link CitizensMoveEvent}.
      */
     private CitizensMoveController citizensMoveController;
+
+    private org.betonquest.betonquest.api.quest.npc.feature_citizens.CitizensConversationStarter zwei;
 
     /**
      * The default Constructor.
@@ -104,6 +107,11 @@ public class CitizensIntegrator implements Integrator {
         final ConditionTypeRegistry conditionTypes = questRegistries.condition();
         conditionTypes.register("npcdistance", new NPCDistanceConditionFactory(data, loggerFactory));
         conditionTypes.registerCombined("npclocation", new NPCLocationConditionFactory(data));
+
+        final CitizensNpcFactory citizensNpcFactory = new CitizensNpcFactory();
+        this.zwei = new org.betonquest.betonquest.api.quest.npc.feature_citizens.CitizensConversationStarter(
+                plugin, citizensNpcFactory, plugin.getNpcProcessor(), citizensMoveController);
+        questRegistries.npc().register("citizens", citizensNpcFactory, zwei);
     }
 
     @Override
@@ -125,6 +133,7 @@ public class CitizensIntegrator implements Integrator {
         if (NPCHider.getInstance() != null) {
             NPCHider.start(plugin.getLoggerFactory().create(NPCHider.class));
         }
+        zwei.reload();
     }
 
     @Override
