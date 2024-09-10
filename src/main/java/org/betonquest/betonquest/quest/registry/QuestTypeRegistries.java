@@ -3,6 +3,7 @@ package org.betonquest.betonquest.quest.registry;
 import org.betonquest.betonquest.api.logger.BetonQuestLoggerFactory;
 import org.betonquest.betonquest.quest.registry.type.ConditionTypeRegistry;
 import org.betonquest.betonquest.quest.registry.type.EventTypeRegistry;
+import org.betonquest.betonquest.quest.registry.type.NpcTypeRegistry;
 import org.betonquest.betonquest.quest.registry.type.VariableTypeRegistry;
 
 /**
@@ -25,6 +26,11 @@ public class QuestTypeRegistries {
     private final VariableTypeRegistry variableRegistry;
 
     /**
+     * Npc type registry.
+     */
+    private final NpcTypeRegistry npcTypes;
+
+    /**
      * Create a new quest registry for quest core elements.
      *
      * @param loggerFactory the logger factory to create individual class logger
@@ -33,6 +39,7 @@ public class QuestTypeRegistries {
         this.conditionTypes = new ConditionTypeRegistry(loggerFactory.create(ConditionTypeRegistry.class), loggerFactory);
         this.eventTypes = new EventTypeRegistry(loggerFactory.create(EventTypeRegistry.class), loggerFactory);
         this.variableRegistry = new VariableTypeRegistry(loggerFactory.create(VariableTypeRegistry.class), loggerFactory);
+        this.npcTypes = new NpcTypeRegistry(loggerFactory.create(NpcTypeRegistry.class), loggerFactory);
     }
 
     /**
@@ -60,5 +67,14 @@ public class QuestTypeRegistries {
      */
     public VariableTypeRegistry getVariableTypes() {
         return variableRegistry;
+    }
+
+    /**
+     * Gets the Registry holding registered npc types.
+     *
+     * @return registry containing usable npc types
+     */
+    public NpcTypeRegistry getNpcTypes() {
+        return npcTypes;
     }
 }
