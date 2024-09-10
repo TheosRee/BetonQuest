@@ -27,7 +27,7 @@ public abstract class ID {
      * A list of all objects that can be addressed via this ID.
      */
     public static final List<String> PATHS = List.of("events", "conditions", "objectives", "variables",
-            "conversations", "cancel", "items");
+            "conversations", "cancel", "items", "npc_definitions");
 
     /**
      * The package the object is in.
