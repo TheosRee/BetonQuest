@@ -9,6 +9,7 @@ import org.betonquest.betonquest.id.EventID;
 import org.betonquest.betonquest.id.ID;
 import org.betonquest.betonquest.id.ItemID;
 import org.betonquest.betonquest.id.NoID;
+import org.betonquest.betonquest.id.NpcID;
 import org.betonquest.betonquest.id.ObjectiveID;
 import org.betonquest.betonquest.instruction.tokenizer.QuotingTokenizer;
 import org.betonquest.betonquest.instruction.tokenizer.Tokenizer;
@@ -201,6 +202,7 @@ public class Instruction {
     }
 
     /////////////////////
+
     ///    GENERAL    ///
     /////////////////////
 
@@ -280,6 +282,7 @@ public class Instruction {
     }
 
     /////////////////////
+
     ///    OBJECTS    ///
     /////////////////////
 
@@ -466,6 +469,7 @@ public class Instruction {
     }
 
     ///////////////////
+
     ///    Enums    ///
     ///////////////////
 
@@ -532,6 +536,7 @@ public class Instruction {
     }
 
     /////////////////
+
     ///    IDs    ///
     /////////////////
 
@@ -586,6 +591,23 @@ public class Instruction {
         }
     }
 
+    public NpcID getNpc() throws InstructionParseException {
+        return getNpc(next());
+    }
+
+    @Contract(NULL_NOT_NULL_CONTRACT)
+    @Nullable
+    public NpcID getNpc(@Nullable final String string) throws InstructionParseException {
+        if (string == null) {
+            return null;
+        }
+        try {
+            return new NpcID(pack, string);
+        } catch (final ObjectNotFoundException e) {
+            throw new PartParseException("Error while loading npc: " + e.getMessage(), e);
+        }
+    }
+
     public ItemID getItem() throws InstructionParseException {
         return getItem(next());
     }
@@ -604,6 +626,7 @@ public class Instruction {
     }
 
     /////////////////////
+
     ///    NUMBERS    ///
     /////////////////////
 
@@ -680,6 +703,7 @@ public class Instruction {
     }
 
     ////////////////////
+
     ///    ARRAYS    ///
     ////////////////////
 
@@ -711,6 +735,7 @@ public class Instruction {
     }
 
     /////////////////////////
+
     ///    OTHER STUFF    ///
     /////////////////////////
 
