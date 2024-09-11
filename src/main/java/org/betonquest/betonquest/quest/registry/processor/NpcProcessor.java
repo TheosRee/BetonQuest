@@ -11,7 +11,6 @@ import org.betonquest.betonquest.api.quest.npc.NpcWrapper;
 import org.betonquest.betonquest.api.quest.npc.conversation.NpcConversation;
 import org.betonquest.betonquest.config.Config;
 import org.betonquest.betonquest.conversation.CombatTagger;
-import org.betonquest.betonquest.exceptions.InstructionParseException;
 import org.betonquest.betonquest.exceptions.ObjectNotFoundException;
 import org.betonquest.betonquest.exceptions.QuestRuntimeException;
 import org.betonquest.betonquest.id.ConversationID;
@@ -113,14 +112,14 @@ public class NpcProcessor extends TypedQuestProcessor<NpcID, NpcWrapper<?>> {
      *
      * @param npcID the id of the Npc
      * @return the wrapper to get the actual
-     * @throws InstructionParseException when there is no Npc with that id
+     * @throws QuestRuntimeException when there is no Npc with that id
      */
-    public NpcWrapper<?> getNpc(final NpcID npcID) throws InstructionParseException {
+    public Npc<?> getNpc(final NpcID npcID) throws QuestRuntimeException {
         final NpcWrapper<?> npcWrapper = values.get(npcID);
         if (npcWrapper == null) {
-            throw new InstructionParseException("Tried to get npc '" + npcID.getFullID() + "' but it is not loaded! Check for errors on /bq reload!");
+            throw new QuestRuntimeException("Tried to get npc '" + npcID.getFullID() + "' but it is not loaded! Check for errors on /bq reload!");
         }
-        return npcWrapper;
+        return npcWrapper.getNpc();
     }
 
     /**
