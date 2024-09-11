@@ -1,4 +1,4 @@
-package org.betonquest.betonquest.api.quest.npc.feature_citizens;
+package org.betonquest.betonquest.quest.event.npc;
 
 import org.betonquest.betonquest.api.quest.QuestException;
 import org.betonquest.betonquest.api.quest.event.Event;
@@ -6,26 +6,24 @@ import org.betonquest.betonquest.api.quest.event.EventFactory;
 import org.betonquest.betonquest.api.quest.event.StaticEvent;
 import org.betonquest.betonquest.api.quest.event.StaticEventFactory;
 import org.betonquest.betonquest.api.quest.event.nullable.NullableEventAdapter;
-import org.betonquest.betonquest.api.quest.npc.NpcWrapper;
-import org.betonquest.betonquest.exception.ObjectNotFoundException;
 import org.betonquest.betonquest.id.NpcID;
 import org.betonquest.betonquest.instruction.Instruction;
 import org.betonquest.betonquest.instruction.variable.location.VariableLocation;
 import org.betonquest.betonquest.quest.registry.processor.NpcProcessor;
 
 /**
- * Factory to create {@link NpcTeleportEvent}s from {@link Instruction}s.
+ * Factory for {@link NPCTeleportEvent} from the {@link Instruction}.
  */
 public class NpcTeleportEventFactory implements EventFactory, StaticEventFactory {
     /**
-     * Processor to resolve Npc Ids.
+     * Processor to get npc.
      */
     private final NpcProcessor npcProcessor;
 
     /**
      * Create a new factory for Npc Teleport Events.
      *
-     * @param npcProcessor the processor to resolve Npcs
+     * @param npcProcessor the processor to get npc
      */
     public NpcTeleportEventFactory(final NpcProcessor npcProcessor) {
         this.npcProcessor = npcProcessor;
@@ -42,14 +40,8 @@ public class NpcTeleportEventFactory implements EventFactory, StaticEventFactory
     }
 
     private NullableEventAdapter createNpcTeleportEvent(final Instruction instruction) throws QuestException {
-        final NpcID npcID;
-        try {
-            npcID = new NpcID(instruction.getPackage(), instruction.next());
-        } catch (final ObjectNotFoundException exception) {
-            throw new QuestException("Error while loading npc: " + exception.getMessage(), exception);
-        }
-        final NpcWrapper<?> npcWrapper = npcProcessor.getNpc(npcID);
+        final NpcID npcId = instruction.getID(NpcID::new);
         final VariableLocation location = instruction.get(VariableLocation::new);
-        return new NullableEventAdapter(new NpcTeleportEvent(npcWrapper, location));
+        return new NullableEventAdapter(new NPCTeleportEvent(npcProcessor, npcId, location));
     }
 }

@@ -114,12 +114,12 @@ public class NpcProcessor extends TypedQuestProcessor<NpcID, NpcWrapper<?>> {
      * @return the wrapper to get the actual
      * @throws QuestException when there is no Npc with that id
      */
-    public NpcWrapper<?> getNpc(final NpcID npcID) throws QuestException {
+    public Npc<?> getNpc(final NpcID npcID) throws QuestException {
         final NpcWrapper<?> npcWrapper = values.get(npcID);
         if (npcWrapper == null) {
             throw new QuestException("Tried to get npc '" + npcID.getFullID() + "' but it is not loaded! Check for errors on /bq reload!");
         }
-        return npcWrapper;
+        return npcWrapper.getNpc();
     }
 
     /**
