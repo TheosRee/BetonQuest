@@ -3,24 +3,60 @@ package org.betonquest.betonquest.api;
 import org.betonquest.betonquest.api.profiles.Profile;
 import org.betonquest.betonquest.api.profiles.ProfileEvent;
 import org.betonquest.betonquest.api.quest.npc.Npc;
+import org.betonquest.betonquest.objectives.EntityInteractObjective.Interaction;
+import org.bukkit.entity.Player;
+import org.bukkit.event.Cancellable;
 import org.bukkit.event.HandlerList;
 
 /**
  * Event for interaction with BetonQuest {@link Npc}s.
  */
-public class NpcInteractEvent extends ProfileEvent {
+@SuppressWarnings("PMD.DataClass")
+public class NpcInteractEvent extends ProfileEvent implements Cancellable {
     /**
      * Static HandlerList to register listeners on tih event.
      */
     private static final HandlerList HANDLERS = new HandlerList();
 
-    private final Action action;
+    /**
+     * Player instance who interacted.
+     */
+    private final Player player;
 
+    /**
+     * Instruction string of the Npc.
+     */
+    private final String npcIdentifier;
+
+    /**
+     * Interaction done with the Npc.
+     */
+    private final Interaction interaction;
+
+    /**
+     * Interacted Npc.
+     */
     private final Npc<?> npc;
 
-    public NpcInteractEvent(final Profile profile, final Npc<?> npc, final Action action) {
+    /**
+     * If the event should be cancelled.
+     */
+    private boolean cancelled;
+
+    /**
+     * Create a new Npc Interact Event with a player.
+     *
+     * @param profile       the profile of the player who interacted
+     * @param player        the player who interacted
+     * @param npc           the interacted npc
+     * @param npcIdentifier the identifier as used inside the Npc section
+     * @param interaction   the type of interaction with the Npc
+     */
+    public NpcInteractEvent(final Profile profile, final Player player, final Npc<?> npc, final String npcIdentifier, final Interaction interaction) {
         super(profile);
-        this.action = action;
+        this.player = player;
+        this.npcIdentifier = npcIdentifier;
+        this.interaction = interaction;
         this.npc = npc;
     }
 
@@ -39,6 +75,15 @@ public class NpcInteractEvent extends ProfileEvent {
     }
 
     /**
+     * Gets the player instance which interacted.
+     *
+     * @return the player
+     */
+    public Player getPlayer() {
+        return player;
+    }
+
+    /**
      * Gets the interacted Npc.
      *
      * @return the npc
@@ -47,12 +92,31 @@ public class NpcInteractEvent extends ProfileEvent {
         return npc;
     }
 
-    public Action getAction() {
-        return action;
+    /**
+     * Gets the identifier which would be used to get this Npc through an instruction.
+     *
+     * @return the instruction string
+     */
+    public String getNpcIdentifier() {
+        return npcIdentifier;
     }
 
-    public enum Action {
-        LEFT,
-        RIGHT
+    /**
+     * Gets the action done on the Npc.
+     *
+     * @return the interaction type
+     */
+    public Interaction getInteraction() {
+        return interaction;
+    }
+
+    @Override
+    public boolean isCancelled() {
+        return cancelled;
+    }
+
+    @Override
+    public void setCancelled(final boolean cancel) {
+        this.cancelled = cancel;
     }
 }
