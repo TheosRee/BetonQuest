@@ -17,6 +17,7 @@ import org.betonquest.betonquest.quest.registry.QuestTypeRegistries;
 import org.betonquest.betonquest.quest.registry.type.EventTypeRegistry;
 import org.bukkit.Server;
 import org.bukkit.event.HandlerList;
+import org.bukkit.plugin.PluginManager;
 import org.bukkit.scheduler.BukkitScheduler;
 
 /**
@@ -69,7 +70,8 @@ public class CitizensIntegrator implements Integrator {
         final BukkitScheduler scheduler = server.getScheduler();
         final PrimaryServerThreadData data = new PrimaryServerThreadData(server, scheduler, plugin);
 
-        server.getPluginManager().registerEvents(citizensMoveController, plugin);
+        final PluginManager manager = server.getPluginManager();
+        manager.registerEvents(citizensMoveController, plugin);
 
         final QuestTypeRegistries questRegistries = plugin.getQuestRegistries();
         final EventTypeRegistry eventTypes = questRegistries.getEventTypes();
@@ -80,7 +82,8 @@ public class CitizensIntegrator implements Integrator {
         plugin.registerConversationIO("combined", CitizensInventoryConvIO.CitizensCombined.class);
 
         final CitizensNpcFactory npcFactory = new CitizensNpcFactory();
-        final CitizensInteractCatcher catcher = new CitizensInteractCatcher(plugin, npcFactory, citizensMoveController);
+        final CitizensInteractCatcher catcher = new CitizensInteractCatcher(npcFactory, citizensMoveController);
+        manager.registerEvents(catcher, plugin);
         questRegistries.getNpcTypes().register("citizens", npcFactory, catcher);
     }
 
