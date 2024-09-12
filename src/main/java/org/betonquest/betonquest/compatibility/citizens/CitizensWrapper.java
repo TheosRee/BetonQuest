@@ -1,4 +1,4 @@
-package org.betonquest.betonquest.api.quest.npc.feature_citizens;
+package org.betonquest.betonquest.compatibility.citizens;
 
 import net.citizensnpcs.api.CitizensAPI;
 import net.citizensnpcs.api.npc.NPC;
@@ -30,6 +30,6 @@ class CitizensWrapper implements NpcWrapper<NPC> {
         if (npc == null) {
             throw new QuestException("NPC with ID " + npcId + " not found");
         }
-        return new CitizensBQAdapter(npc);
+        return new CitizensAdapter(npc);
     }
 }

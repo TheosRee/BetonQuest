@@ -27,13 +27,4 @@ public interface NpcFactory<T> extends TypeFactory<NpcWrapper<T>> {
      * @return the identifying string as used inside {@link org.betonquest.betonquest.id.NpcID NpcId}s.
      */
     String npcToInstructionString(Npc<T> npc);
-
-    /**
-     * The class of the Npc to check if this factory can create the instruction.
-     *
-     * @return the class of the wrapper
-     * @deprecated this is just bad design
-     */
-    @Deprecated
-    Class<T> getNpcClass();
 }

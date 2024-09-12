@@ -50,10 +50,14 @@ public class NpcInteractEvent extends ProfileEvent implements Cancellable {
      * @param player        the player who interacted
      * @param npc           the interacted npc
      * @param npcIdentifier the identifier as used inside the Npc section
-     * @param interaction   the type of interaction with the Npc
+     * @param interaction   the type of interaction with the Npc, left or right
+     * @throws IllegalArgumentException if {@code interaction == Interaction.ANY}
      */
     public NpcInteractEvent(final Profile profile, final Player player, final Npc<?> npc, final String npcIdentifier, final Interaction interaction) {
         super(profile);
+        if (interaction == Interaction.ANY) {
+            throw new IllegalArgumentException("interaction cannot be 'any'");
+        }
         this.player = player;
         this.npcIdentifier = npcIdentifier;
         this.interaction = interaction;

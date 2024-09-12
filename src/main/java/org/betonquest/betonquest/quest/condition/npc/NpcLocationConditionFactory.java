@@ -10,6 +10,9 @@ import org.betonquest.betonquest.id.NpcID;
 import org.betonquest.betonquest.instruction.Instruction;
 import org.betonquest.betonquest.instruction.variable.VariableNumber;
 import org.betonquest.betonquest.instruction.variable.location.VariableLocation;
+import org.betonquest.betonquest.quest.PrimaryServerThreadData;
+import org.betonquest.betonquest.quest.condition.PrimaryServerThreadPlayerCondition;
+import org.betonquest.betonquest.quest.condition.PrimaryServerThreadPlayerlessCondition;
 import org.betonquest.betonquest.quest.registry.processor.NpcProcessor;
 
 /**
@@ -22,22 +25,29 @@ public class NpcLocationConditionFactory implements PlayerConditionFactory, Play
     private final NpcProcessor npcProcessor;
 
     /**
+     * Data used for primary server thread access.
+     */
+    private final PrimaryServerThreadData data;
+
+    /**
      * Create a new factory for NPC Location Conditions.
      *
      * @param npcProcessor the processor to get npc
+     * @param data         the data to use for syncing to the primary server thread
      */
-    public NpcLocationConditionFactory(final NpcProcessor npcProcessor) {
+    public NpcLocationConditionFactory(final NpcProcessor npcProcessor, final PrimaryServerThreadData data) {
         this.npcProcessor = npcProcessor;
+        this.data = data;
     }
 
     @Override
     public PlayerCondition parsePlayer(final Instruction instruction) throws QuestException {
-        return parseNpcLocationCondition(instruction);
+        return new PrimaryServerThreadPlayerCondition(parseNpcLocationCondition(instruction), data);
     }
 
     @Override
     public PlayerlessCondition parsePlayerless(final Instruction instruction) throws QuestException {
-        return parseNpcLocationCondition(instruction);
+        return new PrimaryServerThreadPlayerlessCondition(parseNpcLocationCondition(instruction), data);
     }
 
     private NullableConditionAdapter parseNpcLocationCondition(final Instruction instruction) throws QuestException {
