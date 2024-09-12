@@ -4,10 +4,12 @@ import org.betonquest.betonquest.api.logger.BetonQuestLogger;
 import org.betonquest.betonquest.api.logger.BetonQuestLoggerFactory;
 import org.betonquest.betonquest.api.quest.npc.NpcFactory;
 import org.betonquest.betonquest.api.quest.npc.NpcWrapper;
-import org.betonquest.betonquest.api.quest.npc.conversation.NpcConversationStarter;
+import org.betonquest.betonquest.api.quest.npc.conversation.NpcInteractCatcher;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -15,6 +17,8 @@ import java.util.Map;
  */
 public class NpcTypeRegistry extends TypeRegistry<NpcWrapper<?>> {
     private final Map<Class<?>, String> factoryIdentifier;
+
+    private final Map<Class<?>, List<NpcInteractCatcher<?>>> starter;
 
     /**
      * Create a new npc type registry.
@@ -25,6 +29,7 @@ public class NpcTypeRegistry extends TypeRegistry<NpcWrapper<?>> {
     public NpcTypeRegistry(final BetonQuestLogger log, final BetonQuestLoggerFactory loggerFactory) {
         super(log, loggerFactory, "npc");
         this.factoryIdentifier = new HashMap<>();
+        this.starter = new HashMap<>();
     }
 
     /**
@@ -34,13 +39,14 @@ public class NpcTypeRegistry extends TypeRegistry<NpcWrapper<?>> {
      * @param name    the name of the type
      * @param factory the player factory to create the type
      */
-    public <T> void register(final String name, final NpcFactory<T> factory, @Nullable final NpcConversationStarter<T> conversationStarter) {
+    public <T> void register(final String name, final NpcFactory<T> factory, @Nullable final NpcInteractCatcher<T> conversationStarter) {
         register(name, factory::parseInstruction); // TODO irgendwas mit generics…
         factoryIdentifier.put(factory.getClass(), name);
-    }
-
-    @Nullable
-    public String getFactoryIdentifier(final NpcFactory<?> npcFactory) {
-        return factoryIdentifier.get(npcFactory.getClass());
+        final List<NpcInteractCatcher<?>> starterList = starter.getOrDefault(factory.getClass(), new ArrayList<>());
+        starterList.forEach(starter -> starter.setPrefix(name)); // TODO now the bad decision is here, yay!
+        if (conversationStarter != null) {
+            conversationStarter.setPrefix(name);
+            starterList.add(conversationStarter);
+        }
     }
 }

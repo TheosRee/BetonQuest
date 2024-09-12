@@ -1,12 +1,12 @@
 package org.betonquest.betonquest.quest.registry.processor;
 
 import org.betonquest.betonquest.BetonQuest;
+import org.betonquest.betonquest.api.NpcInteractEvent;
 import org.betonquest.betonquest.api.config.quest.QuestPackage;
 import org.betonquest.betonquest.api.logger.BetonQuestLogger;
 import org.betonquest.betonquest.api.logger.BetonQuestLoggerFactory;
 import org.betonquest.betonquest.api.profiles.OnlineProfile;
 import org.betonquest.betonquest.api.quest.npc.Npc;
-import org.betonquest.betonquest.api.quest.npc.NpcFactory;
 import org.betonquest.betonquest.api.quest.npc.NpcWrapper;
 import org.betonquest.betonquest.api.quest.npc.conversation.NpcConversation;
 import org.betonquest.betonquest.config.Config;
@@ -15,10 +15,13 @@ import org.betonquest.betonquest.exceptions.ObjectNotFoundException;
 import org.betonquest.betonquest.exceptions.QuestRuntimeException;
 import org.betonquest.betonquest.id.ConversationID;
 import org.betonquest.betonquest.id.NpcID;
+import org.betonquest.betonquest.objectives.EntityInteractObjective.Interaction;
 import org.betonquest.betonquest.quest.registry.type.NpcTypeRegistry;
 import org.betonquest.betonquest.utils.PlayerConverter;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -62,6 +65,11 @@ public class NpcProcessor extends TypedQuestProcessor<NpcID, NpcWrapper<?>> {
     private int interactionLimit;
 
     /**
+     * If left click interactions should also trigger conversation starts.
+     */
+    private boolean acceptNpcLeftClick;
+
+    /**
      * Create a new Quest Npc Processor to store them.
      *
      * @param log           the custom logger for this class
@@ -74,6 +82,7 @@ public class NpcProcessor extends TypedQuestProcessor<NpcID, NpcWrapper<?>> {
         this.loggerFactory = loggerFactory;
         this.plugin = plugin;
         interactionLimit = plugin.getPluginConfig().getInt("npcInteractionLimit", 500);
+        plugin.getServer().getPluginManager().registerEvents(new InteractListener(), plugin);
     }
 
     /**
@@ -100,6 +109,7 @@ public class NpcProcessor extends TypedQuestProcessor<NpcID, NpcWrapper<?>> {
     public void clear() {
         super.clear();
         interactionLimit = plugin.getPluginConfig().getInt("npcInteractionLimit", 500);
+        acceptNpcLeftClick = plugin.getPluginConfig().getBoolean("acceptNPCLeftClick");
     }
 
     @Override
@@ -126,12 +136,11 @@ public class NpcProcessor extends TypedQuestProcessor<NpcID, NpcWrapper<?>> {
      * The logic that determines if an NPC interaction starts a conversation.
      *
      * @param clicker    the player who clicked the NPC
-     * @param npcFactory the factory used to create types of the clicked npc
+     * @param identifier the identifier for the Npc as used in the definition section
      * @param npc        the npc which was interacted with
-     * @param <T>        the original type of the npc
      * @return if a conversation is started and the interact event should be cancelled
      */
-    public <T> boolean interactLogic(final Player clicker, final NpcFactory<T> npcFactory, final Npc<T> npc) {
+    public boolean interactLogic(final Player clicker, final String identifier, final Npc<?> npc) {
         if (!clicker.hasPermission("betonquest.conversation")) {
             return false;
         }
@@ -154,26 +163,36 @@ public class NpcProcessor extends TypedQuestProcessor<NpcID, NpcWrapper<?>> {
             return false;
         }
 
-        return startConversation(clicker, npcFactory, npc, onlineProfile);
+        return startConversation(clicker, identifier, npc, onlineProfile);
     }
 
-    private <T> boolean startConversation(final Player clicker, final NpcFactory<T> npcFactory, final Npc<T> npc, final OnlineProfile onlineProfile) {
+    private boolean startConversation(final Player clicker, final String identifier, final Npc<?> npc, final OnlineProfile onlineProfile) {
         final boolean npcsByName = Boolean.parseBoolean(Config.getConfigString("citizens_npcs_by_name"));
-        final String selector;
-        if (npcsByName) {
-            selector = npc.getName();
-        } else {
-            // TODO find a better way for this…
-            selector = ((NpcTypeRegistry) types).getFactoryIdentifier(npcFactory) + " " + npcFactory.npcToInstructionString(npc);
-        }
+        final String selector = npcsByName ? npc.getName() : identifier;
         final ConversationID conversationID = assignedConversations.get(selector);
 
         if (conversationID == null) {
             log.debug("Player '" + clicker.getName() + "' clicked Npc '" + selector + "' but there is no conversation assigned to it.");
             return false;
         } else {
+            log.debug("Player '" + clicker.getName() + "' clicked Npc '" + selector + "' and started conversation '" + conversationID.getFullID() + "'.");
             new NpcConversation<>(loggerFactory.create(NpcConversation.class), onlineProfile, conversationID, npc.getLocation(), npc);
             return true;
+        }
+    }
+
+    /**
+     * Attempts to start conversations on interaction.
+     */
+    private class InteractListener implements Listener {
+        @EventHandler(ignoreCancelled = true)
+        public void onInteract(final NpcInteractEvent event) {
+            if (event.getInteraction() == Interaction.LEFT && !acceptNpcLeftClick) {
+                return;
+            }
+            if (interactLogic(event.getPlayer(), event.getNpcIdentifier(), event.getNpc())) {
+                event.setCancelled(true);
+            }
         }
     }
 }
