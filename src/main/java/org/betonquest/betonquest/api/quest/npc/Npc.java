@@ -12,9 +12,7 @@ public interface Npc<T> {
      * Gets the original object.
      *
      * @return the adapted object
-     * @deprecated this is only for the purpose of legacy API
      */
-    @Deprecated
     T getOriginal();
 
     /**
