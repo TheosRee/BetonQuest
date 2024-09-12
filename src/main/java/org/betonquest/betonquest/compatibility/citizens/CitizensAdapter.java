@@ -1,27 +1,26 @@
-package org.betonquest.betonquest.api.quest.npc.feature_citizens;
+package org.betonquest.betonquest.compatibility.citizens;
 
 import net.citizensnpcs.api.event.SpawnReason;
 import net.citizensnpcs.api.npc.NPC;
 import org.betonquest.betonquest.api.quest.npc.Npc;
-import org.betonquest.betonquest.compatibility.citizens.CitizensIntegrator;
 import org.bukkit.Location;
 import org.bukkit.event.player.PlayerTeleportEvent;
 
 /**
- * Citizens Compatibility Adapter for general BetonQuest NPC behaviour.
+ * Citizens Compatibility Adapter for BetonQuest Npcs.
  */
-class CitizensBQAdapter implements Npc<NPC> {
+public class CitizensAdapter implements Npc<NPC> {
     /**
      * The Citizens NPC instance.
      */
     private final NPC npc;
 
     /**
-     * Create a new Citizens NPC Adapter.
+     * Create a new Citizens Npc Adapter.
      *
      * @param npc the Citizens NPC instance
      */
-    public CitizensBQAdapter(final NPC npc) {
+    public CitizensAdapter(final NPC npc) {
         this.npc = npc;
     }
 

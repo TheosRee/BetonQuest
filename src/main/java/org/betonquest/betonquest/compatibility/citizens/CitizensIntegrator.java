@@ -2,26 +2,18 @@ package org.betonquest.betonquest.compatibility.citizens;
 
 import org.betonquest.betonquest.BetonQuest;
 import org.betonquest.betonquest.api.logger.BetonQuestLoggerFactory;
-import org.betonquest.betonquest.api.quest.npc.feature_citizens.CitizensNpcFactory;
 import org.betonquest.betonquest.compatibility.Compatibility;
 import org.betonquest.betonquest.compatibility.Integrator;
-import org.betonquest.betonquest.compatibility.citizens.condition.distance.NPCDistanceConditionFactory;
-import org.betonquest.betonquest.compatibility.citizens.condition.location.NPCLocationConditionFactory;
 import org.betonquest.betonquest.compatibility.citizens.condition.region.NPCRegionConditionFactory;
 import org.betonquest.betonquest.compatibility.citizens.event.move.CitizensMoveController;
 import org.betonquest.betonquest.compatibility.citizens.event.move.CitizensMoveEvent;
 import org.betonquest.betonquest.compatibility.citizens.event.move.CitizensMoveEventFactory;
 import org.betonquest.betonquest.compatibility.citizens.event.move.CitizensStopEventFactory;
-import org.betonquest.betonquest.compatibility.citizens.event.teleport.NPCTeleportEventFactory;
-import org.betonquest.betonquest.compatibility.citizens.objective.NPCInteractObjective;
 import org.betonquest.betonquest.compatibility.citizens.objective.NPCKillObjective;
-import org.betonquest.betonquest.compatibility.citizens.objective.NPCRangeObjective;
-import org.betonquest.betonquest.compatibility.citizens.variable.npc.CitizensVariableFactory;
 import org.betonquest.betonquest.compatibility.protocollib.hider.NPCHider;
 import org.betonquest.betonquest.compatibility.protocollib.hider.UpdateVisibilityNowEvent;
 import org.betonquest.betonquest.quest.PrimaryServerThreadData;
 import org.betonquest.betonquest.quest.registry.QuestTypeRegistries;
-import org.betonquest.betonquest.quest.registry.type.ConditionTypeRegistry;
 import org.betonquest.betonquest.quest.registry.type.EventTypeRegistry;
 import org.bukkit.Server;
 import org.bukkit.event.HandlerList;
@@ -43,16 +35,9 @@ public class CitizensIntegrator implements Integrator {
     private final BetonQuest plugin;
 
     /**
-     * Starts conversations on NPC interaction.
-     */
-    private CitizensConversationStarter citizensConversationStarter;
-
-    /**
      * Handles NPC movement of the {@link CitizensMoveEvent}.
      */
     private CitizensMoveController citizensMoveController;
-
-    private org.betonquest.betonquest.api.quest.npc.feature_citizens.CitizensConversationStarter zwei;
 
     /**
      * The default Constructor.
@@ -76,12 +61,9 @@ public class CitizensIntegrator implements Integrator {
     public void hook() {
         final BetonQuestLoggerFactory loggerFactory = plugin.getLoggerFactory();
         citizensMoveController = new CitizensMoveController(loggerFactory.create(CitizensMoveController.class));
-        citizensConversationStarter = new CitizensConversationStarter(loggerFactory, loggerFactory.create(CitizensConversationStarter.class), citizensMoveController);
         new CitizensWalkingListener();
 
         plugin.registerObjectives("npckill", NPCKillObjective.class);
-        plugin.registerObjectives("npcinteract", NPCInteractObjective.class);
-        plugin.registerObjectives("npcrange", NPCRangeObjective.class);
 
         final Server server = plugin.getServer();
         final BukkitScheduler scheduler = server.getScheduler();
@@ -93,21 +75,13 @@ public class CitizensIntegrator implements Integrator {
         final EventTypeRegistry eventTypes = questRegistries.getEventTypes();
         eventTypes.register("movenpc", new CitizensMoveEventFactory(data, citizensMoveController));
         eventTypes.register("stopnpc", new CitizensStopEventFactory(data, citizensMoveController));
-        eventTypes.registerCombined("teleportnpc", new NPCTeleportEventFactory(data));
 
         plugin.registerConversationIO("chest", CitizensInventoryConvIO.class);
         plugin.registerConversationIO("combined", CitizensInventoryConvIO.CitizensCombined.class);
 
-        questRegistries.getVariableTypes().register("citizen", new CitizensVariableFactory(loggerFactory));
-
-        final ConditionTypeRegistry conditionTypes = questRegistries.getConditionTypes();
-        conditionTypes.register("npcdistance", new NPCDistanceConditionFactory(data, loggerFactory));
-        conditionTypes.registerCombined("npclocation", new NPCLocationConditionFactory(data));
-
-        final CitizensNpcFactory citizensNpcFactory = new CitizensNpcFactory();
-        this.zwei = new org.betonquest.betonquest.api.quest.npc.feature_citizens.CitizensConversationStarter(
-                plugin, citizensNpcFactory, plugin.getNpcProcessor(), citizensMoveController);
-        questRegistries.getNpcTypes().register("citizens", citizensNpcFactory, zwei);
+        final CitizensNpcFactory npcFactory = new CitizensNpcFactory();
+        final CitizensInteractCatcher catcher = new CitizensInteractCatcher(plugin, npcFactory, citizensMoveController);
+        questRegistries.getNpcTypes().register("citizens", npcFactory, catcher);
     }
 
     @Override
@@ -125,11 +99,9 @@ public class CitizensIntegrator implements Integrator {
 
     @Override
     public void reload() {
-        citizensConversationStarter.reload();
         if (NPCHider.getInstance() != null) {
             NPCHider.start(plugin.getLoggerFactory().create(NPCHider.class));
         }
-        zwei.reload();
     }
 
     @Override
