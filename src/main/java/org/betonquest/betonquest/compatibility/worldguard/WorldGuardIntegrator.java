@@ -7,7 +7,10 @@ import com.sk89q.worldguard.protection.managers.RegionManager;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 import org.betonquest.betonquest.BetonQuest;
 import org.betonquest.betonquest.compatibility.Integrator;
+import org.betonquest.betonquest.compatibility.worldguard.npc.NpcRegionConditionFactory;
+import org.betonquest.betonquest.quest.PrimaryServerThreadData;
 import org.bukkit.Location;
+import org.bukkit.Server;
 import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings("PMD.CommentRequired")
@@ -45,6 +48,9 @@ public class WorldGuardIntegrator implements Integrator {
     public void hook() {
         plugin.registerConditions("region", RegionCondition.class);
         plugin.registerObjectives("region", RegionObjective.class);
+        final Server server = plugin.getServer();
+        final PrimaryServerThreadData data = new PrimaryServerThreadData(server, server.getScheduler(), plugin);
+        plugin.getQuestRegistries().getConditionTypes().register("npcregion", new NpcRegionConditionFactory(plugin.getNpcProcessor(), data));
     }
 
     @Override
