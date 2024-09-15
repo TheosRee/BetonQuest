@@ -4,7 +4,7 @@ import org.betonquest.betonquest.api.logger.BetonQuestLogger;
 import org.betonquest.betonquest.api.logger.BetonQuestLoggerFactory;
 import org.betonquest.betonquest.api.quest.npc.NpcFactory;
 import org.betonquest.betonquest.api.quest.npc.NpcWrapper;
-import org.betonquest.betonquest.api.quest.npc.conversation.NpcInteractCatcher;
+import org.betonquest.betonquest.api.quest.npc.feature.NpcInteractCatcher;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
