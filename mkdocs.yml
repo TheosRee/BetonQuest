@@ -149,7 +149,7 @@ extra:
       - accept
     description: >
       <p style="margin-top: 0px; margin-bottom: 0px;">We need your consent to make request to GitHub.com. We load statistics about our Git repository from there.</p>
-      
+  
 
   social:
     - icon: brands/discord
@@ -212,6 +212,7 @@ nav:
 
       - 'Features':
           - 'Conversations': Documentation/Features/Conversations.md
+          - 'Npcs': Documentation/Features/Npcs.md
           - 'Quest Menus':
               - 'Menus': Documentation/Features/Menus/Menu.md
               - 'Menu Example': Documentation/Features/Menus/Example.md

@@ -34,6 +34,7 @@ Steps marked with :gear: are migrated automatically. Steps marked with :exclamat
 - [2.1.0-DEV-1 - Instruction Quoting](#210-dev-1-instruction-quoting) :exclamation:
 - [2.1.1-DEV-2 - Rename AuraSkills](#211-dev-2-rename-auraskills) :gear:
 - [2.2.0-DEV-89 - Rename Fabled](#220-dev-90-rename-fabled) :gear:
+- [3.0.0-DEV-X - Npc Rework](#300-dev-x-npc-rework) :gear:
 
 ### 2.0.0-DEV-87 - Rename to `ride` :gear:
 
@@ -623,3 +624,68 @@ conditions:
     ```
     
     </div>
+
+### 3.0.0-DEV-X - Npc Rework :exclamation:
+
+To support more Npc plugins than just Citizens the way how you use needed a major change.
+
+Npcs are now also addressed with IDs and defined in the `npcs` section and
+starting conversations with npc interaction is moved inside the conversations `npcs`.
+
+Also, the `teleportnpc` event got renamed to `npcteleport`, but that migration is automated.
+
+You can keep most of the syntax when you use the Citizens Npc id as their BetonQuest identifier,
+but changing the "name" makes the difference more clear.
+
+<div class="grid" markdown>
+
+```YAML title="Old Syntax"
+npcs:
+  '0': "HansConv" #(1)!
+  '1': "HansConv"
+events:
+  teleportNpc: teleportnpc 0 100;200;300;world #(2)!
+conditions:
+  nearNpc: npcdistance 0 10 #(3)!
+  nearNpcTwo: npcdistance 1 10
+conversations:
+  HansConv: #(4)!
+    quester: Hans
+    first: Hello
+    NPC_options:
+      Hello:
+        text: Hello Adventurer!
+```
+
+1. The conversation the interaction with the Npc will start.
+2. The `0` is here the citizens npc id.
+3. The `0` is here the citizens npc id.
+4. The conversation name as used in the `npcs` section.
+
+```YAML title="New Syntax"
+npcs:
+  0: "citizens 0" #(1)!
+  HansTwo: "citizens 1" #(2)!
+events:
+  teleportNpc: npcteleport 0 100;200;300;world #(3)!
+conditions:
+  nearNpc: npcdistance 0 10 #(4)!
+  nearNpcTwo: npcdistance HansTwo 15 #(5)!
+conversations:
+  HansConv:
+    quester: Hans
+    npcs: 0,HansTwo #(6)!
+    first: Hello
+    NPC_options:
+      Hello:
+        text: Hello Adventurer!
+```
+
+1. The `0` before the ':' is now the BetonQuest ID, where the `citizens 0` defines the Npc with id "0" from the 
+Citizens integration. 
+2. Here we use a name for the id to make the difference more clear.
+3. The `0` is here the BetonQuest NpcID but stays the same.
+4. The `0` is here the BetonQuest NpcID but stays the same.
+5. An example of a "renamed" reference.
+6. The Npcs that start this conversation.
+</div>
