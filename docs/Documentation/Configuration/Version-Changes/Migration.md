@@ -549,23 +549,29 @@ conditions:
 </div>
 
 ### 2.1.1-DEV-2 - Rename AuraSkills :gear:
-AureliumSkills was renamed to AuraSkills, so all conditions and events where renamed as well.
 
-<div class="grid" markdown>
+??? info "Automated Migration"
+    *The migration is automated. You shouldn't have to do anything.*
+    
+    -------------
 
-```YAML title="Old Syntax"
-conditions:
-  skillLevel: aureliumskillslevel fighting 5
-  statLevel: aureliumstatslevel luck 5
-events:
-  giveSkillXP: aureliumskillsxp farming 5
-```
-
-```YAML title="New Syntax"
-conditions:
-  skillLevel: auraskillslevel fighting 5
-  statLevel: auraskillsstatslevel luck 5
-events:
-  giveSkillXP: auraskillsxp farming 5
-```
-</div>
+    AureliumSkills was renamed to AuraSkills, so all conditions and events where renamed as well.
+    
+    <div class="grid" markdown>
+    
+    ```YAML title="Old Syntax"
+    conditions:
+      skillLevel: aureliumskillslevel fighting 5
+      statLevel: aureliumstatslevel luck 5
+    events:
+      giveSkillXP: aureliumskillsxp farming 5
+    ```
+    
+    ```YAML title="New Syntax"
+    conditions:
+      skillLevel: auraskillslevel fighting 5
+      statLevel: auraskillsstatslevel luck 5
+    events:
+      giveSkillXP: auraskillsxp farming 5
+    ```
+    </div>
