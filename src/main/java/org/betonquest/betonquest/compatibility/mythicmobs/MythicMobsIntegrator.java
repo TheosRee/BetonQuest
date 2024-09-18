@@ -1,11 +1,14 @@
 package org.betonquest.betonquest.compatibility.mythicmobs;
 
 import io.lumine.mythic.bukkit.BukkitAPIHelper;
+import io.lumine.mythic.bukkit.MythicBukkit;
 import org.betonquest.betonquest.BetonQuest;
 import org.betonquest.betonquest.compatibility.Compatibility;
 import org.betonquest.betonquest.compatibility.Integrator;
 import org.betonquest.betonquest.compatibility.mythicmobs.conditions.MythicMobDistanceConditionFactory;
 import org.betonquest.betonquest.compatibility.mythicmobs.events.MythicSpawnMobEventFactory;
+import org.betonquest.betonquest.compatibility.mythicmobs.npc.MMInteractCatcher;
+import org.betonquest.betonquest.compatibility.mythicmobs.npc.MMNpcFactory;
 import org.betonquest.betonquest.compatibility.protocollib.hider.MythicHider;
 import org.betonquest.betonquest.exceptions.HookException;
 import org.betonquest.betonquest.exceptions.UnsupportedVersionException;
@@ -39,6 +42,8 @@ public class MythicMobsIntegrator implements Integrator {
         questRegistries.getConditionTypes().register("mythicmobdistance", new MythicMobDistanceConditionFactory(apiHelper, data));
         plugin.registerObjectives("mmobkill", MythicMobKillObjective.class);
         questRegistries.getEventTypes().registerCombined("mspawnmob", new MythicSpawnMobEventFactory(apiHelper, data, plugin.getVariableProcessor()));
+        server.getPluginManager().registerEvents(new MMInteractCatcher(questRegistries.getNpcTypes()), plugin);
+        questRegistries.getNpcTypes().register("mythicmobs", new MMNpcFactory(MythicBukkit.inst().getMobManager()));
     }
 
     /**
