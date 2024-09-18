@@ -703,6 +703,15 @@ mmoitemtake ARMOR KINGS_CHESTPLATE invOrder:Armor,Backpack
     **Required MythicMobs version: _5.3.5_ or above** 
 
 
+### Npcs
+
+MythicMobs can be used as [Npcs](../../Features/Npcs.md).
+
+// TODO define the instruction string
+
+#### Npc Hiding: `hide_npcs`
+@snippet:integrations:protocollib@
+
 ### Objectives
 
 #### MobKill: `mmobkill`
