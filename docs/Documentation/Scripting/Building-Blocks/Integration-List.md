@@ -733,6 +733,32 @@ mmoitemtake ARMOR KINGS_CHESTPLATE invOrder:Armor,Backpack
     **Required MythicMobs version: _5.3.5_ or above** 
 
 
+### Npcs
+
+MythicMobs can be used as [Npcs](../../Features/Npcs.md).
+
+mythicmobs BY_MYTHIC_MOB
+mythicmobs BY_UUID
+
+You simply either use the MythicMob type or a UUID of an active mob as argument.
+
+That is useful when you have many NPCs which should all start the same conversation.
+
+!!! warning
+    When more than one npc with that name exists, it will give an exception when used in like `npcteleport` events
+    or `npcrange` objective.  
+    This is still useful when you have 5 Npcs with the same type bound to a conversation.
+
+```YAML title="Example"
+npcs:
+  bandit: mythicmobs BY_MYTHIC_MOB bandit
+  innkeeper: mythicmobs BY_UUID 03218024-8ac0-411b-b063-c452db568a49
+  guard: mythicmobs BY_MYTHIC_MOB Guard
+```
+
+#### Npc Hiding: `hide_npcs`
+@snippet:integrations:protocollib@
+
 ### Objectives
 
 #### MobKill: `mmobkill`
