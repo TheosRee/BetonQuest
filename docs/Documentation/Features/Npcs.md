@@ -16,6 +16,7 @@ as shown in the `Scripting` and `Visual Effects` section of the documentation.
 BetonQuest provides Integrations for the following Npc plugins:
 
 - [Citizens](../Scripting/Building-Blocks/Integration-List.md#citizens)
+- [MythicMobs](../Scripting/Building-Blocks/Integration-List.md#mythicmobs)
 
 ## Referring an Npc
 
