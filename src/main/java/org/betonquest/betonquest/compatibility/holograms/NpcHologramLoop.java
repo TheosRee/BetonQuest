@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Hides and shows holograms to players at a Npcs location. Based on conditions.
@@ -196,9 +197,8 @@ public class NpcHologramLoop extends HologramLoop implements Listener {
             npcHolograms.forEach(this::updateHologram);
             return;
         }
-        final String identifier = npcTypeRegistry.getIdentifier(npc);
-        final List<NpcID> ids = identifierToId.get(identifier);
-        if (ids == null) {
+        final Set<NpcID> ids = npcTypeRegistry.getIdentifier(npc);
+        if (ids.isEmpty()) {
             return;
         }
         final List<NpcHologram> list = npcHolograms.stream()

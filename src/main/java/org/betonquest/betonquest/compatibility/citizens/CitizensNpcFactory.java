@@ -7,6 +7,8 @@ import org.betonquest.betonquest.api.quest.npc.NpcFactory;
 import org.betonquest.betonquest.api.quest.npc.NpcWrapper;
 import org.betonquest.betonquest.exceptions.InstructionParseException;
 
+import java.util.Set;
+
 /**
  * Creates validated Npc Wrapper for Citizens Npcs.
  */
@@ -27,8 +29,8 @@ public class CitizensNpcFactory implements NpcFactory<NPC> {
     }
 
     @Override
-    public String npcToInstructionString(final Npc<NPC> npc) {
-        return String.valueOf(npc.getOriginal().getId());
+    public Set<String> npcInstructionStrings(final Npc<NPC> npc) {
+        return Set.of(String.valueOf(npc.getOriginal().getId()));
     }
 
     @Override
