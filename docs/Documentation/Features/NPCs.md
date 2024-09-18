@@ -18,6 +18,7 @@ BetonQuest provides Integrations for the following Npc plugins:
 - [Citizens](../Scripting/Building-Blocks/Integration-List.md#citizens)
 - [FancyNpcs](../Scripting/Building-Blocks/Integration-List.md#fancynpcs)
 - [ZNPCsPlus](../Scripting/Building-Blocks/Integration-List.md#znpcsplus)
+- [MythicMobs](../Scripting/Building-Blocks/Integration-List.md#mythicmobs)
 
 ## Referring an NPC
 
