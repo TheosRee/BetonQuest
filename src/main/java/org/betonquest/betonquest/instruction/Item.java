@@ -3,9 +3,11 @@ package org.betonquest.betonquest.instruction;
 import org.betonquest.betonquest.api.profile.Profile;
 import org.betonquest.betonquest.api.quest.QuestException;
 import org.betonquest.betonquest.id.ItemID;
+import org.betonquest.betonquest.instruction.variable.Variable;
 import org.betonquest.betonquest.instruction.variable.VariableNumber;
 import org.betonquest.betonquest.item.QuestItem;
 import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Wrapper for {@link QuestItem} to also store target stack amount.
@@ -15,11 +17,12 @@ public class Item {
     /**
      * Item id to generate the QuestItem with.
      */
-    private final ItemID itemID;
+    private final Variable<ItemID> itemID;
 
     /**
-     * Cached QuestItem.
+     * The cached Quest Item, if without variables.
      */
+    @Nullable
     private final QuestItem questItem;
 
     /**
@@ -35,8 +38,25 @@ public class Item {
      * @throws QuestException when the QuestItem could not be created
      */
     public Item(final ItemID itemID, final VariableNumber amount) throws QuestException {
-        this.itemID = itemID;
+        this.itemID = new Variable<>(itemID);
         this.questItem = new QuestItem(itemID);
+        this.amount = amount;
+    }
+
+    /**
+     * Create a wrapper for Quest Item and target stack size.
+     *
+     * @param itemID the QuestItemID to create
+     * @param amount the size to set the created ItemStack to
+     * @throws QuestException when the QuestItem could not be created
+     */
+    public Item(final Variable<ItemID> itemID, final VariableNumber amount) throws QuestException {
+        this.itemID = itemID;
+        if (itemID.isConstant()) {
+            questItem = new QuestItem(itemID.getValue(null));
+        } else {
+            questItem = null;
+        }
         this.amount = amount;
     }
 
@@ -48,7 +68,7 @@ public class Item {
      * @throws QuestException when the generation fails
      */
     public ItemStack generate(final Profile profile) throws QuestException {
-        return questItem.generate(amount.getValue(profile).intValue(), profile);
+        return getItem(profile).generate(amount.getValue(profile).intValue(), profile);
     }
 
     /**
@@ -57,8 +77,12 @@ public class Item {
      * @param item the item to compare
      * @return true if the quest item is equal to the given item
      */
-    public boolean isItemEqual(final ItemStack item) {
-        return questItem.compare(item);
+    public boolean isItemEqual(@Nullable final ItemStack item) {
+        try {
+            return getItem(null).compare(item);
+        } catch (final QuestException exception) {
+            return false;
+        }
     }
 
     /**
@@ -66,7 +90,7 @@ public class Item {
      *
      * @return item id of the item
      */
-    public ItemID getID() {
+    public Variable<ItemID> getID() {
         return itemID;
     }
 
@@ -75,8 +99,11 @@ public class Item {
      *
      * @return quest item
      */
-    public QuestItem getItem() {
-        return questItem;
+    public QuestItem getItem(@Nullable final Profile profile) throws QuestException {
+        if (questItem != null) {
+            return questItem;
+        }
+        return new QuestItem(itemID.getValue(profile));
     }
 
     /**
