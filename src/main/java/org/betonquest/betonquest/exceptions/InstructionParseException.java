@@ -7,7 +7,7 @@ import java.io.Serial;
 /**
  * Exception thrown when the instruction string has a wrong format.
  */
-public class InstructionParseException extends Exception {
+public class InstructionParseException extends QuestException {
     @Serial
     private static final long serialVersionUID = 7487088647464022627L;
 

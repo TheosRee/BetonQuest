@@ -7,14 +7,17 @@ import org.betonquest.betonquest.api.profiles.OnlineProfile;
 import org.betonquest.betonquest.api.profiles.Profile;
 import org.betonquest.betonquest.config.Config;
 import org.betonquest.betonquest.exceptions.InstructionParseException;
-import org.betonquest.betonquest.exceptions.ObjectNotFoundException;
+import org.betonquest.betonquest.exceptions.QuestException;
 import org.betonquest.betonquest.exceptions.QuestRuntimeException;
 import org.betonquest.betonquest.id.ConditionID;
 import org.betonquest.betonquest.id.EventID;
 import org.betonquest.betonquest.id.ItemID;
+import org.betonquest.betonquest.instruction.variable.Variable;
+import org.betonquest.betonquest.instruction.variable.VariableIDTheOther;
 import org.betonquest.betonquest.instruction.variable.VariableNumber;
 import org.betonquest.betonquest.item.QuestItem;
 import org.betonquest.betonquest.menu.config.SimpleYMLSection;
+import org.betonquest.betonquest.quest.registry.processor.VariableProcessor;
 import org.betonquest.betonquest.utils.PlayerConverter;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
@@ -31,9 +34,9 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * A Item which Is displayed as option in a menu and has some events that are fired when item is clicked.
+ * An Item which Is displayed as option in a menu and has some events that are fired when item is clicked.
  */
-@SuppressWarnings({"PMD.CommentRequired", "PMD.GodClass"})
+@SuppressWarnings({"PMD.CommentRequired", "PMD.GodClass", "PMD.CouplingBetweenObjects"})
 public class MenuItem extends SimpleYMLSection {
     /**
      * Text config property for Item lore.
@@ -63,49 +66,47 @@ public class MenuItem extends SimpleYMLSection {
     /**
      * Ids of all events that should be run on left click.
      */
-    private final List<EventID> leftClick;
+    private final List<Variable<EventID>> leftClick;
 
     /**
      * Ids of all events that should be run on shift-left click.
      */
-    private final List<EventID> shiftLeftClick;
+    private final List<Variable<EventID>> shiftLeftClick;
 
     /**
      * Ids of all events that should be run on right click.
      */
-    private final List<EventID> rightClick;
+    private final List<Variable<EventID>> rightClick;
 
     /**
      * Ids of all events that should be run on shift-right click.
      */
-    private final List<EventID> shiftRightClick;
+    private final List<Variable<EventID>> shiftRightClick;
 
     /**
      * Ids of all events that should be run on middle-mouse click.
      */
-    private final List<EventID> middleMouseClick;
+    private final List<Variable<EventID>> middleMouseClick;
 
     /**
      * Conditions that have to be matched to view the item.
      */
-    private final List<ConditionID> conditions;
+    private final List<Variable<ConditionID>> conditions;
 
     /**
      * If the menu should be closed when the item is clicked.
      */
     private final boolean close;
 
-    @SuppressWarnings({"PMD.ExceptionAsFlowControl", "PMD.CyclomaticComplexity", "PMD.CognitiveComplexity",
-            "PMD.NPathComplexity", "checkstyle:EmptyCatchBlock"})
     public MenuItem(final BetonQuestLogger log, final QuestPackage pack, final MenuID menuID, final String name, final ConfigurationSection section)
             throws InvalidConfigurationException {
         super(pack, name, section);
         this.log = log;
         try {
+            final VariableProcessor variableProcessor = BetonQuest.getInstance().getVariableProcessor();
             //load item
-            final ItemID itemID = new ItemID(pack, getString("item").trim());
-            final VariableNumber amount;
-            amount = new VariableNumber(pack, new DefaultSetting<>("1") {
+            final Variable<ItemID> itemID = new VariableIDTheOther<>(variableProcessor, pack, getString("item").trim(), ItemID::new);
+            final VariableNumber amount = new VariableNumber(variableProcessor, pack, new DefaultSetting<>("1") {
                 @Override
                 @SuppressWarnings("PMD.ShortMethodName")
                 protected String of() throws Missing {
@@ -118,57 +119,28 @@ public class MenuItem extends SimpleYMLSection {
             try {
                 this.descriptions.putAll(generateDescriptions(menuID.getFullID(), section));
             } catch (final Missing e) {
-                log.warn("Missing description for menu item  '" + itemID.getFullID() + "' in menu '"
+                log.warn("Missing description for menu item  '" + name + "' in menu '"
                         + menuID.getFullID() + "' in package '" + pack.getQuestPath() + "'! Reason: " + e.getMessage(), e);
             }
             //load events
-            this.leftClick = new ArrayList<>();
-            this.shiftLeftClick = new ArrayList<>();
-            this.rightClick = new ArrayList<>();
-            this.shiftRightClick = new ArrayList<>();
-            this.middleMouseClick = new ArrayList<>();
             if (config.isConfigurationSection("click")) {
-                try {
-                    this.leftClick.addAll(getEvents("click.left", pack));
-                } catch (final Missing ignored) {
-                }
-                try {
-                    this.shiftLeftClick.addAll(getEvents("click.shiftLeft", pack));
-                } catch (final Missing ignored) {
-                }
-                try {
-                    this.rightClick.addAll(getEvents("click.right", pack));
-                } catch (final Missing ignored) {
-                }
-                try {
-                    this.shiftRightClick.addAll(getEvents("click.shiftRight", pack));
-                } catch (final Missing ignored) {
-                }
-                try {
-                    this.middleMouseClick.addAll(getEvents("click.middleMouse", pack));
-                } catch (final Missing ignored) {
-                }
+                this.leftClick = new IDVariableSetting<>("click.left", EventID::new).get();
+                this.shiftLeftClick = new IDVariableSetting<>("click.shiftLeft", EventID::new).get();
+                this.rightClick = new IDVariableSetting<>("click.right", EventID::new).get();
+                this.shiftRightClick = new IDVariableSetting<>("click.shiftRight", EventID::new).get();
+                this.middleMouseClick = new IDVariableSetting<>("click.middleMouse", EventID::new).get();
             } else {
-                try {
-                    final List<EventID> list = getEvents("click", pack);
-                    this.leftClick.addAll(list);
-                    this.shiftLeftClick.addAll(list);
-                    this.rightClick.addAll(list);
-                    this.shiftRightClick.addAll(list);
-                    this.middleMouseClick.addAll(list);
-                } catch (final Missing ignored) {
-                }
+                final List<Variable<EventID>> list = new IDVariableSetting<>("click", EventID::new).get();
+                this.leftClick = list;
+                this.shiftLeftClick = list;
+                this.rightClick = list;
+                this.shiftRightClick = list;
+                this.middleMouseClick = list;
             }
             //load display conditions
             this.conditions = new ArrayList<>();
-            try {
-                this.conditions.addAll(getConditions("conditions", pack));
-            } catch (final Missing ignored) {
-            }
-            try {
-                this.conditions.addAll(getConditions("condition", pack));
-            } catch (final Missing ignored) {
-            }
+            this.conditions.addAll(new IDVariableSetting<>("conditions", ConditionID::new).get());
+            this.conditions.addAll(new IDVariableSetting<>("condition", ConditionID::new).get());
             //load if menu should close when item is clicked
             this.close = new DefaultSetting<>(BetonQuest.getInstance().getRpgMenu().getConfiguration().defaultCloseOnClick) {
                 @Override
@@ -177,7 +149,7 @@ public class MenuItem extends SimpleYMLSection {
                     return getBoolean("close");
                 }
             }.get();
-        } catch (final ObjectNotFoundException | InstructionParseException e) {
+        } catch (final InstructionParseException e) {
             throw new InvalidConfigurationException(e.getMessage(), e);
         }
     }
@@ -200,9 +172,16 @@ public class MenuItem extends SimpleYMLSection {
         };
     }
 
-    private boolean executeEvents(final List<EventID> variables, final Player player) {
+    private boolean executeEvents(final List<Variable<EventID>> variables, final Player player) {
         final OnlineProfile profile = PlayerConverter.getID(player);
-        for (final EventID eventID : variables) {
+        final List<EventID> resolved;
+        try {
+            resolved = parseVariables(variables, profile);
+        } catch (final QuestRuntimeException exception) {
+            log.warn(pack, "Error while resolving event in menu item '" + name + "': " + exception.getMessage(), exception);
+            return false;
+        }
+        for (final EventID eventID : resolved) {
             log.debug(pack, "Item " + name + ": Run event " + eventID);
             BetonQuest.event(profile, eventID);
         }
@@ -216,7 +195,14 @@ public class MenuItem extends SimpleYMLSection {
      * @return true if all display conditions are met, false otherwise
      */
     public boolean display(final Profile profile) {
-        for (final ConditionID condition : this.conditions) {
+        final List<ConditionID> resolved;
+        try {
+            resolved = parseVariables(this.conditions, profile);
+        } catch (final QuestRuntimeException exception) {
+            log.warn(pack, "Error while resolving condition in menu item '" + name + "': " + exception.getMessage(), exception);
+            return false;
+        }
+        for (final ConditionID condition : resolved) {
             if (BetonQuest.condition(profile, condition)) {
                 log.debug(pack, "Item " + name + ": condition " + condition + " returned true");
             } else {
@@ -253,7 +239,7 @@ public class MenuItem extends SimpleYMLSection {
                 }
             }
             return item;
-        } catch (final QuestRuntimeException qre) {
+        } catch (final QuestException qre) {
             log.error(pack, "QuestRuntimeException while creating '" + name + "': " + qre.getMessage());
             return new ItemStack(Material.AIR);
         }
@@ -317,36 +303,55 @@ public class MenuItem extends SimpleYMLSection {
      */
     @SuppressWarnings("PMD.ShortClassName")
     public static class Item {
-        private final ItemID itemID;
+        private final Variable<ItemID> itemID;
 
+        /**
+         * The cached Quest Item, if without variables.
+         */
+        @Nullable
         private final QuestItem questItem;
 
         private final VariableNumber amount;
 
-        public Item(final ItemID itemID, final VariableNumber amount) throws InstructionParseException {
+        public Item(final Variable<ItemID> itemID, final VariableNumber amount) throws InstructionParseException {
             this.itemID = itemID;
-            this.questItem = new QuestItem(itemID);
+            if (itemID.isConstant()) {
+                try {
+                    questItem = new QuestItem(itemID.getValue(null));
+                } catch (final QuestRuntimeException exception) {
+                    throw new InstructionParseException(exception);
+                }
+            } else {
+                questItem = null;
+            }
             this.amount = amount;
         }
 
-        public ItemID getID() {
+        public Variable<ItemID> getID() throws QuestRuntimeException {
             return itemID;
         }
 
-        public QuestItem getItem() {
-            return questItem;
+        public QuestItem getItem(@Nullable final Profile profile) throws QuestException {
+            if (questItem != null) {
+                return questItem;
+            }
+            return new QuestItem(itemID.getValue(profile));
         }
 
         public boolean isItemEqual(@Nullable final ItemStack item) {
-            return questItem.compare(item);
+            try {
+                return getItem(null).compare(item);
+            } catch (final QuestException exception) {
+                return false;
+            }
         }
 
         public VariableNumber getAmount() {
             return amount;
         }
 
-        public ItemStack generate(final Profile profile) throws QuestRuntimeException {
-            return questItem.generate(amount.getInt(profile), profile);
+        public ItemStack generate(final Profile profile) throws QuestException {
+            return getItem(profile).generate(amount.getValue(profile).intValue(), profile);
         }
     }
 }

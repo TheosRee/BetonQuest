@@ -8,9 +8,11 @@ import org.betonquest.betonquest.api.profiles.OnlineProfile;
 import org.betonquest.betonquest.api.profiles.Profile;
 import org.betonquest.betonquest.exceptions.InstructionParseException;
 import org.betonquest.betonquest.exceptions.ObjectNotFoundException;
+import org.betonquest.betonquest.exceptions.QuestRuntimeException;
 import org.betonquest.betonquest.id.ConditionID;
 import org.betonquest.betonquest.id.EventID;
 import org.betonquest.betonquest.id.ItemID;
+import org.betonquest.betonquest.instruction.variable.Variable;
 import org.betonquest.betonquest.instruction.variable.VariableString;
 import org.betonquest.betonquest.item.QuestItem;
 import org.betonquest.betonquest.menu.commands.SimpleCommand;
@@ -72,17 +74,17 @@ public class Menu extends SimpleYMLSection implements Listener {
     /**
      * Conditions which have to be matched to open the menu.
      */
-    private final List<ConditionID> openConditions;
+    private final List<Variable<ConditionID>> openConditions;
 
     /**
      * Events which are fired when the menu is opened.
      */
-    private final List<EventID> openEvents;
+    private final List<Variable<EventID>> openEvents;
 
     /**
      * Events which are fired when the menu is closed.
      */
-    private final List<EventID> closeEvents;
+    private final List<Variable<EventID>> closeEvents;
 
     /**
      * Optional which contains the command this menu is bound to or is empty if none is bound.
@@ -106,29 +108,13 @@ public class Menu extends SimpleYMLSection implements Listener {
         }
         //load title
         try {
-            final String title = ChatColor.translateAlternateColorCodes('&', getString("title"));
-            this.title = new VariableString(pack, title);
+            this.title = new VariableString(BetonQuest.getInstance().getVariableProcessor(), pack, getString("title"));
         } catch (final InstructionParseException e) {
             throw new InvalidConfigurationException(e.getMessage(), e);
         }
-        //load opening conditions
-        this.openConditions = new ArrayList<>();
-        try {
-            this.openConditions.addAll(getConditions("open_conditions", pack));
-        } catch (final Missing ignored) {
-        }
-        //load opening events
-        this.openEvents = new ArrayList<>();
-        try {
-            this.openEvents.addAll(getEvents("open_events", pack));
-        } catch (final Missing ignored) {
-        }
-        //load closing events
-        this.closeEvents = new ArrayList<>();
-        try {
-            this.closeEvents.addAll(getEvents("close_events", pack));
-        } catch (final Missing ignored) {
-        }
+        this.openConditions = new ArrayList<>(new IDVariableSetting<>("open_conditions", ConditionID::new).get());
+        this.openEvents = new ArrayList<>(new IDVariableSetting<>("open_events", EventID::new).get());
+        this.closeEvents = new ArrayList<>(new IDVariableSetting<>("close_events", EventID::new).get());
         //load bound item
         this.boundItem = new OptionalSetting<QuestItem>() {
             @Override
@@ -209,7 +195,14 @@ public class Menu extends SimpleYMLSection implements Listener {
      * @return true if all opening conditions are true, false otherwise
      */
     public boolean mayOpen(final Profile profile) {
-        for (final ConditionID conditionID : openConditions) {
+        final List<ConditionID> resolved;
+        try {
+            resolved = parseVariables(openConditions, profile);
+        } catch (final QuestRuntimeException exception) {
+            log.warn(pack, "Can't resolve open conditions in menu " + name, exception);
+            return false;
+        }
+        for (final ConditionID conditionID : resolved) {
             if (!BetonQuest.condition(profile, conditionID)) {
                 log.debug(pack, "Denied opening of " + name + ": Condition " + conditionID + "returned false.");
                 return false;
@@ -257,7 +250,14 @@ public class Menu extends SimpleYMLSection implements Listener {
     @SuppressWarnings("PMD.AvoidDuplicateLiterals")
     public void runOpenEvents(final Profile profile) {
         log.debug(pack, "Menu " + menuID + ": Running open events");
-        for (final EventID event : this.openEvents) {
+        final List<EventID> resolved;
+        try {
+            resolved = parseVariables(this.openEvents, profile);
+        } catch (final QuestRuntimeException exception) {
+            log.warn(pack, "Can't resolve open events in menu " + name, exception);
+            return;
+        }
+        for (final EventID event : resolved) {
             BetonQuest.event(profile, event);
             log.debug(pack, "Menu " + menuID + ": Run event " + event);
         }
@@ -270,8 +270,16 @@ public class Menu extends SimpleYMLSection implements Listener {
      */
     public void runCloseEvents(final Player player) {
         log.debug(pack, "Menu " + menuID + ": Running close events");
-        for (final EventID event : this.closeEvents) {
-            BetonQuest.event(PlayerConverter.getID(player), event);
+        final OnlineProfile profile = PlayerConverter.getID(player);
+        final List<EventID> resolved;
+        try {
+            resolved = parseVariables(this.closeEvents, profile);
+        } catch (final QuestRuntimeException exception) {
+            log.warn(pack, null, exception);
+            return;
+        }
+        for (final EventID event : resolved) {
+            BetonQuest.event(profile, event);
             log.debug(pack, "Menu " + menuID + ": Run event " + event);
         }
     }
@@ -309,7 +317,7 @@ public class Menu extends SimpleYMLSection implements Listener {
      * @return the title of the menu
      */
     public String getTitle(final Profile profile) {
-        return title.getString(profile);
+        return ChatColor.translateAlternateColorCodes('&', title.getString(profile));
     }
 
     /**
@@ -352,7 +360,7 @@ public class Menu extends SimpleYMLSection implements Listener {
     /**
      * @return a list containing all conditions which have to be met to open the menu
      */
-    public List<ConditionID> getOpenConditions() {
+    public List<Variable<ConditionID>> getOpenConditions() {
         return openConditions;
     }
 

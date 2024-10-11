@@ -1,9 +1,18 @@
 package org.betonquest.betonquest.menu.config;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import org.betonquest.betonquest.BetonQuest;
 import org.betonquest.betonquest.api.config.quest.QuestPackage;
+import org.betonquest.betonquest.api.profiles.Profile;
+import org.betonquest.betonquest.exceptions.InstructionParseException;
 import org.betonquest.betonquest.exceptions.ObjectNotFoundException;
+import org.betonquest.betonquest.exceptions.QuestRuntimeException;
 import org.betonquest.betonquest.id.ConditionID;
 import org.betonquest.betonquest.id.EventID;
+import org.betonquest.betonquest.id.ID;
+import org.betonquest.betonquest.instruction.argument.IDArgument;
+import org.betonquest.betonquest.instruction.variable.Variable;
+import org.betonquest.betonquest.instruction.variable.VariableIDTheOther;
 import org.betonquest.betonquest.variables.GlobalVariableResolver;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
@@ -19,7 +28,7 @@ import java.util.Locale;
  * Abstract class to help parsing of yml config files.
  */
 @SuppressWarnings({"PMD.PreserveStackTrace", "PMD.AbstractClassWithoutAbstractMethod", "PMD.CommentRequired",
-        "PMD.TooManyMethods"})
+        "PMD.TooManyMethods", "PMD.GodClass"})
 public abstract class SimpleYMLSection {
     public static final String RPG_MENU_CONFIG_SETTING = "RPGMenuConfig setting ";
 
@@ -217,16 +226,7 @@ public abstract class SimpleYMLSection {
      * @throws Invalid if one of the events can't be found
      */
     protected final List<EventID> getEvents(final String key, final QuestPackage pack) throws Missing, Invalid {
-        final List<String> strings = getStrings(key);
-        final List<EventID> events = new ArrayList<>(strings.size());
-        for (final String string : strings) {
-            try {
-                events.add(new EventID(pack, string));
-            } catch (final ObjectNotFoundException e) {
-                throw new Invalid(key, e);
-            }
-        }
-        return events;
+        return getID(key, pack, EventID::new);
     }
 
     /**
@@ -239,16 +239,62 @@ public abstract class SimpleYMLSection {
      * @throws Invalid if one of the conditions can't be found
      */
     protected final List<ConditionID> getConditions(final String key, final QuestPackage pack) throws Missing, Invalid {
+        return getID(key, pack, ConditionID::new);
+    }
+
+    private <T extends ID> List<T> getID(final String key, final QuestPackage pack, final IDArgument<T> argument) throws Missing, Invalid {
         final List<String> strings = getStrings(key);
-        final List<ConditionID> conditions = new ArrayList<>(strings.size());
+        final List<T> ids = new ArrayList<>(strings.size());
         for (final String string : strings) {
             try {
-                conditions.add(new ConditionID(pack, string));
+                ids.add(argument.convert(pack, string));
             } catch (final ObjectNotFoundException e) {
                 throw new Invalid(key, e);
             }
         }
-        return conditions;
+        return ids;
+    }
+
+    /**
+     * Parse a list of {@link T} from config file.
+     *
+     * @param key      where to search
+     * @param pack     configuration package of this file
+     * @param argument constructor for an ID
+     * @param <T>      the type of t
+     * @return requested IDs if present
+     * @throws Missing if nothing is given
+     * @throws Invalid if one of the ids can't be found
+     */
+    protected final <T extends ID> List<Variable<T>> getIDVariables(final String key, final QuestPackage pack, final IDArgument<T> argument) throws Missing, Invalid {
+        final List<String> strings = getStrings(key);
+        final List<Variable<T>> variables = new ArrayList<>(strings.size());
+        for (final String string : strings) {
+            try {
+                variables.add(new VariableIDTheOther<>(BetonQuest.getInstance().getVariableProcessor(), pack, string, argument));
+            } catch (final InstructionParseException e) {
+                throw new Invalid(key, e);
+            }
+        }
+        return variables;
+    }
+
+    /**
+     * Resolves a list of ID Variables to actual IDs.
+     *
+     * @param variables the list to resolve
+     * @param profile   the profile used for resolving
+     * @param <T>       the type of ID
+     * @return the resolved IDs
+     * @throws QuestRuntimeException if a Variable cannot be resolved
+     */
+    protected <T extends ID> List<T> parseVariables(final List<Variable<T>> variables, final Profile profile) throws QuestRuntimeException {
+        final List<T> list = new ArrayList<>();
+        for (final Variable<T> va : variables) {
+            final T value = va.getValue(profile);
+            list.add(value);
+        }
+        return list;
     }
 
     /**
@@ -370,6 +416,47 @@ public abstract class SimpleYMLSection {
 
         public Invalid(final String invalidSetting, final Throwable cause) {
             super(RPG_MENU_CONFIG_SETTING + invalidSetting + " is invalid: " + cause.getMessage());
+        }
+    }
+
+    /**
+     * A config setting for IDs which returns an empty list when no value is given.
+     *
+     * @param <T> the type of the id
+     */
+    protected class IDVariableSetting<T extends ID> extends DefaultSetting<List<Variable<T>>> {
+        /**
+         * Path of the IDs.
+         */
+        private final String path;
+
+        /**
+         * Argument resolver for the specific ID.
+         */
+        private final IDArgument<T> argument;
+
+        /**
+         * Creates a new setting for optional IDs.
+         *
+         * @param path     the path of the id in the section
+         * @param argument the id resolver
+         * @throws Invalid when the id is not valid
+         */
+        public IDVariableSetting(final String path, final IDArgument<T> argument) throws Invalid {
+            super(List.of());
+            this.path = path;
+            this.argument = argument;
+        }
+
+        @Override
+        @SuppressWarnings("PMD.ShortMethodName")
+        @SuppressFBWarnings("UR_UNINIT_READ_CALLED_FROM_SUPER_CONSTRUCTOR")
+        protected List<Variable<T>> of() throws Invalid {
+            try {
+                return getIDVariables(path, pack, argument);
+            } catch (final Missing missing) {
+                return get();
+            }
         }
     }
 }
