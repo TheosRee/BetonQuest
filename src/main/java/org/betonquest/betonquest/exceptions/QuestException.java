@@ -1,20 +1,25 @@
 package org.betonquest.betonquest.exceptions;
 
+import org.jetbrains.annotations.Nullable;
+
 import java.io.Serial;
 
 /**
- * Exception thrown when there was an unexpected error.
+ * Exception thrown when there is an error while using BetonQuest data types.
+ *
+ * @see InstructionParseException
+ * @see QuestRuntimeException
  */
-public class QuestRuntimeException extends QuestException {
+public class QuestException extends Exception {
     @Serial
-    private static final long serialVersionUID = 2375018439469626832L;
+    private static final long serialVersionUID = 3915478775320902973L;
 
     /**
      * {@link Exception#Exception(String)}
      *
      * @param message the displayed message.
      */
-    public QuestRuntimeException(final String message) {
+    public QuestException(final String message) {
         super(message);
     }
 
@@ -24,7 +29,7 @@ public class QuestRuntimeException extends QuestException {
      * @param message the exception message.
      * @param cause   the Throwable that caused this exception.
      */
-    public QuestRuntimeException(final String message, final Throwable cause) {
+    public QuestException(@Nullable final String message, final Throwable cause) {
         super(message, cause);
     }
 
@@ -33,7 +38,7 @@ public class QuestRuntimeException extends QuestException {
      *
      * @param cause the Throwable that caused this exception.
      */
-    public QuestRuntimeException(final Throwable cause) {
+    public QuestException(final Throwable cause) {
         super(cause);
     }
 }
