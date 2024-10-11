@@ -33,6 +33,11 @@ public class Variable<T> {
     private final ValueResolver<T> value;
 
     /**
+     * If the variable doe not contain contains variables.
+     */
+    private final boolean constant;
+
+    /**
      * Resolves a string that may contain variables to a variable of the given type.
      *
      * @param variableProcessor the processor to create the variables
@@ -51,8 +56,10 @@ public class Variable<T> {
             } catch (final QuestRuntimeException e) {
                 throw new InstructionParseException(e.getMessage(), e);
             }
+            constant = true;
         } else {
             value = profile -> resolver.resolve(getString(input, variables, profile));
+            constant = false;
         }
     }
 
@@ -108,6 +115,15 @@ public class Variable<T> {
      */
     public T getValue(@Nullable final Profile profile) throws QuestRuntimeException {
         return value.resolve(profile);
+    }
+
+    /**
+     * If the variable does not contains variables.
+     *
+     * @return true if the value never changes
+     */
+    public boolean isConstant() {
+        return constant;
     }
 
     /**
