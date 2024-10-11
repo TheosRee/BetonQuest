@@ -1,11 +1,15 @@
 package org.betonquest.betonquest.menu.config;
 
+import org.betonquest.betonquest.BetonQuest;
 import org.betonquest.betonquest.api.config.quest.QuestPackage;
+import org.betonquest.betonquest.api.profile.Profile;
 import org.betonquest.betonquest.api.quest.QuestException;
 import org.betonquest.betonquest.id.ConditionID;
 import org.betonquest.betonquest.id.EventID;
 import org.betonquest.betonquest.id.ID;
 import org.betonquest.betonquest.instruction.argument.IDArgument;
+import org.betonquest.betonquest.instruction.variable.Variable;
+import org.betonquest.betonquest.instruction.variable.VariableIDTheOther;
 import org.betonquest.betonquest.variables.GlobalVariableResolver;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.InvalidConfigurationException;
@@ -157,7 +161,7 @@ public abstract class SimpleYMLSection {
      * @return requested EventIDs or empty list when not present
      * @throws Invalid if one of the events can't be found
      */
-    protected final List<EventID> getEvents(final String key, final QuestPackage pack) throws Invalid {
+    protected final List<Variable<EventID>> getEvents(final String key, final QuestPackage pack) throws Invalid {
         return getID(key, pack, EventID::new);
     }
 
@@ -169,26 +173,44 @@ public abstract class SimpleYMLSection {
      * @return requested ConditionIDs or empty list when not present
      * @throws Invalid if one of the conditions can't be found
      */
-    protected final List<ConditionID> getConditions(final String key, final QuestPackage pack) throws Invalid {
+    protected final List<Variable<ConditionID>> getConditions(final String key, final QuestPackage pack) throws Invalid {
         return getID(key, pack, ConditionID::new);
     }
 
-    private <T extends ID> List<T> getID(final String key, final QuestPackage pack, final IDArgument<T> argument) throws Invalid {
+    private <T extends ID> List<Variable<T>> getID(final String key, final QuestPackage pack, final IDArgument<T> argument) throws Invalid {
         final List<String> strings;
         try {
             strings = getStrings(key);
         } catch (final Missing ignored) {
             return List.of();
         }
-        final List<T> ids = new ArrayList<>(strings.size());
+        final List<Variable<T>> variables = new ArrayList<>(strings.size());
         for (final String string : strings) {
             try {
-                ids.add(argument.convert(pack, string));
+                variables.add(new VariableIDTheOther<>(BetonQuest.getInstance().getVariableProcessor(), pack, string, argument));
             } catch (final QuestException e) {
                 throw new Invalid(key, e);
             }
         }
-        return ids;
+        return variables;
+    }
+
+    /**
+     * Resolves a list of ID Variables to actual IDs.
+     *
+     * @param variables the list to resolve
+     * @param profile   the profile used for resolving
+     * @param <T>       the type of ID
+     * @return the resolved IDs
+     * @throws QuestException if a Variable cannot be resolved
+     */
+    protected <T extends ID> List<T> parseVariables(final List<Variable<T>> variables, final Profile profile) throws QuestException {
+        final List<T> list = new ArrayList<>();
+        for (final Variable<T> va : variables) {
+            final T value = va.getValue(profile);
+            list.add(value);
+        }
+        return list;
     }
 
     /**

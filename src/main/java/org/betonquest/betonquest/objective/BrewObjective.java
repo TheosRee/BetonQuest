@@ -87,7 +87,7 @@ public class BrewObjective extends CountingObjective implements Listener {
         if (profile == null) {
             return;
         }
-        final QuestItem potion = this.potion.getItem();
+        final QuestItem potion = this.potion.getItem(profile);
         final boolean[] alreadyDone = getMatchingPotions(potion, event.getContents());
 
         Bukkit.getScheduler().runTask(BetonQuest.getInstance(), () -> {

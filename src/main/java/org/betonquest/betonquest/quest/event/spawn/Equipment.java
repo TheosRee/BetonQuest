@@ -36,7 +36,7 @@ public record Equipment(@Nullable Item helmet, @Nullable Item chestplate,
     public void addDrops(final Mob mob, @Nullable final Profile profile) throws QuestException {
         int dropIndex = 0;
         for (final Item item : drops) {
-            final String value = item.getID().getFullID() + ":" + item.getAmount().getValue(profile).intValue();
+            final String value = item.getID().getValue(profile).getFullID() + ":" + item.getAmount().getValue(profile).intValue();
             final NamespacedKey key = new NamespacedKey(BetonQuest.getInstance(), "betonquest-drops-" + dropIndex);
             mob.getPersistentDataContainer().set(key, PersistentDataType.STRING, value);
             dropIndex++;
@@ -46,17 +46,18 @@ public record Equipment(@Nullable Item helmet, @Nullable Item chestplate,
     /**
      * Adds the equipment to the mob and sets the drop chances to 0 for the equipment.
      *
-     * @param mob the mob to add the equipment to
+     * @param mob     the mob to add the equipment to
+     * @param profile the profile to resolve variables
      * @throws QuestException if a QuestItem does not exist
      */
-    public void addEquipment(final Mob mob) throws QuestException {
+    public void addEquipment(final Mob mob, @Nullable final Profile profile) throws QuestException {
         final EntityEquipment equipment = mob.getEquipment();
-        equipment.setHelmet(generate(helmet));
-        equipment.setChestplate(generate(chestplate));
-        equipment.setLeggings(generate(leggings));
-        equipment.setBoots(generate(boots));
-        equipment.setItemInMainHand(generate(mainHand));
-        equipment.setItemInOffHand(generate(offHand));
+        equipment.setHelmet(generate(helmet, profile));
+        equipment.setChestplate(generate(chestplate, profile));
+        equipment.setLeggings(generate(leggings, profile));
+        equipment.setBoots(generate(boots, profile));
+        equipment.setItemInMainHand(generate(mainHand, profile));
+        equipment.setItemInOffHand(generate(offHand, profile));
         equipment.setHelmetDropChance(0);
         equipment.setChestplateDropChance(0);
         equipment.setLeggingsDropChance(0);
@@ -66,7 +67,7 @@ public record Equipment(@Nullable Item helmet, @Nullable Item chestplate,
     }
 
     @Nullable
-    private ItemStack generate(@Nullable final Item item) throws QuestException {
-        return item == null ? null : item.getItem().generate(1);
+    private ItemStack generate(@Nullable final Item item, @Nullable final Profile profile) throws QuestException {
+        return item == null ? null : item.getItem(profile).generate(1);
     }
 }

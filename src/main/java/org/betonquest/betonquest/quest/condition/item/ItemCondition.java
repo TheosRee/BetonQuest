@@ -44,7 +44,7 @@ public class ItemCondition implements OnlineCondition {
         final List<ItemStack> backpackItems = dataStorage.get(profile).getBackpack();
 
         for (final Item item : items) {
-            final QuestItem questItem = item.getItem();
+            final QuestItem questItem = item.getItem(profile);
             final long totalAmount = Stream.concat(
                             Stream.of(inventoryItems),
                             backpackItems.stream()

@@ -82,7 +82,7 @@ public class SpawnMobEvent implements NullableEvent {
         final int numberOfMob = amount.getValue(profile).intValue();
         for (int i = 0; i < numberOfMob; i++) {
             final Mob mob = (Mob) location.getWorld().spawnEntity(location, type);
-            this.equipment.addEquipment(mob);
+            this.equipment.addEquipment(mob, profile);
             this.equipment.addDrops(mob, profile);
             if (this.name != null) {
                 mob.setCustomName(this.name.getValue(profile));

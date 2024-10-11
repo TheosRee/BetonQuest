@@ -28,19 +28,20 @@ public class PickupObjective extends CountingObjective implements Listener {
 
     @EventHandler(ignoreCancelled = true)
     public void onPickup(final EntityPickupItemEvent event) throws QuestException {
-        if (isValidItem(event.getItem().getItemStack()) && event.getEntity() instanceof Player) {
-            final OnlineProfile onlineProfile = profileProvider.getProfile((Player) event.getEntity());
-            if (containsPlayer(onlineProfile) && checkConditions(onlineProfile)) {
-                final ItemStack pickupItem = event.getItem().getItemStack();
-                getCountingData(onlineProfile).progress(pickupItem.getAmount());
-                completeIfDoneOrNotify(onlineProfile);
-            }
+        if (!(event.getEntity() instanceof final Player player)) {
+            return;
+        }
+        final OnlineProfile onlineProfile = profileProvider.getProfile(player);
+        if (containsPlayer(onlineProfile) && isValidItem(onlineProfile, event.getItem().getItemStack()) && checkConditions(onlineProfile)) {
+            final ItemStack pickupItem = event.getItem().getItemStack();
+            getCountingData(onlineProfile).progress(pickupItem.getAmount());
+            completeIfDoneOrNotify(onlineProfile);
         }
     }
 
-    private boolean isValidItem(final ItemStack itemStack) throws QuestException {
+    private boolean isValidItem(final OnlineProfile profile, final ItemStack itemStack) throws QuestException {
         for (final Item item : pickupItems) {
-            if (item.matches(itemStack)) {
+            if (item.matches(profile, itemStack)) {
                 return true;
             }
         }

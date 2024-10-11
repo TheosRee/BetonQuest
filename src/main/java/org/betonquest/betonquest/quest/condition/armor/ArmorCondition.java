@@ -28,7 +28,7 @@ public class ArmorCondition implements OnlineCondition {
     @Override
     public boolean check(final OnlineProfile profile) throws QuestException {
         for (final ItemStack armor : profile.getPlayer().getEquipment().getArmorContents()) {
-            if (armorItem.matches(armor)) {
+            if (armorItem.matches(profile, armor)) {
                 return true;
             }
         }

@@ -49,7 +49,7 @@ public class ConsumeObjective extends CountingObjective implements Listener {
     @EventHandler(ignoreCancelled = true)
     public void onConsume(final PlayerItemConsumeEvent event) throws QuestException {
         final OnlineProfile onlineProfile = profileProvider.getProfile(event.getPlayer());
-        if (containsPlayer(onlineProfile) && item.matches(event.getItem()) && checkConditions(onlineProfile)) {
+        if (containsPlayer(onlineProfile) && item.matches(onlineProfile, event.getItem()) && checkConditions(onlineProfile)) {
             getCountingData(onlineProfile).progress();
             completeIfDoneOrNotify(onlineProfile);
         }

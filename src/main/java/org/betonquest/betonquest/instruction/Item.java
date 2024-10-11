@@ -4,6 +4,7 @@ import org.betonquest.betonquest.api.feature.FeatureAPI;
 import org.betonquest.betonquest.api.profile.Profile;
 import org.betonquest.betonquest.api.quest.QuestException;
 import org.betonquest.betonquest.id.ItemID;
+import org.betonquest.betonquest.instruction.variable.Variable;
 import org.betonquest.betonquest.instruction.variable.VariableNumber;
 import org.betonquest.betonquest.item.QuestItem;
 import org.bukkit.inventory.ItemStack;
@@ -23,7 +24,7 @@ public class Item {
     /**
      * Item id to generate the QuestItem with.
      */
-    private final ItemID itemID;
+    private final Variable<ItemID> itemID;
 
     /**
      * Size of the stack to create.
@@ -33,12 +34,26 @@ public class Item {
     /**
      * Create a wrapper for Quest Item and target stack size.
      *
-     * @param featureAPI the feature api creating new items
-     * @param itemID     the QuestItemID to create
+     * @param featureAPI the feature api getting new items
+     * @param itemID     the QuestItemID
      * @param amount     the size to set the created ItemStack to
      * @throws QuestException when the QuestItem could not be created
      */
     public Item(final FeatureAPI featureAPI, final ItemID itemID, final VariableNumber amount) throws QuestException {
+        this.featureAPI = featureAPI;
+        this.itemID = new Variable<>(itemID);
+        this.amount = amount;
+    }
+
+    /**
+     * Create a wrapper for Quest Item and target stack size.
+     *
+     * @param featureAPI the feature api getting new items
+     * @param itemID     the QuestItem ID
+     * @param amount     the size to set the created ItemStack to
+     * @throws QuestException when the QuestItem could not be created
+     */
+    public Item(final FeatureAPI featureAPI, final Variable<ItemID> itemID, final VariableNumber amount) throws QuestException {
         this.itemID = itemID;
         this.featureAPI = featureAPI;
         this.amount = amount;
@@ -52,18 +67,19 @@ public class Item {
      * @throws QuestException when the generation fails
      */
     public ItemStack generate(final Profile profile) throws QuestException {
-        return featureAPI.getItem(itemID).generate(amount.getValue(profile).intValue(), profile);
+        return featureAPI.getItem(itemID.getValue(profile)).generate(amount.getValue(profile).intValue(), profile);
     }
 
     /**
      * Checks if the Item matches.
      *
-     * @param item the item to compare
+     * @param profile the profile used for variable resolve
+     * @param item    the item to compare
      * @return true if the given item matches the quest item
      * @throws QuestException when there is no QuestItem for the ID
      */
-    public boolean matches(@Nullable final ItemStack item) throws QuestException {
-        return featureAPI.getItem(itemID).matches(item);
+    public boolean matches(@Nullable final Profile profile, @Nullable final ItemStack item) throws QuestException {
+        return item != null && getItem(profile).matches(item);
     }
 
     /**
@@ -71,18 +87,19 @@ public class Item {
      *
      * @return item id of the item
      */
-    public ItemID getID() {
+    public Variable<ItemID> getID() {
         return itemID;
     }
 
     /**
      * Gets the Quest Item.
      *
+     * @param profile the profile used for variable resolve
      * @return the stored quest item
      * @throws QuestException when there is no QuestItem for the ID
      */
-    public QuestItem getItem() throws QuestException {
-        return featureAPI.getItem(itemID);
+    public QuestItem getItem(@Nullable final Profile profile) throws QuestException {
+        return featureAPI.getItem(itemID.getValue(profile));
     }
 
     /**

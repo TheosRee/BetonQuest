@@ -16,6 +16,7 @@ import org.betonquest.betonquest.id.ConditionID;
 import org.betonquest.betonquest.id.EventID;
 import org.betonquest.betonquest.id.ItemID;
 import org.betonquest.betonquest.instruction.Item;
+import org.betonquest.betonquest.instruction.variable.Variable;
 import org.betonquest.betonquest.instruction.variable.VariableNumber;
 import org.betonquest.betonquest.instruction.variable.VariableString;
 import org.betonquest.betonquest.kernel.processor.quest.VariableProcessor;
@@ -42,7 +43,7 @@ import java.util.Map;
 /**
  * Class representing a menu.
  */
-@SuppressWarnings({"PMD.ShortClassName", "PMD.CouplingBetweenObjects"})
+@SuppressWarnings({"PMD.ShortClassName", "PMD.CouplingBetweenObjects", "PMD.GodClass"})
 public class Menu extends SimpleYMLSection implements Listener {
     /**
      * Custom {@link BetonQuestLogger} instance for this class.
@@ -98,17 +99,17 @@ public class Menu extends SimpleYMLSection implements Listener {
     /**
      * Conditions which have to be matched to open the menu.
      */
-    private final List<ConditionID> openConditions;
+    private final List<Variable<ConditionID>> openConditions;
 
     /**
      * Events which are fired when the menu is opened.
      */
-    private final List<EventID> openEvents;
+    private final List<Variable<EventID>> openEvents;
 
     /**
      * Events which are fired when the menu is closed.
      */
-    private final List<EventID> closeEvents;
+    private final List<Variable<EventID>> closeEvents;
 
     /**
      * Optional which contains the command this menu is bound to or is empty if none is bound.
@@ -260,7 +261,14 @@ public class Menu extends SimpleYMLSection implements Listener {
      * @return true if all opening conditions are true, false otherwise
      */
     public boolean mayOpen(final Profile profile) {
-        for (final ConditionID conditionID : openConditions) {
+        final List<ConditionID> resolved;
+        try {
+            resolved = parseVariables(openConditions, profile);
+        } catch (final QuestException exception) {
+            log.warn(pack, "Can't resolve open conditions in menu " + name, exception);
+            return false;
+        }
+        for (final ConditionID conditionID : resolved) {
             if (!questTypeAPI.condition(profile, conditionID)) {
                 log.debug(pack, "Denied opening of " + name + ": Condition " + conditionID + "returned false.");
                 return false;
@@ -292,11 +300,14 @@ public class Menu extends SimpleYMLSection implements Listener {
     @EventHandler
     public void onItemClick(final PlayerInteractEvent event) throws QuestException {
         //check if item is bound item
-        if (boundItem == null || !boundItem.matches(event.getItem())) {
+        if (boundItem == null) {
+            return;
+        }
+        final OnlineProfile onlineprofile = profileProvider.getProfile(event.getPlayer());
+        if (!boundItem.matches(onlineprofile, event.getItem())) {
             return;
         }
         event.setCancelled(true);
-        final OnlineProfile onlineprofile = profileProvider.getProfile(event.getPlayer());
         if (!mayOpen(onlineprofile)) {
             noPermissionSender.sendNotification(onlineprofile);
             return;
@@ -314,7 +325,14 @@ public class Menu extends SimpleYMLSection implements Listener {
     @SuppressWarnings("PMD.AvoidDuplicateLiterals")
     public void runOpenEvents(final Profile profile) {
         log.debug(pack, "Menu " + menuID + ": Running open events");
-        for (final EventID event : this.openEvents) {
+        final List<EventID> resolved;
+        try {
+            resolved = parseVariables(this.openEvents, profile);
+        } catch (final QuestException exception) {
+            log.warn(pack, "Can't resolve open events in menu " + name, exception);
+            return;
+        }
+        for (final EventID event : resolved) {
             questTypeAPI.event(profile, event);
             log.debug(pack, "Menu " + menuID + ": Run event " + event);
         }
@@ -327,8 +345,16 @@ public class Menu extends SimpleYMLSection implements Listener {
      */
     public void runCloseEvents(final Player player) {
         log.debug(pack, "Menu " + menuID + ": Running close events");
-        for (final EventID event : this.closeEvents) {
-            questTypeAPI.event(profileProvider.getProfile(player), event);
+        final OnlineProfile profile = profileProvider.getProfile(player);
+        final List<EventID> resolved;
+        try {
+            resolved = parseVariables(this.closeEvents, profile);
+        } catch (final QuestException exception) {
+            log.warn(pack, null, exception);
+            return;
+        }
+        for (final EventID event : resolved) {
+            questTypeAPI.event(profile, event);
             log.debug(pack, "Menu " + menuID + ": Run event " + event);
         }
     }

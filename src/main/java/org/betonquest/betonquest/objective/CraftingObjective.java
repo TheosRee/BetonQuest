@@ -52,7 +52,7 @@ public class CraftingObjective extends CountingObjective implements Listener {
     public void onCrafting(final CraftItemEvent event) throws QuestException {
         if (event.getWhoClicked() instanceof final Player player) {
             final OnlineProfile onlineProfile = profileProvider.getProfile(player);
-            if (containsPlayer(onlineProfile) && item.matches(event.getInventory().getResult()) && checkConditions(onlineProfile)) {
+            if (containsPlayer(onlineProfile) && item.matches(onlineProfile, event.getInventory().getResult()) && checkConditions(onlineProfile)) {
                 getCountingData(onlineProfile).progress(calculateCraftAmount(event));
                 completeIfDoneOrNotify(onlineProfile);
             }

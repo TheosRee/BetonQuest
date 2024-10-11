@@ -61,7 +61,7 @@ public class ItemVariable implements NullableVariable {
         if (profile == null && (type == ItemDisplayType.AMOUNT || type == ItemDisplayType.LEFT)) {
             throw new QuestException("ItemVariable with type " + type + " can't be used without a profile.");
         }
-        final QuestItem questItem = this.item.getItem();
+        final QuestItem questItem = this.item.getItem(profile);
         return switch (type) {
             case AMOUNT -> Integer.toString(itemAmount(questItem, profile));
             case LEFT -> Integer.toString(amount - itemAmount(questItem, profile));
