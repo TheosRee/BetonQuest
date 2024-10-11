@@ -11,8 +11,11 @@ import org.betonquest.betonquest.id.ConditionID;
 import org.betonquest.betonquest.id.EventID;
 import org.betonquest.betonquest.id.ItemID;
 import org.betonquest.betonquest.instruction.Item;
+import org.betonquest.betonquest.instruction.variable.Variable;
+import org.betonquest.betonquest.instruction.variable.VariableIDTheOther;
 import org.betonquest.betonquest.instruction.variable.VariableNumber;
 import org.betonquest.betonquest.menu.config.SimpleYMLSection;
+import org.betonquest.betonquest.quest.registry.processor.VariableProcessor;
 import org.betonquest.betonquest.util.PlayerConverter;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
@@ -30,6 +33,7 @@ import java.util.Map;
 /**
  * An Item which Is displayed as option in a menu and has some events that are fired when item is clicked.
  */
+@SuppressWarnings("PMD.CouplingBetweenObjects")
 public class MenuItem extends SimpleYMLSection {
     /**
      * Text config property for Item lore.
@@ -59,32 +63,32 @@ public class MenuItem extends SimpleYMLSection {
     /**
      * Ids of all events that should be run on left click.
      */
-    private final List<EventID> leftClick;
+    private final List<Variable<EventID>> leftClick;
 
     /**
      * Ids of all events that should be run on shift-left click.
      */
-    private final List<EventID> shiftLeftClick;
+    private final List<Variable<EventID>> shiftLeftClick;
 
     /**
      * Ids of all events that should be run on right click.
      */
-    private final List<EventID> rightClick;
+    private final List<Variable<EventID>> rightClick;
 
     /**
      * Ids of all events that should be run on shift-right click.
      */
-    private final List<EventID> shiftRightClick;
+    private final List<Variable<EventID>> shiftRightClick;
 
     /**
      * Ids of all events that should be run on middle-mouse click.
      */
-    private final List<EventID> middleMouseClick;
+    private final List<Variable<EventID>> middleMouseClick;
 
     /**
      * Conditions that have to be matched to view the item.
      */
-    private final List<ConditionID> conditions;
+    private final List<Variable<ConditionID>> conditions;
 
     /**
      * If the menu should be closed when the item is clicked.
@@ -108,23 +112,23 @@ public class MenuItem extends SimpleYMLSection {
         super(pack, name, section);
         this.log = log;
         try {
+            final VariableProcessor variableProcessor = BetonQuest.getInstance().getVariableProcessor();
             //load item
-            final ItemID itemID = new ItemID(pack, getString("item").trim());
-            final VariableNumber amount = new VariableNumber(BetonQuest.getInstance().getVariableProcessor(), pack,
-                    new DefaultSetting<>("1") {
-                        @Override
-                        @SuppressWarnings("PMD.ShortMethodName")
-                        protected String of() throws Missing {
-                            return getString("amount");
-                        }
-                    }.get());
+            final Variable<ItemID> itemID = new VariableIDTheOther<>(variableProcessor, pack, getString("item").trim(), ItemID::new);
+            final VariableNumber amount = new VariableNumber(variableProcessor, pack, new DefaultSetting<>("1") {
+                @Override
+                @SuppressWarnings("PMD.ShortMethodName")
+                protected String of() throws Missing {
+                    return getString("amount");
+                }
+            }.get());
             this.item = new Item(itemID, amount);
             // load description
             this.descriptions = new HashMap<>();
             try {
                 this.descriptions.putAll(generateDescriptions(menuID.getFullID(), section));
             } catch (final Missing e) {
-                log.warn("Missing description for menu item  '" + itemID.getFullID() + "' in menu '"
+                log.warn("Missing description for menu item  '" + name + "' in menu '"
                         + menuID.getFullID() + "' in package '" + pack.getQuestPath() + "'! Reason: " + e.getMessage(), e);
             }
             if (config.isConfigurationSection("click")) {
@@ -134,7 +138,7 @@ public class MenuItem extends SimpleYMLSection {
                 this.shiftRightClick = getEvents("click.shiftRight", pack);
                 this.middleMouseClick = getEvents("click.middleMouse", pack);
             } else {
-                final List<EventID> list = getEvents("click", pack);
+                final List<Variable<EventID>> list = getEvents("click", pack);
                 this.leftClick = list;
                 this.shiftLeftClick = list;
                 this.rightClick = list;
@@ -175,9 +179,16 @@ public class MenuItem extends SimpleYMLSection {
         };
     }
 
-    private boolean executeEvents(final List<EventID> variables, final Player player) {
+    private boolean executeEvents(final List<Variable<EventID>> variables, final Player player) {
         final OnlineProfile profile = PlayerConverter.getID(player);
-        for (final EventID eventID : variables) {
+        final List<EventID> resolved;
+        try {
+            resolved = parseVariables(variables, profile);
+        } catch (final QuestException exception) {
+            log.warn(pack, "Error while resolving event in menu item '" + name + "': " + exception.getMessage(), exception);
+            return false;
+        }
+        for (final EventID eventID : resolved) {
             log.debug(pack, "Item " + name + ": Run event " + eventID);
             BetonQuest.getInstance().getQuestTypeAPI().event(profile, eventID);
         }
@@ -191,7 +202,14 @@ public class MenuItem extends SimpleYMLSection {
      * @return true if all display conditions are met, false otherwise
      */
     public boolean display(final Profile profile) {
-        for (final ConditionID condition : this.conditions) {
+        final List<ConditionID> resolved;
+        try {
+            resolved = parseVariables(this.conditions, profile);
+        } catch (final QuestException exception) {
+            log.warn(pack, "Error while resolving condition in menu item '" + name + "': " + exception.getMessage(), exception);
+            return false;
+        }
+        for (final ConditionID condition : resolved) {
             if (BetonQuest.getInstance().getQuestTypeAPI().condition(profile, condition)) {
                 log.debug(pack, "Item " + name + ": condition " + condition + " returned true");
             } else {
