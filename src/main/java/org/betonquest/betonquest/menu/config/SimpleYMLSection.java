@@ -1,6 +1,5 @@
 package org.betonquest.betonquest.menu.config;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.betonquest.betonquest.BetonQuest;
 import org.betonquest.betonquest.api.config.quest.QuestPackage;
 import org.betonquest.betonquest.api.profiles.Profile;
@@ -355,6 +354,49 @@ public abstract class SimpleYMLSection {
     }
 
     /**
+     * A config setting for IDs which returns an empty list when no value is given.
+     *
+     * @param <T> the type of the id
+     */
+    protected class IDVariableSetting<T extends ID> {
+        /**
+         * Path of the IDs.
+         */
+        private final String path;
+
+        /**
+         * Argument resolver for the specific ID.
+         */
+        private final IDArgument<T> argument;
+
+        /**
+         * Creates a new setting for optional IDs.
+         *
+         * @param path     the path of the id in the section
+         * @param argument the id resolver
+         */
+        public IDVariableSetting(final String path, final IDArgument<T> argument) {
+            this.path = path;
+            this.argument = argument;
+        }
+
+        /**
+         * Gets the value.
+         *
+         * @return the resolved id variables
+         * @throws Invalid when the id is not valid
+         */
+        @SuppressWarnings("PMD.ShortMethodName")
+        public List<Variable<T>> get() throws Invalid {
+            try {
+                return getIDVariables(path, pack, argument);
+            } catch (final Missing missing) {
+                return List.of();
+            }
+        }
+    }
+
+    /**
      * Thrown when the config could not be loaded due to an error.
      */
     public class InvalidSimpleConfigException extends InvalidConfigurationException {
@@ -416,47 +458,6 @@ public abstract class SimpleYMLSection {
 
         public Invalid(final String invalidSetting, final Throwable cause) {
             super(RPG_MENU_CONFIG_SETTING + invalidSetting + " is invalid: " + cause.getMessage());
-        }
-    }
-
-    /**
-     * A config setting for IDs which returns an empty list when no value is given.
-     *
-     * @param <T> the type of the id
-     */
-    protected class IDVariableSetting<T extends ID> extends DefaultSetting<List<Variable<T>>> {
-        /**
-         * Path of the IDs.
-         */
-        private final String path;
-
-        /**
-         * Argument resolver for the specific ID.
-         */
-        private final IDArgument<T> argument;
-
-        /**
-         * Creates a new setting for optional IDs.
-         *
-         * @param path     the path of the id in the section
-         * @param argument the id resolver
-         * @throws Invalid when the id is not valid
-         */
-        public IDVariableSetting(final String path, final IDArgument<T> argument) throws Invalid {
-            super(List.of());
-            this.path = path;
-            this.argument = argument;
-        }
-
-        @Override
-        @SuppressWarnings("PMD.ShortMethodName")
-        @SuppressFBWarnings("UR_UNINIT_READ_CALLED_FROM_SUPER_CONSTRUCTOR")
-        protected List<Variable<T>> of() throws Invalid {
-            try {
-                return getIDVariables(path, pack, argument);
-            } catch (final Missing missing) {
-                return get();
-            }
         }
     }
 }
