@@ -446,7 +446,7 @@ public class Instruction extends NewInstruction {
     }
 
     @SuppressWarnings("PMD.ShortClassName")
-    public static class Item extends NewInstruction.Item {
+    public static class Item extends org.betonquest.betonquest.instruction.Item {
         public Item(final ItemID itemID, final VariableNumber amount) throws InstructionParseException {
             super(itemID, amount);
         }

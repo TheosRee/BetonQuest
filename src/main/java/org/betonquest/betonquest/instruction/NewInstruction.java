@@ -1,6 +1,5 @@
 package org.betonquest.betonquest.instruction;
 
-import org.apache.commons.lang3.StringUtils;
 import org.betonquest.betonquest.BetonQuest;
 import org.betonquest.betonquest.Instruction;
 import org.betonquest.betonquest.api.config.quest.QuestPackage;
@@ -8,35 +7,29 @@ import org.betonquest.betonquest.api.logger.BetonQuestLogger;
 import org.betonquest.betonquest.exceptions.InstructionParseException;
 import org.betonquest.betonquest.exceptions.ObjectNotFoundException;
 import org.betonquest.betonquest.id.ID;
-import org.betonquest.betonquest.id.ItemID;
 import org.betonquest.betonquest.id.NoID;
-import org.betonquest.betonquest.instruction.argument.Argument;
 import org.betonquest.betonquest.instruction.argument.IDArgument;
 import org.betonquest.betonquest.instruction.argument.VariableArgument;
+import org.betonquest.betonquest.instruction.argument.getter.ArgumentParser;
+import org.betonquest.betonquest.instruction.argument.getter.ConverterParser;
+import org.betonquest.betonquest.instruction.argument.getter.EnumParser;
+import org.betonquest.betonquest.instruction.argument.getter.IDParser;
 import org.betonquest.betonquest.instruction.tokenizer.QuotingTokenizer;
 import org.betonquest.betonquest.instruction.tokenizer.Tokenizer;
 import org.betonquest.betonquest.instruction.tokenizer.TokenizerException;
-import org.betonquest.betonquest.instruction.variable.VariableNumber;
-import org.betonquest.betonquest.item.QuestItem;
-import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.Serial;
-import java.lang.reflect.Array;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 
-@SuppressWarnings({"PMD.CommentRequired", "PMD.CouplingBetweenObjects", "PMD.GodClass", "PMD.TooManyMethods"})
-public class NewInstruction {
-    /**
-     * A method that does not return null if the second parameter is also not null.
-     */
-    private static final String BLANK_NOT_NULL_NOT_NULL_CONTRACT = "_, !null -> !null";
-
+/**
+ * The new objectified and broken down Instruction. TODO change JDocs
+ */
+@SuppressWarnings("PMD.TooManyMethods")
+public class NewInstruction implements ArgumentParser, EnumParser, ConverterParser, IDParser {
     /**
      * The raw instruction string.
      */
@@ -184,6 +177,7 @@ public class NewInstruction {
         return currentIndex < parts.length - 1;
     }
 
+    @Override
     public String next() throws InstructionParseException {
         lastOptional = null;
         currentIndex = nextIndex;
@@ -205,36 +199,7 @@ public class NewInstruction {
         return parts[index];
     }
 
-    /**
-     * Gets an optional key:value instruction argument or null if the key is not present.
-     *
-     * @param prefix the prefix of the optional value without ":"
-     * @return the value or null
-     */
-    @Nullable
-    public String getOptional(final String prefix) {
-        return getOptional(prefix, null);
-    }
-
-    /**
-     * Gets an optional value or the default value if value is not present.
-     *
-     * @param prefix        the prefix of the optional value
-     * @param defaultString the default value
-     * @return the value or the default value
-     */
-    @Contract(BLANK_NOT_NULL_NOT_NULL_CONTRACT)
-    @Nullable
-    public String getOptional(final String prefix, @Nullable final String defaultString) {
-        return getOptionalArgument(prefix).orElse(defaultString);
-    }
-
-    /**
-     * Gets an optional value with the given prefix.
-     *
-     * @param prefix the prefix of the optional value
-     * @return an {@link Optional} containing the value or an empty {@link Optional} if the value is not present
-     */
+    @Override
     public Optional<String> getOptionalArgument(final String prefix) {
         for (final String part : parts) {
             if (part.toLowerCase(Locale.ROOT).startsWith(prefix.toLowerCase(Locale.ROOT) + ":")) {
@@ -246,6 +211,12 @@ public class NewInstruction {
         return Optional.empty();
     }
 
+    /**
+     * Checks if the instruction contains the argument.
+     *
+     * @param argument the argument to check
+     * @return if the instruction contains that argument, ignoring cases
+     */
     public boolean hasArgument(final String argument) {
         for (final String part : parts) {
             if (part.equalsIgnoreCase(argument)) {
@@ -255,23 +226,7 @@ public class NewInstruction {
         return false;
     }
 
-    public <T> T fun(final Argument<T> argument) throws InstructionParseException {
-        return fun(next(), argument);
-    }
-
-    @Contract("!null, _ -> !null")
-    @Nullable
-    public <T> T fun(@Nullable final String string, final Argument<T> argument) throws InstructionParseException {
-        if (string == null) {
-            return null;
-        }
-        return argument.convert(string);
-    }
-
-    public <T> T fun(final VariableArgument<T> argument) throws InstructionParseException {
-        return fun(next(), argument);
-    }
-
+    @Override
     @Contract("!null, _ -> !null")
     @Nullable
     public <T> T fun(@Nullable final String string, final VariableArgument<T> argument) throws InstructionParseException {
@@ -281,10 +236,7 @@ public class NewInstruction {
         return argument.convert(BetonQuest.getInstance().getVariableProcessor(), pack, string);
     }
 
-    public <T extends ID> T getID(final IDArgument<T> argument) throws InstructionParseException {
-        return getID(next(), argument);
-    }
-
+    @Override
     @Contract("!null, _ -> !null")
     @Nullable
     public <T extends ID> T getID(@Nullable final String string, final IDArgument<T> argument) throws InstructionParseException {
@@ -298,24 +250,12 @@ public class NewInstruction {
         }
     }
 
-    public <T extends ID> T[] getIDArray(final IDArgument<T> argument) throws InstructionParseException {
-        return getIDArray(next(), argument);
-    }
-
+    @Override
     public <T extends ID> T[] getIDArray(@Nullable final String string, final IDArgument<T> argument) throws InstructionParseException {
         return getArray(string, value -> getID(value, argument));
     }
 
-    public <T extends Enum<T>> T getEnum(final Class<T> clazz) throws InstructionParseException {
-        return getEnum(next(), clazz);
-    }
-
-    @Contract("null, _ -> null; !null, _ -> !null")
-    @Nullable
-    public <T extends Enum<T>> T getEnum(@Nullable final String string, final Class<T> clazz) throws InstructionParseException {
-        return getEnum(string, clazz, null);
-    }
-
+    @Override
     @Contract("_, _, !null -> !null")
     @Nullable
     public <T extends Enum<T>> T getEnum(@Nullable final String string, final Class<T> clazz, @Nullable final T defaultValue) throws InstructionParseException {
@@ -329,92 +269,9 @@ public class NewInstruction {
         }
     }
 
-    public String[] getArray() throws InstructionParseException {
-        return getArray(next());
-    }
-
-    public String[] getArray(@Nullable final String string) {
-        if (string == null) {
-            return new String[0];
-        }
-        return StringUtils.split(string, ",");
-    }
-
-    public <T> T[] getArray(final Converter<T> converter) throws InstructionParseException {
-        return getArray(next(), converter);
-    }
-
-    @SuppressWarnings("unchecked")
-    public <T> T[] getArray(@Nullable final String string, final Converter<T> converter) throws InstructionParseException {
-        if (string == null) {
-            return (T[]) new Object[0];
-        }
-        final String[] array = getArray(string);
-        if (array.length == 0) {
-            return (T[]) new Object[0];
-        }
-
-        final T first = converter.convert(array[0]);
-        final T[] result = (T[]) Array.newInstance(first.getClass(), array.length);
-        result[0] = first;
-
-        for (int i = 1; i < array.length; i++) {
-            result[i] = converter.convert(array[i]);
-        }
-        return result;
-    }
-
-    public <T> List<T> getList(final Converter<T> converter) throws InstructionParseException {
-        return getList(next(), converter);
-    }
-
-    public <T> List<T> getList(@Nullable final String string, final Converter<T> converter) throws InstructionParseException {
-        if (string == null) {
-            return new ArrayList<>(0);
-        }
-        final String[] array = getArray(string);
-        final List<T> list = new ArrayList<>(array.length);
-        for (final String part : array) {
-            list.add(converter.convert(part));
-        }
-        return list;
-    }
-
-    public interface Converter<T> {
-        T convert(String string) throws InstructionParseException;
-    }
-
-    @SuppressWarnings("PMD.ShortClassName")
-    public static class Item {
-        private final ItemID itemID;
-
-        private final QuestItem questItem;
-
-        private final VariableNumber amount;
-
-        public Item(final ItemID itemID, final VariableNumber amount) throws InstructionParseException {
-            this.itemID = itemID;
-            this.questItem = new QuestItem(itemID);
-            this.amount = amount;
-        }
-
-        public ItemID getID() {
-            return itemID;
-        }
-
-        public QuestItem getItem() {
-            return questItem;
-        }
-
-        public boolean isItemEqual(final ItemStack item) {
-            return questItem.compare(item);
-        }
-
-        public VariableNumber getAmount() {
-            return amount;
-        }
-    }
-
+    /**
+     * {@link InstructionParseException} with detailed part arguments for instruction parsing.
+     */
     public class PartParseException extends InstructionParseException {
         @Serial
         private static final long serialVersionUID = 2007556828888605511L;
