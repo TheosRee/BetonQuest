@@ -35,7 +35,7 @@ public class NPCKillObjective extends CountingObjective implements Listener {
         if (npcId < 0) {
             throw new InstructionParseException("NPC ID cannot be less than 0");
         }
-        targetAmount = instruction.fun(VariableArgument.NUMBER_NOT_LESS_THAN_ONE, instruction.getOptional("amount", "1"));
+        targetAmount = instruction.fun(instruction.getOptional("amount", "1"), VariableArgument.NUMBER_NOT_LESS_THAN_ONE);
     }
 
     /**

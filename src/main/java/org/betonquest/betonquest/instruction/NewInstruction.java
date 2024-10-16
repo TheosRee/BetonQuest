@@ -256,12 +256,12 @@ public class NewInstruction {
     }
 
     public <T> T fun(final Argument<T> argument) throws InstructionParseException {
-        return fun(argument, next());
+        return fun(next(), argument);
     }
 
-    @Contract(BLANK_NOT_NULL_NOT_NULL_CONTRACT)
+    @Contract("!null, _ -> !null")
     @Nullable
-    public <T> T fun(final Argument<T> argument, @Nullable final String string) throws InstructionParseException {
+    public <T> T fun(@Nullable final String string, final Argument<T> argument) throws InstructionParseException {
         if (string == null) {
             return null;
         }
@@ -269,12 +269,12 @@ public class NewInstruction {
     }
 
     public <T> T fun(final VariableArgument<T> argument) throws InstructionParseException {
-        return fun(argument, next());
+        return fun(next(), argument);
     }
 
-    @Contract(BLANK_NOT_NULL_NOT_NULL_CONTRACT)
+    @Contract("!null, _ -> !null")
     @Nullable
-    public <T> T fun(final VariableArgument<T> argument, @Nullable final String string) throws InstructionParseException {
+    public <T> T fun(@Nullable final String string, final VariableArgument<T> argument) throws InstructionParseException {
         if (string == null) {
             return null;
         }
@@ -282,12 +282,12 @@ public class NewInstruction {
     }
 
     public <T extends ID> T getID(final IDArgument<T> argument) throws InstructionParseException {
-        return getID(argument, next());
+        return getID(next(), argument);
     }
 
-    @Contract(BLANK_NOT_NULL_NOT_NULL_CONTRACT)
+    @Contract("!null, _ -> !null")
     @Nullable
-    public <T extends ID> T getID(final IDArgument<T> argument, @Nullable final String string) throws InstructionParseException {
+    public <T extends ID> T getID(@Nullable final String string, final IDArgument<T> argument) throws InstructionParseException {
         if (string == null) {
             return null;
         }

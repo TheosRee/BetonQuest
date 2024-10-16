@@ -72,8 +72,8 @@ public class BlockObjective extends CountingObjective implements Listener {
         exactMatch = instruction.hasArgument("exactMatch");
         targetAmount = instruction.fun(VariableNumber::new);
         noSafety = instruction.hasArgument("noSafety");
-        location = instruction.fun(VariableLocation::new, instruction.getOptional("loc"));
-        region = instruction.fun(VariableLocation::new, instruction.getOptional("region"));
+        location = instruction.fun(instruction.getOptional("loc"), VariableLocation::new);
+        region = instruction.fun(instruction.getOptional("region"), VariableLocation::new);
         ignorecancel = instruction.hasArgument("ignorecancel");
     }
 

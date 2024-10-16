@@ -72,7 +72,7 @@ public class MythicMobKillObjective extends CountingObjective implements Listene
         super(instruction, "mobs_to_kill");
 
         Collections.addAll(names, instruction.getArray());
-        targetAmount = instruction.fun(VariableArgument.NUMBER_NOT_LESS_THAN_ONE, instruction.getOptional("amount", "1"));
+        targetAmount = instruction.fun(instruction.getOptional("amount", "1"), VariableArgument.NUMBER_NOT_LESS_THAN_ONE);
 
         final double deathRadiusAllPlayersTemp = instruction.getDouble(instruction.getOptional("deathRadiusAllPlayers"), 0);
         deathRadiusAllPlayers = deathRadiusAllPlayersTemp * deathRadiusAllPlayersTemp;
@@ -82,9 +82,9 @@ public class MythicMobKillObjective extends CountingObjective implements Listene
         final String unsafeMinMobLevel = instruction.getOptional("minLevel");
         final String unsafeMaxMobLevel = instruction.getOptional("maxLevel");
 
-        minMobLevel = instruction.fun(VariableNumber::new, unsafeMinMobLevel == null ? String.valueOf(Double.NEGATIVE_INFINITY) : unsafeMinMobLevel);
-        maxMobLevel = instruction.fun(VariableNumber::new, unsafeMaxMobLevel == null ? String.valueOf(Double.POSITIVE_INFINITY) : unsafeMaxMobLevel);
-        marked = instruction.fun(VariableArgument.STRING_WITH_PACKAGE, instruction.getOptional("marked"));
+        minMobLevel = instruction.fun(unsafeMinMobLevel == null ? String.valueOf(Double.NEGATIVE_INFINITY) : unsafeMinMobLevel, VariableNumber::new);
+        maxMobLevel = instruction.fun(unsafeMaxMobLevel == null ? String.valueOf(Double.POSITIVE_INFINITY) : unsafeMaxMobLevel, VariableNumber::new);
+        marked = instruction.fun(instruction.getOptional("marked"), VariableArgument.STRING_WITH_PACKAGE);
     }
 
     /**

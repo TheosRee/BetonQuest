@@ -34,7 +34,7 @@ public class EnchantObjective extends CountingObjective implements Listener {
 
     public EnchantObjective(final Instruction instruction) throws InstructionParseException {
         super(instruction, "items_to_enchant");
-        targetAmount = instruction.fun(VariableArgument.NUMBER_NOT_LESS_THAN_ONE, instruction.getOptional("amount", "1"));
+        targetAmount = instruction.fun(instruction.getOptional("amount", "1"), VariableArgument.NUMBER_NOT_LESS_THAN_ONE);
         item = instruction.getQuestItem();
         desiredEnchantments = instruction.getList(EnchantmentData::convert);
         if (desiredEnchantments.isEmpty()) {

@@ -39,7 +39,7 @@ public class ConsumeObjective extends CountingObjective implements Listener {
     public ConsumeObjective(final Instruction instruction) throws InstructionParseException {
         super(instruction);
         item = instruction.getQuestItem();
-        targetAmount = instruction.fun(VariableArgument.NUMBER_NOT_LESS_THAN_ONE, instruction.getOptional(AMOUNT_ARGUMENT, "1"));
+        targetAmount = instruction.fun(instruction.getOptional(AMOUNT_ARGUMENT, "1"), VariableArgument.NUMBER_NOT_LESS_THAN_ONE);
     }
 
     /**

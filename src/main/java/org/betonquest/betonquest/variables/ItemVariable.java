@@ -65,7 +65,7 @@ public class ItemVariable extends Variable {
         }
         if (pos == 3) {
             final String path = instruction.getPart(1) + "." + instruction.getPart(2);
-            questItem = new QuestItem(instruction.getID(ItemID::new, path));
+            questItem = new QuestItem(instruction.getID(path, ItemID::new));
         } else {
             questItem = instruction.getQuestItem();
         }

@@ -91,7 +91,7 @@ public class SpawnMobEventFactory implements EventFactory, StaticEventFactory {
 
     @Nullable
     private QuestItem getQuestItem(final Instruction instruction, final String key) throws InstructionParseException {
-        final ItemID item = instruction.getID(ItemID::new, instruction.getOptional(key));
+        final ItemID item = instruction.getID(instruction.getOptional(key), ItemID::new);
         return item == null ? null : new QuestItem(item);
     }
 }

@@ -39,7 +39,7 @@ public class MMOItemsCraftObjective extends CountingObjective implements Listene
         itemType = MMOItemsUtils.getMMOItemType(instruction.next());
         itemId = instruction.next();
 
-        targetAmount = instruction.fun(VariableArgument.NUMBER_NOT_LESS_THAN_ONE, instruction.getOptional("amount", "1"));
+        targetAmount = instruction.fun(instruction.getOptional("amount", "1"), VariableArgument.NUMBER_NOT_LESS_THAN_ONE);
     }
 
     /**
