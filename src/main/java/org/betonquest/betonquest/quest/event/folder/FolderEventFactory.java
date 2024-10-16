@@ -57,7 +57,7 @@ public class FolderEventFactory implements EventFactory, StaticEventFactory {
     }
 
     private NullableEventAdapter createFolderEvent(final Instruction instruction) throws InstructionParseException {
-        final EventID[] events = instruction.getList(instruction::getEvent).toArray(new EventID[0]);
+        final EventID[] events = instruction.getIDArray(EventID::new);
         final VariableNumber delay = instruction.getVarNum(instruction.getOptional("delay"));
         final VariableNumber period = instruction.getVarNum(instruction.getOptional("period"));
         final VariableNumber random = instruction.getVarNum(instruction.getOptional("random"));

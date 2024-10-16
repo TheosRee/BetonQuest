@@ -298,6 +298,14 @@ public class NewInstruction {
         }
     }
 
+    public <T extends ID> T[] getIDArray(final IDArgument<T> argument) throws InstructionParseException {
+        return getIDArray(next(), argument);
+    }
+
+    public <T extends ID> T[] getIDArray(@Nullable final String string, final IDArgument<T> argument) throws InstructionParseException {
+        return getArray(string, value -> getID(value, argument));
+    }
+
     public <T extends Enum<T>> T getEnum(final Class<T> clazz) throws InstructionParseException {
         return getEnum(next(), clazz);
     }

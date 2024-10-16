@@ -21,7 +21,7 @@ public class RunIndependentEventFactory implements StaticEventFactory {
 
     @Override
     public StaticEvent parseStaticEvent(final Instruction instruction) throws InstructionParseException {
-        final List<EventID> events = instruction.getList(instruction.getOptional("events"), instruction::getEvent);
+        final List<EventID> events = List.of(instruction.getIDArray(instruction.getOptional("events"), EventID::new));
         return new RunIndependentEvent(events);
     }
 }

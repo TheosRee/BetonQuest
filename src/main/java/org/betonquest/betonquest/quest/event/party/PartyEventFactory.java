@@ -32,8 +32,8 @@ public class PartyEventFactory implements EventFactory {
     public Event parseEvent(final Instruction instruction) throws InstructionParseException {
         final VariableNumber range = instruction.getVarNum();
         final VariableNumber amount = instruction.getVarNum(instruction.getOptional("amount"));
-        final ConditionID[] conditions = instruction.getList(instruction::getCondition).toArray(new ConditionID[0]);
-        final EventID[] events = instruction.getList(instruction::getEvent).toArray(new EventID[0]);
+        final ConditionID[] conditions = instruction.getIDArray(ConditionID::new);
+        final EventID[] events = instruction.getIDArray(EventID::new);
         return new OnlineEventAdapter(
                 new PartyEvent(range, amount, conditions, events),
                 loggerFactory.create(PartyEvent.class),

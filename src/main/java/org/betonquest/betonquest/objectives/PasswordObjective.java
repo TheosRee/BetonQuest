@@ -42,7 +42,7 @@ public class PasswordObjective extends Objective implements Listener {
         regex = Pattern.compile(pattern, regexFlags);
         final String prefix = instruction.getOptional("prefix");
         passwordPrefix = prefix == null || prefix.isEmpty() ? prefix : prefix + ": ";
-        failEvents = instruction.getArray(instruction.getOptional("fail"), string -> instruction.getID(EventID::new, string));
+        failEvents = instruction.getIDArray(instruction.getOptional("fail"), EventID::new);
     }
 
     @EventHandler(priority = EventPriority.LOW, ignoreCancelled = true)

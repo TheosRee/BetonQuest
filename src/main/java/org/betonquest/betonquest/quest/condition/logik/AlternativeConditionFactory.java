@@ -44,7 +44,7 @@ public class AlternativeConditionFactory implements PlayerConditionFactory, Play
 
     private AlternativeCondition parseAlternative(final Instruction instruction) throws InstructionParseException {
         final BetonQuestLogger log = loggerFactory.create(AlternativeCondition.class);
-        final List<ConditionID> conditionIDs = instruction.getList(instruction::getCondition);
+        final List<ConditionID> conditionIDs = List.of(instruction.getIDArray(ConditionID::new));
         return new AlternativeCondition(log, conditionIDs, instruction.getPackage());
     }
 }

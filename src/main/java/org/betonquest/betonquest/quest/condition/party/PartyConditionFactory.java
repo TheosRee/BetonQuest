@@ -40,9 +40,9 @@ public class PartyConditionFactory implements PlayerConditionFactory, Playerless
 
     private PartyCondition parse(final Instruction instruction, final VariableLocation location) throws InstructionParseException {
         final VariableNumber range = instruction.getVarNum();
-        final ConditionID[] conditions = instruction.getList(instruction::getCondition).toArray(new ConditionID[0]);
-        final ConditionID[] everyone = instruction.getList(instruction.getOptional("every"), instruction::getCondition).toArray(new ConditionID[0]);
-        final ConditionID[] anyone = instruction.getList(instruction.getOptional("any"), instruction::getCondition).toArray(new ConditionID[0]);
+        final ConditionID[] conditions = instruction.getIDArray(ConditionID::new);
+        final ConditionID[] everyone = instruction.getIDArray(instruction.getOptional("every"), ConditionID::new);
+        final ConditionID[] anyone = instruction.getIDArray(instruction.getOptional("any"), ConditionID::new);
         final VariableNumber count = instruction.getVarNum(instruction.getOptional("count"));
 
         return new PartyCondition(location, range, conditions, everyone, anyone, count);

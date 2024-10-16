@@ -26,7 +26,7 @@ public class KillPlayerObjective extends CountingObjective implements Listener {
         super(instruction, "players_to_kill");
         targetAmount = instruction.getVarNum(VariableNumber.NOT_LESS_THAN_ONE_CHECKER);
         name = instruction.getOptional("name");
-        required = instruction.getArray(instruction.getOptional("required"), string -> instruction.getID(ConditionID::new, string));
+        required = instruction.getIDArray(instruction.getOptional("required"), ConditionID::new);
     }
 
     @SuppressWarnings("PMD.CyclomaticComplexity")
