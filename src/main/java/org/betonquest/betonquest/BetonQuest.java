@@ -44,6 +44,7 @@ import org.betonquest.betonquest.database.Saver;
 import org.betonquest.betonquest.feature.registry.CoreFeatureFactories;
 import org.betonquest.betonquest.feature.registry.FeatureRegistries;
 import org.betonquest.betonquest.item.QuestItemHandler;
+import org.betonquest.betonquest.item.registry.ItemProcessor;
 import org.betonquest.betonquest.listener.CustomDropListener;
 import org.betonquest.betonquest.listener.JoinQuitListener;
 import org.betonquest.betonquest.listener.MobKillListener;
@@ -430,7 +431,7 @@ public class BetonQuest extends JavaPlugin {
 
         pluginManager.registerEvents(new MobKillListener(), this);
 
-        pluginManager.registerEvents(new CustomDropListener(loggerFactory.create(CustomDropListener.class)), this);
+        pluginManager.registerEvents(new CustomDropListener(loggerFactory.create(CustomDropListener.class), getItemProcessor()), this);
 
         registerCommands(receiverSelector, debugHistoryHandler);
 
@@ -750,5 +751,14 @@ public class BetonQuest extends JavaPlugin {
      */
     public VariableProcessor getVariableProcessor() {
         return questRegistry.variables();
+    }
+
+    /**
+     * Get the ItemProcessor instance.
+     *
+     * @return the ItemProcessor to get and create QuestItems
+     */
+    public ItemProcessor getItemProcessor() {
+        return questRegistry.items();
     }
 }

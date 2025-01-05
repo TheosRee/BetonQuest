@@ -1,5 +1,6 @@
 package org.betonquest.betonquest.instruction.argument.parser;
 
+import org.betonquest.betonquest.BetonQuest;
 import org.betonquest.betonquest.api.quest.QuestException;
 import org.betonquest.betonquest.id.ItemID;
 import org.betonquest.betonquest.instruction.Item;
@@ -81,6 +82,10 @@ public interface ItemParser extends IDParser {
         if (string == null) {
             return null;
         }
-        return new QuestItem(getID(string, ItemID::new));
+        try {
+            return BetonQuest.getInstance().getItemProcessor().getItem(getID(string, ItemID::new));
+        } catch (final QuestException e) {
+            throw new QuestException("Item '" + string + "' not found: " + e.getMessage(), e);
+        }
     }
 }

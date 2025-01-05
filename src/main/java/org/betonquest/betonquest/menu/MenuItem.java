@@ -118,7 +118,7 @@ public class MenuItem extends SimpleYMLSection {
                             return getString("amount");
                         }
                     }.get());
-            this.item = new Item(itemID, amount);
+            this.item = new Item(BetonQuest.getInstance().getItemProcessor(), itemID, amount);
             // load description
             this.descriptions = new HashMap<>();
             try {

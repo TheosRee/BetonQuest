@@ -11,6 +11,7 @@ import org.betonquest.betonquest.feature.registry.processor.CancelerProcessor;
 import org.betonquest.betonquest.feature.registry.processor.CompassProcessor;
 import org.betonquest.betonquest.feature.registry.processor.ConversationProcessor;
 import org.betonquest.betonquest.id.ID;
+import org.betonquest.betonquest.item.registry.ItemProcessor;
 import org.betonquest.betonquest.quest.registry.processor.ConditionProcessor;
 import org.betonquest.betonquest.quest.registry.processor.EventProcessor;
 import org.betonquest.betonquest.quest.registry.processor.ObjectiveProcessor;
@@ -32,6 +33,7 @@ import java.util.Map;
  * @param cancelers       Quest Canceler logic.
  * @param conversations   Conversation Data logic.
  * @param compasses       Compasses.
+ * @param items           Quest Item logic.
  */
 public record QuestRegistry(
         BetonQuestLogger log,
@@ -42,7 +44,8 @@ public record QuestRegistry(
         VariableProcessor variables,
         CancelerProcessor cancelers,
         ConversationProcessor conversations,
-        CompassProcessor compasses
+        CompassProcessor compasses,
+        ItemProcessor items
 ) {
 
     /**
@@ -68,7 +71,8 @@ public record QuestRegistry(
         final ConversationProcessor conversations = new ConversationProcessor(loggerFactory.create(ConversationProcessor.class), loggerFactory, plugin, variables,
                 otherRegistries.conversationIO(), otherRegistries.interceptor());
         final CompassProcessor compasses = new CompassProcessor(loggerFactory.create(CompassProcessor.class), variables);
-        return new QuestRegistry(log, eventScheduling, conditions, events, objectives, variables, cancelers, conversations, compasses);
+        final ItemProcessor items = new ItemProcessor(loggerFactory.create(ItemProcessor.class), questTypeRegistries.item());
+        return new QuestRegistry(log, eventScheduling, conditions, events, objectives, variables, cancelers, conversations, compasses, items);
     }
 
     /**
@@ -86,6 +90,7 @@ public record QuestRegistry(
         cancelers.clear();
         conversations.clear();
         compasses.clear();
+        items.clear();
 
         for (final QuestPackage pack : packages) {
             final String packName = pack.getQuestPath();
@@ -96,6 +101,7 @@ public record QuestRegistry(
             objectives.load(pack);
             conversations.load(pack);
             compasses.load(pack);
+            items.load(pack);
             eventScheduling.loadData(pack);
 
             log.debug(pack, "Everything in package " + packName + " loaded");

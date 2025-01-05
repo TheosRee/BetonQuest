@@ -16,7 +16,6 @@ import org.betonquest.betonquest.id.EventID;
 import org.betonquest.betonquest.id.ItemID;
 import org.betonquest.betonquest.id.ObjectiveID;
 import org.betonquest.betonquest.instruction.variable.location.VariableLocation;
-import org.betonquest.betonquest.item.QuestItem;
 import org.betonquest.betonquest.notify.Notify;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
@@ -213,7 +212,7 @@ public class QuestCanceler {
         ItemStack stack = new ItemStack(Material.BONE);
         if (item != null) {
             try {
-                stack = new QuestItem(item).generate(1);
+                stack = BetonQuest.getInstance().getItemProcessor().getItem(item).generate(1);
             } catch (final QuestException e) {
                 log.warn(pack, "Could not load cancel button: " + e.getMessage(), e);
             }
