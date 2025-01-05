@@ -128,8 +128,8 @@ public class Menu extends SimpleYMLSection implements Listener {
             @SuppressWarnings("PMD.ShortMethodName")
             protected QuestItem of() throws Missing, Invalid {
                 try {
-                    return new QuestItem(new ItemID(Menu.this.pack, getString("bind")));
-                } catch (final ObjectNotFoundException | QuestException e) {
+                    return BetonQuest.getInstance().getItemProcessor().getItem(new ItemID(Menu.this.pack, getString("bind")));
+                } catch (final ObjectNotFoundException e) {
                     throw new Invalid("bind", e);
                 }
             }

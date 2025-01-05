@@ -347,7 +347,7 @@ public class Instruction implements ArgumentParser, EnumParser, ListParser, IDPa
                 item = getID(string, ItemID::new);
                 number = get("1", VariableNumber::new);
             }
-            return new Item(item, number);
+            return new Item(BetonQuest.getInstance().getItemProcessor(), item, number);
         } catch (final QuestException | NumberFormatException e) {
             throw new Instruction.PartParseException("Error while parsing '" + string + "' item: " + e.getMessage(), e);
         }

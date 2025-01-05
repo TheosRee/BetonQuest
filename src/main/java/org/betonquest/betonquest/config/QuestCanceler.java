@@ -17,7 +17,6 @@ import org.betonquest.betonquest.id.ItemID;
 import org.betonquest.betonquest.id.ObjectiveID;
 import org.betonquest.betonquest.instruction.argument.IDArgument;
 import org.betonquest.betonquest.instruction.variable.location.VariableLocation;
-import org.betonquest.betonquest.item.QuestItem;
 import org.betonquest.betonquest.util.Utils;
 import org.betonquest.betonquest.variables.GlobalVariableResolver;
 import org.bukkit.Location;
@@ -246,8 +245,8 @@ public class QuestCanceler {
         if (item != null) {
             try {
                 final ItemID itemID = new ItemID(pack, item);
-                stack = new QuestItem(itemID).generate(1);
-            } catch (final QuestException | ObjectNotFoundException e) {
+                stack = BetonQuest.getInstance().getItemProcessor().getItem(itemID).generate(1);
+            } catch (final ObjectNotFoundException e) {
                 log.warn("Could not load cancel button: " + e.getMessage(), e);
             }
         }

@@ -17,7 +17,7 @@ import org.betonquest.betonquest.conversation.PlayerConversationState;
 import org.betonquest.betonquest.database.Saver.Record;
 import org.betonquest.betonquest.exception.ObjectNotFoundException;
 import org.betonquest.betonquest.id.ObjectiveID;
-import org.betonquest.betonquest.item.QuestItem;
+import org.betonquest.betonquest.item.registry.ItemProcessor;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
@@ -173,7 +173,7 @@ public class PlayerData implements TagData {
         final int amount = backpackResults.getInt("amount");
         final ItemStack item;
         try {
-            item = new QuestItem(instruction).generate(amount);
+            item = BetonQuest.getInstance().getItemProcessor().generate(instruction).generate(amount);
         } catch (final QuestException e) {
             log.warn("Could not load backpack item for " + profile
                     + ", with instruction '" + instruction + "', because: " + e.getMessage(), e);
@@ -511,7 +511,7 @@ public class PlayerData implements TagData {
         // quite expensive, should be changed
         saver.add(new Record(UpdateType.DELETE_BACKPACK, profileID));
         for (final ItemStack itemStack : backpack) {
-            final String instruction = QuestItem.itemToString(itemStack);
+            final String instruction = ItemProcessor.itemToString(itemStack);
             final String newAmount = String.valueOf(itemStack.getAmount());
             saver.add(new Record(UpdateType.ADD_BACKPACK, profileID, instruction, newAmount));
         }

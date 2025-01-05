@@ -15,7 +15,6 @@ import org.betonquest.betonquest.exception.ObjectNotFoundException;
 import org.betonquest.betonquest.id.ConditionID;
 import org.betonquest.betonquest.id.ItemID;
 import org.betonquest.betonquest.instruction.variable.VariableNumber;
-import org.betonquest.betonquest.item.QuestItem;
 import org.betonquest.betonquest.variables.GlobalVariableResolver;
 import org.bukkit.ChatColor;
 import org.bukkit.configuration.ConfigurationSection;
@@ -183,8 +182,8 @@ public abstract class HologramLoop {
             } catch (final NumberFormatException | ArrayIndexOutOfBoundsException e) {
                 stackSize = 1;
             }
-            return new ItemLine(new QuestItem(itemID).generate(stackSize));
-        } catch (final ObjectNotFoundException | QuestException e) {
+            return new ItemLine(BetonQuest.getInstance().getItemProcessor().getItem(itemID).generate(stackSize));
+        } catch (final ObjectNotFoundException e) {
             throw new QuestException("Error while loading item: " + e.getMessage(), e);
         }
     }

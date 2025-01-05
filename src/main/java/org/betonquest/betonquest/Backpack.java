@@ -12,7 +12,6 @@ import org.betonquest.betonquest.database.PlayerData;
 import org.betonquest.betonquest.exception.ObjectNotFoundException;
 import org.betonquest.betonquest.id.ItemID;
 import org.betonquest.betonquest.instruction.variable.location.VariableLocation;
-import org.betonquest.betonquest.item.QuestItem;
 import org.betonquest.betonquest.util.Utils;
 import org.betonquest.betonquest.variables.GlobalVariableResolver;
 import org.bukkit.Bukkit;
@@ -126,6 +125,10 @@ public class Backpack implements Listener {
         if (event.getPlayer().equals(onlineProfile.getPlayer())) {
             HandlerList.unregisterAll(this);
         }
+    }
+
+    private ItemStack itemFromId(final ItemID itemId) throws ObjectNotFoundException {
+        return BetonQuest.getInstance().getItemProcessor().getItem(itemId).generate(1);
     }
 
     /**
@@ -288,8 +291,8 @@ public class Backpack implements Listener {
                 present = true;
                 if (!checkDefault || !"DEFAULT".equalsIgnoreCase(buttonString)) {
                     try {
-                        stack = new QuestItem(new ItemID(null, buttonString)).generate(1);
-                    } catch (final ObjectNotFoundException | QuestException e) {
+                        stack = itemFromId(new ItemID(null, buttonString));
+                    } catch (final ObjectNotFoundException e) {
                         log.warn("Could not load " + button + " button: " + e.getMessage(), e);
                     }
                 }
@@ -566,7 +569,7 @@ public class Backpack implements Listener {
                 }
                 ItemStack compass;
                 try {
-                    compass = new QuestItem(new ItemID(item.getKey(), item.getValue())).generate(1);
+                    compass = itemFromId(new ItemID(item.getKey(), item.getValue()));
                 } catch (final ObjectNotFoundException e) {
                     log.warn("Could not find item: " + e.getMessage(), e);
                     compass = new ItemStack(Material.COMPASS);

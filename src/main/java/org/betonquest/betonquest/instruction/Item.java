@@ -2,9 +2,11 @@ package org.betonquest.betonquest.instruction;
 
 import org.betonquest.betonquest.api.profile.Profile;
 import org.betonquest.betonquest.api.quest.QuestException;
+import org.betonquest.betonquest.exception.ObjectNotFoundException;
 import org.betonquest.betonquest.id.ItemID;
 import org.betonquest.betonquest.instruction.variable.VariableNumber;
 import org.betonquest.betonquest.item.QuestItem;
+import org.betonquest.betonquest.item.registry.ItemProcessor;
 import org.bukkit.inventory.ItemStack;
 
 /**
@@ -30,13 +32,18 @@ public class Item {
     /**
      * Create a wrapper for Quest Item and target stack size.
      *
-     * @param itemID the QuestItemID to create
-     * @param amount the size to set the created ItemStack to
+     * @param itemProcessor the processor creating new items
+     * @param itemID        the QuestItemID to create
+     * @param amount        the size to set the created ItemStack to
      * @throws QuestException when the QuestItem could not be created
      */
-    public Item(final ItemID itemID, final VariableNumber amount) throws QuestException {
+    public Item(final ItemProcessor itemProcessor, final ItemID itemID, final VariableNumber amount) throws QuestException {
         this.itemID = itemID;
-        this.questItem = new QuestItem(itemID);
+        try {
+            this.questItem = itemProcessor.getItem(itemID);
+        } catch (final ObjectNotFoundException e) {
+            throw new QuestException(e.getMessage(), e);
+        }
         this.amount = amount;
     }
 

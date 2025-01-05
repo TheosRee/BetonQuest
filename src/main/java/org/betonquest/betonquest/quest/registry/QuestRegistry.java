@@ -6,6 +6,7 @@ import org.betonquest.betonquest.api.logger.BetonQuestLogger;
 import org.betonquest.betonquest.api.logger.BetonQuestLoggerFactory;
 import org.betonquest.betonquest.bstats.InstructionMetricsSupplier;
 import org.betonquest.betonquest.id.ID;
+import org.betonquest.betonquest.item.registry.ItemProcessor;
 import org.betonquest.betonquest.quest.registry.feature.FeatureRegistries;
 import org.betonquest.betonquest.quest.registry.processor.CancellerProcessor;
 import org.betonquest.betonquest.quest.registry.processor.ConditionProcessor;
@@ -63,6 +64,11 @@ public class QuestRegistry {
     private final ConversationProcessor conversationProcessor;
 
     /**
+     * Quest Item getting.
+     */
+    private final ItemProcessor itemProcessor;
+
+    /**
      * Create a new Registry for storing and using Conditions, Events, Objectives, Variables,
      * Conversations and Quest canceller.
      *
@@ -82,6 +88,7 @@ public class QuestRegistry {
         this.variableProcessor = new VariableProcessor(loggerFactory.create(VariableProcessor.class), questTypeRegistries.variable(), loggerFactory);
         this.cancellerProcessor = new CancellerProcessor(loggerFactory.create(CancellerProcessor.class));
         this.conversationProcessor = new ConversationProcessor(loggerFactory.create(ConversationProcessor.class), plugin);
+        this.itemProcessor = new ItemProcessor(loggerFactory.create(ItemProcessor.class), questTypeRegistries.item());
     }
 
     /**
@@ -195,5 +202,14 @@ public class QuestRegistry {
      */
     public ConversationProcessor conversations() {
         return conversationProcessor;
+    }
+
+    /**
+     * Gets the class processing quest items.
+     *
+     * @return quest item processor
+     */
+    public ItemProcessor items() {
+        return itemProcessor;
     }
 }

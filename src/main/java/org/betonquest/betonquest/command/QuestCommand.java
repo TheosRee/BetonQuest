@@ -33,7 +33,7 @@ import org.betonquest.betonquest.id.ItemID;
 import org.betonquest.betonquest.id.ObjectiveID;
 import org.betonquest.betonquest.instruction.Item;
 import org.betonquest.betonquest.instruction.variable.VariableNumber;
-import org.betonquest.betonquest.item.QuestItem;
+import org.betonquest.betonquest.item.registry.ItemProcessor;
 import org.betonquest.betonquest.logger.BetonQuestLogRecord;
 import org.betonquest.betonquest.logger.PlayerLogWatcher;
 import org.betonquest.betonquest.logger.format.ChatFormatter;
@@ -443,7 +443,7 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
                 return;
             }
             final OnlineEvent give = new GiveEvent(
-                    new Item[]{new Item(itemID, new VariableNumber(instance.getVariableProcessor(),
+                    new Item[]{new Item(instance.getItemProcessor(), itemID, new VariableNumber(instance.getVariableProcessor(),
                             itemID.getPackage(), "1"))},
                     new NoNotificationSender(),
                     new IngameNotificationSender(log, itemID.getPackage(), itemID.getFullID(), NotificationLevel.ERROR,
@@ -808,7 +808,7 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
             return;
         }
         final ItemStack item = player.getInventory().getItemInMainHand();
-        final String instructions = QuestItem.itemToString(item);
+        final String instructions = ItemProcessor.itemToString(item);
         // save it in items.yml
         log.debug("Saving item to configuration as " + args[1]);
         final String path = "items." + name;

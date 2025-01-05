@@ -48,6 +48,7 @@ import org.betonquest.betonquest.id.EventID;
 import org.betonquest.betonquest.id.ObjectiveID;
 import org.betonquest.betonquest.id.QuestCancelerID;
 import org.betonquest.betonquest.item.QuestItemHandler;
+import org.betonquest.betonquest.item.registry.ItemProcessor;
 import org.betonquest.betonquest.logger.DefaultBetonQuestLoggerFactory;
 import org.betonquest.betonquest.logger.HandlerFactory;
 import org.betonquest.betonquest.logger.PlayerLogWatcher;
@@ -487,7 +488,7 @@ public class BetonQuest extends JavaPlugin {
 
         pluginManager.registerEvents(new MobKillListener(), this);
 
-        pluginManager.registerEvents(new CustomDropListener(loggerFactory.create(CustomDropListener.class)), this);
+        pluginManager.registerEvents(new CustomDropListener(loggerFactory.create(CustomDropListener.class), getItemProcessor()), this);
 
         registerCommands(receiverSelector, debugHistoryHandler);
 
@@ -823,5 +824,14 @@ public class BetonQuest extends JavaPlugin {
      */
     public VariableProcessor getVariableProcessor() {
         return questRegistry.variables();
+    }
+
+    /**
+     * Get the ItemProcessor instance.
+     *
+     * @return the ItemProcessor to get and create QuestItems
+     */
+    public ItemProcessor getItemProcessor() {
+        return questRegistry.items();
     }
 }
