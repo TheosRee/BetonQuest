@@ -1,8 +1,8 @@
 package org.betonquest.betonquest.compatibility.mmogroup.mmoitems;
 
 import org.betonquest.betonquest.BetonQuest;
+import org.betonquest.betonquest.api.compatibility.Integrator;
 import org.betonquest.betonquest.api.logger.BetonQuestLoggerFactory;
-import org.betonquest.betonquest.compatibility.Integrator;
 import org.betonquest.betonquest.compatibility.mmogroup.mmoitems.condition.MMOItemsHandConditionFactory;
 import org.betonquest.betonquest.compatibility.mmogroup.mmoitems.condition.MMOItemsItemConditionFactory;
 import org.betonquest.betonquest.compatibility.mmogroup.mmoitems.event.MMOItemsGiveEventFactory;

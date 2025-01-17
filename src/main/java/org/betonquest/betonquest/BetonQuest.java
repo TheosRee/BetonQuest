@@ -4,6 +4,7 @@ import io.papermc.lib.PaperLib;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.Logger;
 import org.betonquest.betonquest.api.bukkit.event.LoadDataEvent;
+import org.betonquest.betonquest.api.compatibility.CompatibilityRegistry;
 import org.betonquest.betonquest.api.config.ConfigAccessor;
 import org.betonquest.betonquest.api.config.ConfigAccessorFactory;
 import org.betonquest.betonquest.api.config.FileConfigAccessor;
@@ -24,6 +25,7 @@ import org.betonquest.betonquest.command.JournalCommand;
 import org.betonquest.betonquest.command.LangCommand;
 import org.betonquest.betonquest.command.QuestCommand;
 import org.betonquest.betonquest.compatibility.Compatibility;
+import org.betonquest.betonquest.compatibility.CompatibilityRegistryImpl;
 import org.betonquest.betonquest.config.Config;
 import org.betonquest.betonquest.config.DefaultConfigAccessorFactory;
 import org.betonquest.betonquest.config.PluginMessage;
@@ -232,6 +234,11 @@ public class BetonQuest extends JavaPlugin {
     private ProfileProvider profileProvider;
 
     /**
+     * Registers 3rd party Compatibility.
+     */
+    private CompatibilityRegistryImpl impl;
+
+    /**
      * The required default constructor without arguments for plugin creation.
      */
     public BetonQuest() {
@@ -264,6 +271,11 @@ public class BetonQuest extends JavaPlugin {
         final ServicesManager servicesManager = getServer().getServicesManager();
         servicesManager.register(clazz, service, this, ServicePriority.Lowest);
         return servicesManager.load(clazz);
+    }
+
+    @Override
+    public void onLoad() {
+        registerAndGetService(CompatibilityRegistry.class, impl = new CompatibilityRegistryImpl(getLogger()));
     }
 
     @SuppressWarnings({"PMD.NcssCount", "PMD.DoNotUseThreads"})
@@ -368,7 +380,7 @@ public class BetonQuest extends JavaPlugin {
 
         new CoreFeatureFactories(loggerFactory, lastExecutionCache, questTypeAPI).register(featureRegistries);
 
-        new Compatibility(this, loggerFactory.create(Compatibility.class));
+        new Compatibility(this, loggerFactory.create(Compatibility.class), impl);
 
         registerCommands(receiverSelector, debugHistoryHandler);
 

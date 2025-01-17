@@ -1,8 +1,8 @@
 package org.betonquest.betonquest.compatibility.jobsreborn;
 
 import org.betonquest.betonquest.BetonQuest;
+import org.betonquest.betonquest.api.compatibility.Integrator;
 import org.betonquest.betonquest.api.logger.BetonQuestLogger;
-import org.betonquest.betonquest.compatibility.Integrator;
 import org.betonquest.betonquest.compatibility.jobsreborn.condition.FactoryConditionCanLevel;
 import org.betonquest.betonquest.compatibility.jobsreborn.condition.FactoryConditionHasJob;
 import org.betonquest.betonquest.compatibility.jobsreborn.condition.FactoryConditionJobFull;
