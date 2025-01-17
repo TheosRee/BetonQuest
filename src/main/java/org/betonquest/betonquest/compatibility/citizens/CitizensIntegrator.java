@@ -1,9 +1,9 @@
 package org.betonquest.betonquest.compatibility.citizens;
 
 import org.betonquest.betonquest.BetonQuest;
+import org.betonquest.betonquest.api.compatibility.Integrator;
 import org.betonquest.betonquest.api.logger.BetonQuestLoggerFactory;
 import org.betonquest.betonquest.compatibility.Compatibility;
-import org.betonquest.betonquest.compatibility.Integrator;
 import org.betonquest.betonquest.compatibility.citizens.condition.distance.NPCDistanceConditionFactory;
 import org.betonquest.betonquest.compatibility.citizens.condition.location.NPCLocationConditionFactory;
 import org.betonquest.betonquest.compatibility.citizens.condition.region.NPCRegionConditionFactory;

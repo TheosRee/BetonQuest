@@ -20,7 +20,7 @@
 
   <name>BetonQuest</name>
   <artifactId>betonquest</artifactId>
-  <version>${revision}${changelist}</version>
+  <version>${revision}${changelist}-REGISTRY</version>
   <description>All Your Adventure Supplies</description>
 
   <licenses>

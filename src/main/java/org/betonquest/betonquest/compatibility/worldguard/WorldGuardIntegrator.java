@@ -6,7 +6,7 @@ import com.sk89q.worldguard.internal.platform.WorldGuardPlatform;
 import com.sk89q.worldguard.protection.managers.RegionManager;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 import org.betonquest.betonquest.BetonQuest;
-import org.betonquest.betonquest.compatibility.Integrator;
+import org.betonquest.betonquest.api.compatibility.Integrator;
 import org.bukkit.Location;
 import org.jetbrains.annotations.Nullable;
 

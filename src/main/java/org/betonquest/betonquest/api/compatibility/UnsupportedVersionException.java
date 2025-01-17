@@ -1,4 +1,4 @@
-package org.betonquest.betonquest.compatibility;
+package org.betonquest.betonquest.api.compatibility;
 
 import org.bukkit.plugin.Plugin;
 

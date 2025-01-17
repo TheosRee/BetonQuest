@@ -1,7 +1,7 @@
 package org.betonquest.betonquest.compatibility.mmogroup.mmoitems;
 
 import org.betonquest.betonquest.BetonQuest;
-import org.betonquest.betonquest.compatibility.Integrator;
+import org.betonquest.betonquest.api.compatibility.Integrator;
 import org.betonquest.betonquest.compatibility.mmogroup.mmoitems.take.MMOItemsTakeEventFactory;
 import org.betonquest.betonquest.kernel.registry.quest.ConditionTypeRegistry;
 import org.betonquest.betonquest.kernel.registry.quest.EventTypeRegistry;

@@ -1,8 +1,8 @@
 package org.betonquest.betonquest.compatibility.brewery;
 
 import org.betonquest.betonquest.BetonQuest;
+import org.betonquest.betonquest.api.compatibility.Integrator;
 import org.betonquest.betonquest.api.logger.BetonQuestLoggerFactory;
-import org.betonquest.betonquest.compatibility.Integrator;
 import org.betonquest.betonquest.compatibility.brewery.condition.DrunkConditionFactory;
 import org.betonquest.betonquest.compatibility.brewery.condition.DrunkQualityConditionFactory;
 import org.betonquest.betonquest.compatibility.brewery.condition.HasBrewConditionFactory;
