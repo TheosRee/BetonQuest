@@ -1,7 +1,7 @@
 package org.betonquest.betonquest.compatibility.placeholderapi;
 
 import org.betonquest.betonquest.BetonQuest;
-import org.betonquest.betonquest.compatibility.Integrator;
+import org.betonquest.betonquest.api.compatibility.Integrator;
 import org.bukkit.plugin.PluginDescriptionFile;
 
 /**

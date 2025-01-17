@@ -1,11 +1,11 @@
 package org.betonquest.betonquest.compatibility.npc.citizens;
 
 import org.betonquest.betonquest.BetonQuest;
+import org.betonquest.betonquest.api.compatibility.Integrator;
 import org.betonquest.betonquest.api.config.ConfigAccessor;
 import org.betonquest.betonquest.api.feature.FeatureAPI;
 import org.betonquest.betonquest.api.logger.BetonQuestLoggerFactory;
 import org.betonquest.betonquest.compatibility.Compatibility;
-import org.betonquest.betonquest.compatibility.Integrator;
 import org.betonquest.betonquest.compatibility.npc.citizens.event.move.CitizensMoveController;
 import org.betonquest.betonquest.compatibility.npc.citizens.event.move.CitizensMoveEvent;
 import org.betonquest.betonquest.compatibility.npc.citizens.event.move.CitizensMoveEventFactory;

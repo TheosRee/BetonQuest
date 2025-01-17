@@ -1,7 +1,7 @@
 package org.betonquest.betonquest.compatibility.fabled;
 
 import org.betonquest.betonquest.BetonQuest;
-import org.betonquest.betonquest.compatibility.Integrator;
+import org.betonquest.betonquest.api.compatibility.Integrator;
 import org.betonquest.betonquest.compatibility.fabled.condition.FabledClassConditionFactory;
 import org.betonquest.betonquest.compatibility.fabled.condition.FabledLevelConditionFactory;
 import org.betonquest.betonquest.kernel.registry.quest.ConditionTypeRegistry;

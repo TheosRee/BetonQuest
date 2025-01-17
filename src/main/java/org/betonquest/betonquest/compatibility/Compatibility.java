@@ -3,6 +3,9 @@ package org.betonquest.betonquest.compatibility;
 import org.apache.commons.lang3.tuple.MutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.betonquest.betonquest.BetonQuest;
+import org.betonquest.betonquest.api.compatibility.HookException;
+import org.betonquest.betonquest.api.compatibility.Integrator;
+import org.betonquest.betonquest.api.compatibility.IntegratorFactory;
 import org.betonquest.betonquest.api.logger.BetonQuestLogger;
 import org.betonquest.betonquest.compatibility.auraskills.AuraSkillsIntegrator;
 import org.betonquest.betonquest.compatibility.brewery.BreweryIntegrator;
@@ -75,7 +78,7 @@ public class Compatibility implements Listener {
      * The key is the name of the plugin, the value a pair of the integrator class and an instance of it.
      * The instance must only exist if the plugin was hooked.
      */
-    private final Map<String, Pair<Class<? extends Integrator>, Integrator>> integrators = new TreeMap<>();
+    private final Map<String, Pair<IntegratorFactory, Integrator>> integrators = new TreeMap<>();
 
     /**
      * Loads all compatibility with other plugins that is available in the current runtime.
@@ -83,12 +86,15 @@ public class Compatibility implements Listener {
      * @param betonQuest the BetonQuest plugin instance for tasks and configs
      * @param log        the custom logger for this class
      */
-    public Compatibility(final BetonQuest betonQuest, final BetonQuestLogger log) {
+    public Compatibility(final BetonQuest betonQuest, final BetonQuestLogger log,
+                         final CompatibilityRegistryImpl compatibilityRegistry) {
         this.betonQuest = betonQuest;
         this.log = log;
         instance = this;
 
         registerCompatiblePlugins();
+
+        integrators.putAll(compatibilityRegistry.getIntegrators());
 
         Bukkit.getPluginManager().registerEvents(this, betonQuest);
 
@@ -113,7 +119,7 @@ public class Compatibility implements Listener {
     }
 
     /**
-     * Gets the list of hooked plugins in Alphabetical order.
+     * Gets the list of hooked plugins in ?Alphabetical? order.
      *
      * @return the list of hooked plugins
      */
@@ -192,12 +198,11 @@ public class Compatibility implements Listener {
             return;
         }
 
-        final Class<? extends Integrator> integratorClass = integrators.get(name).getKey();
+        final IntegratorFactory factory = integrators.get(name).getKey();
         final Integrator integrator;
         try {
-            integrator = integratorClass.getConstructor().newInstance();
-        } catch (final InstantiationException | IllegalAccessException | InvocationTargetException
-                       | NoSuchMethodException | NoClassDefFoundError e) {
+            integrator = factory.create();
+        } catch (final IntegratorFactory.IntegrationException | NoClassDefFoundError e) {
             log.warn("Error while integrating " + name + " with version " + hookedPlugin.getDescription().getVersion() + ": " + e, e);
             log.warn("You are likely running an incompatible version of " + name + ".");
             return;
@@ -267,6 +272,17 @@ public class Compatibility implements Listener {
     }
 
     private void register(final String name, final Class<? extends Integrator> integrator) {
-        integrators.put(name, new MutablePair<>(integrator, null));
+        integrators.put(name, new MutablePair<>(fromClass(integrator), null));
+    }
+
+    private IntegratorFactory fromClass(final Class<? extends Integrator> integratorClass) {
+        return () -> {
+            try {
+                return integratorClass.getConstructor().newInstance();
+            } catch (final InstantiationException | IllegalAccessException | InvocationTargetException
+                           | NoSuchMethodException | NoClassDefFoundError e) {
+                throw new IntegratorFactory.IntegrationException(e.getMessage(), e);
+            }
+        };
     }
 }

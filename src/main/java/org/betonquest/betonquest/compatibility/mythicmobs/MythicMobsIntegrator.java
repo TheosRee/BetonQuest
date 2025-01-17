@@ -2,10 +2,10 @@ package org.betonquest.betonquest.compatibility.mythicmobs;
 
 import io.lumine.mythic.bukkit.BukkitAPIHelper;
 import org.betonquest.betonquest.BetonQuest;
+import org.betonquest.betonquest.api.compatibility.HookException;
+import org.betonquest.betonquest.api.compatibility.Integrator;
+import org.betonquest.betonquest.api.compatibility.UnsupportedVersionException;
 import org.betonquest.betonquest.compatibility.Compatibility;
-import org.betonquest.betonquest.compatibility.HookException;
-import org.betonquest.betonquest.compatibility.Integrator;
-import org.betonquest.betonquest.compatibility.UnsupportedVersionException;
 import org.betonquest.betonquest.compatibility.mythicmobs.condition.MythicMobDistanceConditionFactory;
 import org.betonquest.betonquest.compatibility.mythicmobs.event.MythicSpawnMobEventFactory;
 import org.betonquest.betonquest.compatibility.mythicmobs.objective.MythicMobKillObjectiveFactory;

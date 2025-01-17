@@ -1,9 +1,9 @@
 package org.betonquest.betonquest.compatibility.npc.fancynpcs;
 
 import org.betonquest.betonquest.BetonQuest;
+import org.betonquest.betonquest.api.compatibility.HookException;
+import org.betonquest.betonquest.api.compatibility.Integrator;
 import org.betonquest.betonquest.api.profile.ProfileProvider;
-import org.betonquest.betonquest.compatibility.HookException;
-import org.betonquest.betonquest.compatibility.Integrator;
 import org.betonquest.betonquest.kernel.registry.quest.NpcTypeRegistry;
 import org.bukkit.Bukkit;
 
