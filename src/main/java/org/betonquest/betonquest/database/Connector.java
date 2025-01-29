@@ -3,18 +3,22 @@ package org.betonquest.betonquest.database;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.betonquest.betonquest.BetonQuest;
 import org.betonquest.betonquest.api.logger.BetonQuestLogger;
-import org.jetbrains.annotations.Nullable;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Objects;
 
 /**
  * Connects to the database and queries it.
  */
-public class Connector {
+public final class Connector {
+
+    /**
+     * The connector instance.
+     */
+    private static final Connector INSTANCE = new Connector();
+
     /**
      * Custom {@link BetonQuestLogger} instance for this class.
      */
@@ -31,41 +35,22 @@ public class Connector {
     private final Database database;
 
     /**
-     * Permanently active connection to the database.
-     */
-    @Nullable
-    private Connection connection;
-
-    /**
      * Opens a new connection to the database.
      */
-    public Connector() {
+    private Connector() {
         final BetonQuest plugin = BetonQuest.getInstance();
         this.log = plugin.getLoggerFactory().create(Connector.class);
-        prefix = plugin.getPluginConfig().getString("mysql.prefix", "");
-        database = plugin.getDB();
-        connection = database.getConnection();
+        this.prefix = plugin.getPluginConfig().getString("mysql.prefix", "");
+        this.database = plugin.getDB();
     }
 
     /**
-     * This method should be used before any other database operations.
+     * Returns the singleton instance of the Connector.
      *
-     * @return true if the connection is refreshed successfully
+     * @return the single instance of Connector
      */
-    @SuppressFBWarnings({"ODR_OPEN_DATABASE_RESOURCE", "OBL_UNSATISFIED_OBLIGATION"})
-    public final boolean refresh() {
-        if (connection == null) {
-            connection = database.getConnection();
-        } else {
-            try {
-                connection.prepareStatement("SELECT 1").executeQuery().close();
-            } catch (final SQLException e) {
-                log.warn("Database connection was lost, reconnecting...", e);
-                database.closeConnection();
-                connection = database.getConnection();
-            }
-        }
-        return connection != null;
+    public static Connector getInstance() {
+        return INSTANCE;
     }
 
     /**
@@ -75,7 +60,7 @@ public class Connector {
      * @param args arguments
      * @return ResultSet with the requested data
      */
-    public ResultSet querySQL(final QueryType type, final String... args) {
+    public QueryResult querySQL(final QueryType type, final String... args) {
         return querySQL(type, statement -> {
             for (int i = 0; i < args.length; i++) {
                 statement.setString(i + 1, args[i]);
@@ -92,15 +77,16 @@ public class Connector {
      */
     @SuppressWarnings("PMD.CloseResource")
     @SuppressFBWarnings({"ODR_OPEN_DATABASE_RESOURCE", "OBL_UNSATISFIED_OBLIGATION_EXCEPTION_EDGE"})
-    public ResultSet querySQL(final QueryType type, final VariableResolver variableResolver) {
+    public QueryResult querySQL(final QueryType type, final VariableResolver variableResolver) {
         final String sql = type.createSql(prefix);
         try {
-            Objects.requireNonNull(connection);
+            final Connection connection = database.getConnection();
             final PreparedStatement statement = connection.prepareStatement(sql);
             variableResolver.resolve(statement);
-            return statement.executeQuery();
+            final ResultSet resultSet = statement.executeQuery();
+            return new QueryResult(connection, statement, resultSet);
         } catch (final SQLException e) {
-            throw new IllegalStateException("There was a exception with SQL", e);
+            throw new IllegalStateException("There was an exception with SQL", e);
         }
     }
 
@@ -112,8 +98,8 @@ public class Connector {
      */
     public void updateSQL(final UpdateType type, final String... args) {
         final String sql = type.createSql(prefix);
-        Objects.requireNonNull(connection);
-        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+        try (Connection connection = database.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
             for (int i = 0; i < args.length; i++) {
                 statement.setString(i + 1, args[i]);
             }
@@ -121,6 +107,24 @@ public class Connector {
         } catch (final SQLException e) {
             log.error("There was an exception with SQL", e);
         }
+    }
+
+    /**
+     * Get the prefix.
+     *
+     * @return the used prefix
+     */
+    public String getPrefix() {
+        return prefix;
+    }
+
+    /**
+     * Get the database.
+     *
+     * @return the used database
+     */
+    public Database getDatabase() {
+        return database;
     }
 
     /**
