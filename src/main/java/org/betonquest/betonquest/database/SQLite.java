@@ -1,15 +1,14 @@
 package org.betonquest.betonquest.database;
 
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.betonquest.betonquest.BetonQuest;
 import org.betonquest.betonquest.api.logger.BetonQuestLogger;
 import org.betonquest.betonquest.api.quest.QuestException;
 import org.betonquest.betonquest.item.SimpleQuestItemFactory;
 
-import java.io.File;
-import java.io.IOException;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -30,8 +29,6 @@ public class SQLite extends Database {
      */
     private final BetonQuestLogger log;
 
-    private final String dbLocation;
-
     /**
      * Creates a new SQLite instance
      *
@@ -42,36 +39,14 @@ public class SQLite extends Database {
     public SQLite(final BetonQuestLogger log, final BetonQuest plugin, final String dbLocation) {
         super(log, plugin);
         this.log = log;
-        this.dbLocation = dbLocation;
+        initializeDataSource(dbLocation);
     }
 
-    @Override
-    public Connection openConnection() {
-        if (!plugin.getDataFolder().exists() && !plugin.getDataFolder().mkdirs()) {
-            log.error("Unable to create plugin data folder!");
-        }
-        final File file = new File(plugin.getDataFolder(), dbLocation);
-        if (!file.exists()) {
-            try {
-                if (!file.createNewFile()) {
-                    log.error("Unable to create database file!");
-                }
-            } catch (final IOException e) {
-                log.error("Unable to create database!", e);
-            }
-        }
-        Connection connection = null;
-        try {
-            Class.forName("org.sqlite.JDBC");
-            connection = DriverManager
-                    .getConnection("jdbc:sqlite:" + plugin.getDataFolder().toPath() + "/" + dbLocation);
-        } catch (ClassNotFoundException | SQLException e) {
-            log.error("There was an exception with SQL", e);
-        }
-        if (connection == null) {
-            throw new IllegalStateException("Not able to create a database connection!");
-        }
-        return connection;
+    private void initializeDataSource(final String dbLocation) {
+        final HikariConfig config = new HikariConfig();
+        config.setJdbcUrl("jdbc:sqlite:" + dbLocation);
+        dataSource = new HikariDataSource(config);
+        log.info("Initialized SQLite database connection pool.");
     }
 
     @Override
@@ -102,7 +77,7 @@ public class SQLite extends Database {
 
     @Override
     protected void markMigrationExecuted(final Connection connection, final MigrationKey migrationKey) throws SQLException {
-        try (PreparedStatement statement = getConnection().prepareStatement("INSERT INTO " + prefix + "migration (namespace, migration_id) VALUES (?,?)")) {
+        try (PreparedStatement statement = connection.prepareStatement("INSERT INTO " + prefix + "migration (namespace, migration_id) VALUES (?,?)")) {
             statement.setString(1, migrationKey.namespace());
             statement.setInt(2, migrationKey.version());
             statement.executeUpdate();

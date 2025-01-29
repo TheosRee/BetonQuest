@@ -95,48 +95,58 @@ public class PlayerData implements TagData, PointData {
     /**
      * Loads all data for the profile and puts it in appropriate lists.
      */
+    @SuppressWarnings("PMD.NPathComplexity")
     public final void loadAllPlayerData() {
         try {
-            final Connector con = new Connector();
-
-            try (ResultSet objectiveResults = con.querySQL(QueryType.SELECT_OBJECTIVES, profileID);
-                 ResultSet tagResults = con.querySQL(QueryType.SELECT_TAGS, profileID);
-                 ResultSet journalResults = con.querySQL(QueryType.SELECT_JOURNAL, profileID);
-                 ResultSet pointResults = con.querySQL(QueryType.SELECT_POINTS, profileID);
-                 ResultSet backpackResults = con.querySQL(QueryType.SELECT_BACKPACK, profileID);
-                 ResultSet profileResult = con.querySQL(QueryType.SELECT_PLAYER, profileID)) {
-
-                while (objectiveResults.next()) {
-                    objectives.put(objectiveResults.getString("objective"), objectiveResults.getString("instructions"));
+            final Connector con = Connector.getInstance();
+            try (QueryResult objectiveResults = con.querySQL(QueryType.SELECT_OBJECTIVES, profileID);
+                 ResultSet objResultSet = objectiveResults.getResultSet()) {
+                while (objResultSet.next()) {
+                    objectives.put(objResultSet.getString("objective"), objResultSet.getString("instructions"));
                 }
+            }
 
-                while (tagResults.next()) {
-                    tags.add(tagResults.getString("tag"));
+            try (QueryResult tagResults = con.querySQL(QueryType.SELECT_TAGS, profileID);
+                 ResultSet tagResultSet = tagResults.getResultSet()) {
+                while (tagResultSet.next()) {
+                    tags.add(tagResultSet.getString("tag"));
                 }
+            }
 
-                while (journalResults.next()) {
-                    loadJournalPointer(journalResults.getString("pointer"), journalResults.getTimestamp("date").getTime());
+            try (QueryResult journalResults = con.querySQL(QueryType.SELECT_JOURNAL, profileID);
+                 ResultSet journalResultSet = journalResults.getResultSet()) {
+                while (journalResultSet.next()) {
+                    loadJournalPointer(journalResultSet.getString("pointer"), journalResultSet.getTimestamp("date").getTime());
                 }
+            }
 
-                while (pointResults.next()) {
-                    points.add(new Point(pointResults.getString("category"), pointResults.getInt("count")));
+            try (QueryResult pointResults = con.querySQL(QueryType.SELECT_POINTS, profileID);
+                 ResultSet pointResultSet = pointResults.getResultSet()) {
+                while (pointResultSet.next()) {
+                    points.add(new Point(pointResultSet.getString("category"), pointResultSet.getInt("count")));
                 }
+            }
 
-                while (backpackResults.next()) {
-                    addItemToBackpack(backpackResults);
+            try (QueryResult backpackResults = con.querySQL(QueryType.SELECT_BACKPACK, profileID);
+                 ResultSet backpackResultSet = backpackResults.getResultSet()) {
+                while (backpackResultSet.next()) {
+                    addItemToBackpack(backpackResultSet);
                 }
+            }
 
-                if (profileResult.next()) {
-                    profileLanguage = profileResult.getString("language");
-                    loadActiveConversation(profileResult);
+            try (QueryResult profileResult = con.querySQL(QueryType.SELECT_PLAYER, profileID);
+                 ResultSet profileResultSet = profileResult.getResultSet()) {
+                if (profileResultSet.next()) {
+                    profileLanguage = profileResultSet.getString("language");
+                    loadActiveConversation(profileResultSet);
                 } else {
                     setupProfile();
                 }
-
-                log.debug("Loaded " + objectives.size() + " objectives, " + tags.size() + " tags, " + points.size()
-                        + " points, " + entries.size() + " journal entries and " + backpack.size()
-                        + " items for " + profile);
             }
+
+            log.debug("Loaded " + objectives.size() + " objectives, " + tags.size() + " tags, " + points.size()
+                    + " points, " + entries.size() + " journal entries and " + backpack.size()
+                    + " items for " + profile);
         } catch (final SQLException e) {
             log.error("There was an exception with SQL", e);
         }
