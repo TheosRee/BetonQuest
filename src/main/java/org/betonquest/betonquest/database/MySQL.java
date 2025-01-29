@@ -1,12 +1,13 @@
 package org.betonquest.betonquest.database;
 
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.betonquest.betonquest.BetonQuest;
 import org.betonquest.betonquest.api.logger.BetonQuestLogger;
 import org.jetbrains.annotations.Nullable;
 
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -15,6 +16,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Connects to and uses a MySQL database
@@ -25,16 +27,6 @@ public class MySQL extends Database {
      * Custom {@link BetonQuestLogger} instance for this class.
      */
     private final BetonQuestLogger log;
-
-    private final String user;
-
-    private final String database;
-
-    private final String password;
-
-    private final String port;
-
-    private final String hostname;
 
     /**
      * Creates a new MySQL instance
@@ -50,31 +42,39 @@ public class MySQL extends Database {
     public MySQL(final BetonQuestLogger log, final BetonQuest plugin, final String hostname, final String port, final String database, final String username, final String password) {
         super(log, plugin);
         this.log = log;
-        this.hostname = hostname;
-        this.port = port;
-        this.database = database;
-        this.user = username;
-        this.password = password;
+        initializeDataSource(hostname, port, database, username, password);
     }
 
-    @Override
-    public Connection openConnection() {
-        Connection connection = null;
-        try {
-            Class.forName("com.mysql.jdbc.Driver");
-            connection = DriverManager.getConnection(
-                    "jdbc:mysql://" + this.hostname + ":" + this.port + "/" + this.database + "?&useSSL=false", this.user, this.password);
-            final String connectionClassName = connection.getClass().getName();
-            if (!connectionClassName.startsWith("com.mysql.")) {
-                log.warn("External source modified or changed the MySQL connector! We can not guarantee that BetonQuest will work correctly with this connector: " + connectionClassName);
-            }
-        } catch (final ClassNotFoundException | SQLException e) {
-            log.warn("MySQL says: " + e.getMessage(), e);
-        }
-        if (connection == null) {
-            throw new IllegalStateException("Not able to create a database connection!");
-        }
-        return connection;
+    private void initializeDataSource(final String hostname, final String port, final String database, final String username, final String password) {
+        final HikariConfig config = new HikariConfig();
+        config.setJdbcUrl("jdbc:mysql://" + hostname + ":" + port + "/" + database + "?useSSL=false");
+        config.setUsername(username);
+        config.setPassword(password);
+
+        //config.setDriverClassName("com.mysql.jdbc.Driver");
+        config.setDriverClassName("com.mysql.cj.jdbc.Driver");
+
+        final int availableProcessors = Runtime.getRuntime().availableProcessors();
+        config.setMaximumPoolSize(Math.max(5, availableProcessors * 2));
+        config.setMaxLifetime(TimeUnit.SECONDS.toMillis(1800));
+        config.setConnectionTimeout(TimeUnit.SECONDS.toMillis(30));
+        config.setIdleTimeout(TimeUnit.SECONDS.toMillis(60));
+        config.setValidationTimeout(TimeUnit.SECONDS.toMillis(3));
+
+        config.addDataSourceProperty("cachePrepStmts", true);
+        config.addDataSourceProperty("prepStmtCacheSize", 250);
+        config.addDataSourceProperty("prepStmtCacheSqlLimit", 2048);
+        config.addDataSourceProperty("useServerPrepStmts", true);
+        config.addDataSourceProperty("cacheCallableStmts", true);
+        config.addDataSourceProperty("alwaysSendSetIsolation", false);
+        config.addDataSourceProperty("cacheServerConfiguration", true);
+        config.addDataSourceProperty("elideSetAutoCommits", true);
+        config.addDataSourceProperty("useLocalSessionState", true);
+        config.setConnectionTestQuery("/* Ping */ SELECT 1");
+        config.setLeakDetectionThreshold(TimeUnit.SECONDS.toMillis(30));
+
+        super.dataSource = new HikariDataSource(config);
+        log.info("Initialized MySQL database connection pool.");
     }
 
     @Override
@@ -87,17 +87,17 @@ public class MySQL extends Database {
     }
 
     @Override
-    @SuppressFBWarnings("SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE")
     protected Set<MigrationKey> queryExecutedMigrations(final Connection connection) throws SQLException {
         final Set<MigrationKey> executedMigrations = new HashSet<>();
-        try (Statement statement = connection.createStatement()) {
-            statement.executeUpdate("CREATE TABLE IF NOT EXISTS " + prefix
-                    + "migration (namespace VARCHAR(63) NOT NULL, migration_id INT, "
-                    + "time TIMESTAMP DEFAULT NOW(), PRIMARY KEY (namespace, migration_id))");
-            try (ResultSet result = statement.executeQuery("SELECT namespace, migration_id FROM " + prefix + "migration")) {
-                while (result.next()) {
-                    executedMigrations.add(new MigrationKey(result.getString("namespace"), result.getInt("migration_id")));
-                }
+        try (PreparedStatement statement = connection.prepareStatement(
+                "CREATE TABLE IF NOT EXISTS " + prefix + "migration (namespace VARCHAR(63) NOT NULL, migration_id INT, time TIMESTAMP DEFAULT NOW(), PRIMARY KEY (namespace, migration_id))")) {
+            statement.executeUpdate();
+        }
+        try (PreparedStatement statement = connection.prepareStatement(
+                "SELECT namespace, migration_id FROM " + prefix + "migration");
+             ResultSet result = statement.executeQuery()) {
+            while (result.next()) {
+                executedMigrations.add(new MigrationKey(result.getString("namespace"), result.getInt("migration_id")));
             }
         }
         return executedMigrations;
@@ -105,7 +105,8 @@ public class MySQL extends Database {
 
     @Override
     protected void markMigrationExecuted(final Connection connection, final MigrationKey migrationKey) throws SQLException {
-        try (PreparedStatement statement = getConnection().prepareStatement("INSERT INTO " + prefix + "migration (namespace, migration_id) VALUES (?,?)")) {
+        try (PreparedStatement statement = connection.prepareStatement(
+                "INSERT INTO " + prefix + "migration (namespace, migration_id) VALUES (?,?)")) {
             statement.setString(1, migrationKey.namespace());
             statement.setInt(2, migrationKey.version());
             statement.executeUpdate();

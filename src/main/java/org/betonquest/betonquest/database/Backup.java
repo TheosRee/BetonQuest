@@ -56,11 +56,11 @@ public final class Backup {
             final ConfigAccessor accessor = configAccessorFactory.create(databaseBackupFile);
             final FileConfiguration config = accessor.getConfig();
             // prepare the database and map
-            final Map<String, ResultSet> map = new HashMap<>();
+            final Map<String, QueryResult> map = new HashMap<>();
             final String[] tables = {"objectives", "tags", "points", "journals", "player", "backpack", "global_points",
                     "global_tags", "migration", "player_profile", "profile"};
             // open database connection
-            final Connector database = new Connector();
+            final Connector database = Connector.getInstance();
             // load resultsets into the map
             for (final String table : tables) {
                 LOG.debug("Loading " + table);
@@ -68,10 +68,10 @@ public final class Backup {
                 map.put(table, database.querySQL(QueryType.valueOf(enumName)));
             }
             // extract data from resultsets into the config file
-            for (final Map.Entry<String, ResultSet> entry : map.entrySet()) {
+            for (final Map.Entry<String, QueryResult> entry : map.entrySet()) {
                 LOG.debug("Saving " + entry.getKey() + " to the backup file");
                 // prepare resultset and meta
-                try (ResultSet res = entry.getValue()) {
+                try (QueryResult queryResult = entry.getValue(); ResultSet res = queryResult.getResultSet()) {
                     final ResultSetMetaData rsmd = res.getMetaData();
                     // get the list of column names
                     final List<String> columns = new ArrayList<>();
@@ -163,7 +163,7 @@ public final class Backup {
         // in a different way...)
         database.createTables();
         // drop all tables
-        final Connector con = new Connector();
+        final Connector con = Connector.getInstance();
         con.updateSQL(UpdateType.DROP_OBJECTIVES);
         con.updateSQL(UpdateType.DROP_TAGS);
         con.updateSQL(UpdateType.DROP_POINTS);

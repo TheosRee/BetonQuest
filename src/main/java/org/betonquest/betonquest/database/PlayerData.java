@@ -97,47 +97,60 @@ public class PlayerData implements TagData {
     @SuppressWarnings({"PMD.CyclomaticComplexity", "PMD.NPathComplexity", "PMD.CognitiveComplexity", "PMD.AvoidDuplicateLiterals"})
     public final void loadAllPlayerData() {
         try {
-
-            final Connector con = new Connector();
-
-            try (ResultSet objectiveResults = con.querySQL(QueryType.SELECT_OBJECTIVES, profileID);
-                 ResultSet tagResults = con.querySQL(QueryType.SELECT_TAGS, profileID);
-                 ResultSet journalResults = con.querySQL(QueryType.SELECT_JOURNAL, profileID);
-                 ResultSet pointResults = con.querySQL(QueryType.SELECT_POINTS, profileID);
-                 ResultSet backpackResults = con.querySQL(QueryType.SELECT_BACKPACK, profileID);
-                 ResultSet profileResult = con.querySQL(QueryType.SELECT_PLAYER, profileID)) {
-
-                while (objectiveResults.next()) {
-                    objectives.put(objectiveResults.getString("objective"), objectiveResults.getString("instructions"));
+            final Connector con = Connector.getInstance();
+            try (QueryResult objectiveResults = con.querySQL(QueryType.SELECT_OBJECTIVES, profileID)) {
+                try (ResultSet objResultSet = objectiveResults.getResultSet()) {
+                    while (objResultSet.next()) {
+                        objectives.put(objResultSet.getString("objective"), objResultSet.getString("instructions"));
+                    }
                 }
-
-                while (tagResults.next()) {
-                    tags.add(tagResults.getString("tag"));
-                }
-
-                while (journalResults.next()) {
-                    entries.add(new Pointer(journalResults.getString("pointer"), journalResults.getTimestamp("date").getTime()));
-                }
-
-                while (pointResults.next()) {
-                    points.add(new Point(pointResults.getString("category"), pointResults.getInt("count")));
-                }
-
-                while (backpackResults.next()) {
-                    addItemToBackpack(backpackResults);
-                }
-
-                if (profileResult.next()) {
-                    loadLanguage(profileResult);
-                    loadActiveConversation(profileResult);
-                } else {
-                    setupProfile();
-                }
-
-                log.debug("Loaded " + objectives.size() + " objectives, " + tags.size() + " tags, " + points.size()
-                        + " points, " + entries.size() + " journal entries and " + backpack.size()
-                        + " items for " + profile);
             }
+            try (QueryResult tagResults = con.querySQL(QueryType.SELECT_TAGS, profileID)) {
+                try (ResultSet tagResultSet = tagResults.getResultSet()) {
+                    while (tagResultSet.next()) {
+                        tags.add(tagResultSet.getString("tag"));
+                    }
+                }
+            }
+
+            try (QueryResult journalResults = con.querySQL(QueryType.SELECT_JOURNAL, profileID)) {
+                try (ResultSet journalResultSet = journalResults.getResultSet()) {
+                    while (journalResultSet.next()) {
+                        entries.add(new Pointer(journalResultSet.getString("pointer"), journalResultSet.getTimestamp("date").getTime()));
+                    }
+                }
+            }
+
+            try (QueryResult pointResults = con.querySQL(QueryType.SELECT_POINTS, profileID)) {
+                try (ResultSet pointResultSet = pointResults.getResultSet()) {
+                    while (pointResultSet.next()) {
+                        points.add(new Point(pointResultSet.getString("category"), pointResultSet.getInt("count")));
+                    }
+                }
+            }
+
+            try (QueryResult backpackResults = con.querySQL(QueryType.SELECT_BACKPACK, profileID)) {
+                try (ResultSet backpackResultSet = backpackResults.getResultSet()) {
+                    while (backpackResultSet.next()) {
+                        addItemToBackpack(backpackResultSet);
+                    }
+                }
+            }
+
+            try (QueryResult profileResult = con.querySQL(QueryType.SELECT_PLAYER, profileID)) {
+                try (ResultSet profileResultSet = profileResult.getResultSet()) {
+                    if (profileResultSet.next()) {
+                        loadLanguage(profileResultSet);
+                        loadActiveConversation(profileResultSet);
+                    } else {
+                        setupProfile();
+                    }
+                }
+            }
+
+            log.debug("Loaded " + objectives.size() + " objectives, " + tags.size() + " tags, " + points.size()
+                    + " points, " + entries.size() + " journal entries and " + backpack.size()
+                    + " items for " + profile);
         } catch (final SQLException e) {
             log.error("There was an exception with SQL", e);
         }
