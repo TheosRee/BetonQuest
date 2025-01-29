@@ -88,6 +88,8 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.time.InstantSource;
 import java.util.Collection;
 import java.util.List;
@@ -471,9 +473,13 @@ public class BetonQuest extends JavaPlugin {
                     config.getString("mysql.base"),
                     config.getString("mysql.user"),
                     config.getString("mysql.pass"));
-            if (database.getConnection() != null) {
-                usesMySQL = true;
-                log.info("Successfully connected to MySQL database!");
+            try (Connection con = database.getConnection()) {
+                if (con != null && !con.isClosed()) {
+                    usesMySQL = true;
+                    log.info("Successfully connected to MySQL database!");
+                }
+            } catch (final SQLException e) {
+                log.error("Failed to connect to MySQL database: " + e.getMessage(), e);
             }
         }
         if (!mySQLEnabled || !usesMySQL) {
@@ -592,7 +598,7 @@ public class BetonQuest extends JavaPlugin {
         }
     }
 
-    @SuppressWarnings("PMD.DoNotUseThreads")
+    @SuppressWarnings({"PMD.DoNotUseThreads", "PMD.CyclomaticComplexity", "PMD.NPathComplexity"})
     @Override
     public void onDisable() {
         if (questRegistry != null) {
@@ -609,9 +615,15 @@ public class BetonQuest extends JavaPlugin {
         // cancel database saver
         if (saver != null) {
             saver.end();
+            try {
+                saver.join();
+            } catch (final InterruptedException e) {
+                log.error("Failed to properly join saver thread: " + e.getMessage(), e);
+            }
         }
         Compatibility.disable();
         if (database != null) {
+            database.setShuttingDown(true);
             database.closeConnection();
         }
         if (playerHider != null) {

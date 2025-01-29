@@ -2,6 +2,7 @@ package org.betonquest.betonquest.compatibility.holograms.lines;
 
 import org.betonquest.betonquest.api.logger.BetonQuestLogger;
 import org.betonquest.betonquest.database.Connector;
+import org.betonquest.betonquest.database.QueryResult;
 import org.betonquest.betonquest.database.QueryType;
 import org.bukkit.Bukkit;
 
@@ -64,15 +65,16 @@ public class TopXObject {
      */
     public void queryDB() {
         entries.clear();
-        final Connector con = new Connector();
-
-        try (ResultSet resultSet = con.querySQL(orderType.getType(), statement -> {
+        final Connector con = Connector.getInstance();
+        try (QueryResult queryResult = con.querySQL(orderType.getType(), statement -> {
             statement.setString(1, category);
             statement.setInt(2, limit);
         })) {
-            while (resultSet.next()) {
-                final String playerName = Bukkit.getOfflinePlayer(UUID.fromString(resultSet.getString("playerID"))).getName();
-                entries.add(new TopXLine(playerName, resultSet.getLong("count")));
+            try (ResultSet resultSet = queryResult.getResultSet()) {
+                while (resultSet.next()) {
+                    final String playerName = Bukkit.getOfflinePlayer(UUID.fromString(resultSet.getString("playerID"))).getName();
+                    entries.add(new TopXLine(playerName, resultSet.getLong("count")));
+                }
             }
         } catch (final SQLException e) {
             log.error("There was an SQL exception while querying the top " + limit, e);
