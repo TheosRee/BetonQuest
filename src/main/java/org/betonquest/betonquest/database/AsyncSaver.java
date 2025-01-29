@@ -23,11 +23,6 @@ public class AsyncSaver extends Thread implements Listener, Saver {
     private final BetonQuestLogger log;
 
     /**
-     * The connector that connects to the database.
-     */
-    private final Connector con;
-
-    /**
      * The queue of records to be saved to the database.
      */
     private final Queue<Record> queue;
@@ -51,7 +46,6 @@ public class AsyncSaver extends Thread implements Listener, Saver {
     public AsyncSaver(final BetonQuestLogger log, final ConfigAccessor config) {
         super();
         this.log = log;
-        this.con = new Connector();
         this.queue = new ConcurrentLinkedQueue<>();
         this.running = true;
         this.reconnectInterval = config.getLong("mysql.reconnect_interval");
@@ -59,10 +53,9 @@ public class AsyncSaver extends Thread implements Listener, Saver {
     }
 
     @Override
-    @SuppressFBWarnings("UW_UNCOND_WAIT")
-    @SuppressWarnings("PMD.CognitiveComplexity")
+    @SuppressFBWarnings({"UW_UNCOND_WAIT", "DCN_NULLPOINTER_EXCEPTION"})
+    @SuppressWarnings({"PMD.CognitiveComplexity", "PMD"})
     public void run() {
-        boolean active = false;
         while (true) {
             while (queue.isEmpty()) {
                 if (!running) {
@@ -70,26 +63,25 @@ public class AsyncSaver extends Thread implements Listener, Saver {
                 }
                 synchronized (this) {
                     try {
-                        active = false;
                         wait();
                     } catch (final InterruptedException e) {
                         log.warn("AsyncSaver got interrupted!");
                     }
                 }
             }
-            if (!active) {
-                while (!con.refresh()) {
-                    log.warn("Failed to re-establish connection with the database! Trying again in one second...");
-                    try {
-                        sleep(reconnectInterval);
-                    } catch (final InterruptedException e) {
-                        log.warn("AsyncSaver got interrupted!");
-                    }
-                }
-                active = true;
-            }
             final Record rec = queue.poll();
-            con.updateSQL(rec.type(), rec.args());
+            try {
+                if (BetonQuest.getInstance().getDB().isShuttingDown()) {
+                    log.warn("Database is shutting down. Skipping update for record: " + rec);
+                    continue;
+                }
+                final Connector con = Connector.getInstance();
+                con.updateSQL(rec.type(), rec.args());
+            } catch (final NullPointerException e) {
+                log.error("Failed to update database: " + e.getMessage(), e);
+            } catch (final RuntimeException e) {
+                log.error("Unexpected error during database update: " + e.getMessage(), e);
+            }
         }
     }
 

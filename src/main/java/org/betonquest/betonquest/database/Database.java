@@ -1,13 +1,12 @@
 package org.betonquest.betonquest.database;
 
+import com.zaxxer.hikari.HikariDataSource;
 import org.betonquest.betonquest.BetonQuest;
 import org.betonquest.betonquest.api.logger.BetonQuestLogger;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.Nullable;
 
 import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Set;
 import java.util.SortedMap;
@@ -30,7 +29,10 @@ public abstract class Database {
     private final BetonQuestLogger log;
 
     @Nullable
-    protected Connection con;
+    protected HikariDataSource dataSource;
+
+    @SuppressWarnings("PMD.AvoidUsingVolatile")
+    private volatile boolean shuttingDown;
 
     protected Database(final BetonQuestLogger log, final BetonQuest plugin) {
         this.log = log;
@@ -39,59 +41,50 @@ public abstract class Database {
         this.profileInitialName = plugin.getPluginConfig().getString("profiles.initial_name", "");
     }
 
-    public Connection getConnection() {
-        try {
-            if (con == null || con.isClosed() || isConnectionBroken(con)) {
-                con = openConnection();
-            }
-        } catch (final SQLException e) {
-            log.error("Failed opening database connection!", e);
+    public Connection getConnection() throws SQLException {
+        if (shuttingDown) {
+            throw new SQLException("Database is shutting down.");
         }
-        if (con == null) {
-            throw new IllegalStateException("Not able to create a database connection!");
+        if (dataSource == null) {
+            throw new SQLException("DataSource is not initialized.");
         }
-        return con;
+        return dataSource.getConnection();
     }
-
-    private boolean isConnectionBroken(final Connection connection) throws SQLException {
-        try {
-            try (PreparedStatement stmnt = connection.prepareStatement("SELECT 1");
-                 ResultSet result = stmnt.executeQuery()) {
-                return !result.next();
-            }
-        } catch (final SQLException e) {
-            return true;
-        }
-    }
-
-    protected abstract Connection openConnection() throws SQLException;
 
     public void closeConnection() {
-        if (con != null) {
-            try {
-                con.close();
-            } catch (final SQLException e) {
-                log.error("Failed to close the database connection!", e);
-            }
+        if (dataSource != null && !dataSource.isClosed()) {
+            dataSource.close();
         }
-        con = null;
     }
 
     public final void createTables() {
-        try {
+        try (Connection connection = getConnection()) {
             final SortedMap<MigrationKey, DatabaseUpdate> migrations = getMigrations();
-            final Set<MigrationKey> executedMigrations = queryExecutedMigrations(getConnection());
+            final Set<MigrationKey> executedMigrations = queryExecutedMigrations(connection);
             executedMigrations.forEach(migrations::remove);
 
             while (!migrations.isEmpty()) {
                 final MigrationKey key = migrations.firstKey();
                 final DatabaseUpdate migration = migrations.remove(key);
-                migration.executeUpdate(getConnection());
-                markMigrationExecuted(getConnection(), key);
+                migration.executeUpdate(connection);
+                markMigrationExecuted(connection, key);
             }
         } catch (final SQLException sqlException) {
             log.error("There was an exception with SQL while creating the database tables!", sqlException);
         }
+    }
+
+    /**
+     * Returns Database is shutting down.
+     *
+     * @return true if the database is shutting down, false otherwise
+     */
+    public boolean isShuttingDown() {
+        return shuttingDown;
+    }
+
+    public void setShuttingDown(final boolean shuttingDown) {
+        this.shuttingDown = shuttingDown;
     }
 
     /**
