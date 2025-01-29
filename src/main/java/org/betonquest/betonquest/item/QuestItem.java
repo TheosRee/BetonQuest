@@ -13,9 +13,12 @@ import org.betonquest.betonquest.item.typehandler.FireworkHandler;
 import org.betonquest.betonquest.item.typehandler.FlagHandler;
 import org.betonquest.betonquest.item.typehandler.HandlerUtil;
 import org.betonquest.betonquest.item.typehandler.HeadHandler;
+import org.betonquest.betonquest.item.typehandler.ItemHandler;
 import org.betonquest.betonquest.item.typehandler.ItemMetaHandler;
+import org.betonquest.betonquest.item.typehandler.ItemStackHandler;
 import org.betonquest.betonquest.item.typehandler.LoreHandler;
 import org.betonquest.betonquest.item.typehandler.NameHandler;
+import org.betonquest.betonquest.item.typehandler.NbtHandler;
 import org.betonquest.betonquest.item.typehandler.PotionHandler;
 import org.betonquest.betonquest.item.typehandler.UnbreakableHandler;
 import org.betonquest.betonquest.util.BlockSelector;
@@ -45,6 +48,10 @@ public class QuestItem {
             new FireworkHandler(), new UnbreakableHandler(), new CustomModelDataHandler(), new FlagHandler()
     );
 
+    private static final List<ItemStackHandler<? extends ItemStack>> STATIC_STACK_HANDLERS = List.of(
+            new NbtHandler()
+    );
+
     private final BlockSelector selector;
 
     private final DurabilityHandler durability = new DurabilityHandler();
@@ -71,12 +78,18 @@ public class QuestItem {
 
     private final FlagHandler flags = new FlagHandler();
 
+    private final NbtHandler nbts = new NbtHandler();
+
     /**
      * Handler in the order of {@link #itemToString(ItemStack)}.
      */
     private final List<ItemMetaHandler<? extends ItemMeta>> handlers = List.of(
             durability, name, lore, enchants, book, potion,
             color, head, firework, unbreakable, customModelData, flags);
+
+    private final List<ItemStackHandler<? extends ItemStack>> stackHandlers = List.of(
+            nbts
+    );
 
     /**
      * Creates new instance of the quest item using the ID.
@@ -108,8 +121,13 @@ public class QuestItem {
         final String[] parts = HandlerUtil.getNNSplit(instruction, "Item instruction is null", " ");
         selector = new BlockSelector(parts[0]);
 
-        final Map<String, ItemMetaHandler<?>> keyToHandler = new HashMap<>();
+        final Map<String, ItemHandler<?, ?>> keyToHandler = new HashMap<>();
         for (final ItemMetaHandler<?> handler : handlers) {
+            for (final String key : handler.keys()) {
+                keyToHandler.put(key, handler);
+            }
+        }
+        for (final ItemStackHandler<?> handler : stackHandlers) {
             for (final String key : handler.keys()) {
                 keyToHandler.put(key, handler);
             }
@@ -125,7 +143,7 @@ public class QuestItem {
             final String argumentName = getArgumentName(part.toLowerCase(Locale.ROOT));
             final String data = getArgumentData(part);
 
-            final ItemMetaHandler<?> handler = Utils.getNN(keyToHandler.get(argumentName), "Unknown argument: " + argumentName);
+            final ItemHandler<?, ?> handler = Utils.getNN(keyToHandler.get(argumentName), "Unknown argument: " + argumentName);
             handler.set(argumentName, data);
         }
     }
@@ -145,6 +163,13 @@ public class QuestItem {
         final StringBuilder builder = new StringBuilder();
         for (final ItemMetaHandler<? extends ItemMeta> staticHandler : STATIC_HANDLERS) {
             final String serialize = staticHandler.rawSerializeToString(meta);
+            if (serialize != null) {
+                builder.append(' ').append(serialize);
+            }
+        }
+
+        for (final ItemStackHandler<? extends ItemStack> staticHandler : STATIC_STACK_HANDLERS) {
+            final String serialize = staticHandler.rawSerializeToString(item);
             if (serialize != null) {
                 builder.append(' ').append(serialize);
             }
@@ -180,7 +205,7 @@ public class QuestItem {
 
     @Override
     public boolean equals(@Nullable final Object other) {
-        return other instanceof final QuestItem item && item.handlers.equals(handlers);
+        return other instanceof final QuestItem item && item.handlers.equals(handlers) && item.stackHandlers.equals(stackHandlers);
     }
 
     @Override
@@ -218,6 +243,17 @@ public class QuestItem {
                 return false;
             }
         }
+
+        final List<ItemStackHandler<? extends ItemStack>> orderedStackCompare = List.of(
+                nbts
+        );
+
+        for (final ItemStackHandler<? extends ItemStack> handler : orderedStackCompare) {
+            if (!handler.rawCheck(item)) {
+                return false;
+            }
+        }
+
         return true;
     }
 
@@ -253,6 +289,11 @@ public class QuestItem {
         }
 
         item.setItemMeta(meta);
+
+        for (final ItemStackHandler<? extends ItemStack> handler : stackHandlers) {
+            handler.rawPopulate(item, profile);
+        }
+
         return item;
     }
 
