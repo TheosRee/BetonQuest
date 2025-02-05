@@ -46,8 +46,13 @@ public class NpcTypeRegistry extends FactoryRegistry<TypeFactory<NpcWrapper<?>>>
      * @param <T>     the original npc type
      */
     public <T> void register(final String name, final NpcFactory<T> factory) {
-        register(name, factory::parseInstruction); // TODO irgendwas mit generics…
-        mapping.put(factory.factoredClass(), Map.entry(name, factory));
+        super.register(name, factory::parseInstruction);
+        mapping.put(factory.getFactoriesNpcClass(), Map.entry(name, factory));
+    }
+
+    @Override
+    public void register(final String name, final TypeFactory<NpcWrapper<?>> factory) {
+        throw new UnsupportedOperationException("Use the register method that accepts a NpcFactory!");
     }
 
     /**
@@ -75,7 +80,7 @@ public class NpcTypeRegistry extends FactoryRegistry<TypeFactory<NpcWrapper<?>>>
         @SuppressWarnings("unchecked") final NpcFactory<T> factory = (NpcFactory<T>) entry.getValue();
         final String prefix = entry.getKey() + " ";
         final Set<NpcID> npcIds = new HashSet<>();
-        for (final String instruction : factory.npcInstructionStrings(npc)) {
+        for (final String instruction : factory.getNpcInstructionStrings(npc)) {
             npcIds.addAll(idsByInstruction.get(prefix + instruction));
         }
         return npcIds;
