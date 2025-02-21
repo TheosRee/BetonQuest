@@ -12,9 +12,11 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ### Changed
 - message.yml file was deleted and instead the lang folder now contains all translations
 - `cancel` event now respects by default canceler conditions
+- `acceptNPCLeftClick` and `npcInteractionLimit` configs into `npcs.accept_left_click` and `npcs.interaction_limit`
 ### Deprecated
 ### Removed
 - undocumented prefix feature in conversation
+- `citizens_npcs_by_name` config option, which is now part of the id
 ### Fixed
 - Reloading plugin did not reload Menu config
 - potions generated not extended/upgraded since 2.2.1
