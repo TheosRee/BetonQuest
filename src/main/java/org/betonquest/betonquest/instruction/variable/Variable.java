@@ -129,7 +129,7 @@ public class Variable<T> {
      *
      * @return true if the value never changes
      */
-    public boolean isConstant() {
+    public final boolean isConstant() {
         return constant;
     }
 
