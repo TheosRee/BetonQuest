@@ -124,11 +124,11 @@ public class Variable<T> {
     }
 
     /**
-     * If the variable does not contains variables.
+     * If the variable does not contain variables.
      *
      * @return true if the value never changes
      */
-    public boolean isConstant() {
+    public final boolean isConstant() {
         return constant;
     }
 
