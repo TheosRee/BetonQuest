@@ -6,6 +6,7 @@ import org.betonquest.betonquest.api.quest.QuestException;
 import org.betonquest.betonquest.api.quest.event.online.OnlineEvent;
 import org.betonquest.betonquest.feature.QuestCanceler;
 import org.betonquest.betonquest.id.QuestCancelerID;
+import org.betonquest.betonquest.instruction.variable.Variable;
 
 /**
  * The cancel event.
@@ -20,7 +21,7 @@ public class CancelEvent implements OnlineEvent {
     /**
      * The canceler to use.
      */
-    private final QuestCancelerID cancelerID;
+    private final Variable<QuestCancelerID> cancelerID;
 
     /**
      * Whether the canceler conditions should be ignored for canceling.
@@ -34,7 +35,7 @@ public class CancelEvent implements OnlineEvent {
      * @param cancelerID the canceler to use
      * @param bypass     whether the canceler conditions should be ignored for canceling
      */
-    public CancelEvent(final FeatureAPI featureAPI, final QuestCancelerID cancelerID, final boolean bypass) {
+    public CancelEvent(final FeatureAPI featureAPI, final Variable<QuestCancelerID> cancelerID, final boolean bypass) {
         this.featureAPI = featureAPI;
         this.cancelerID = cancelerID;
         this.bypass = bypass;
@@ -42,6 +43,7 @@ public class CancelEvent implements OnlineEvent {
 
     @Override
     public void execute(final OnlineProfile profile) throws QuestException {
+        final QuestCancelerID cancelerID = this.cancelerID.getValue(profile);
         final QuestCanceler canceler = featureAPI.getCanceler(cancelerID);
         if (canceler == null) {
             throw new QuestException("Quest canceler '" + cancelerID.getFullID() + "' does not exist."

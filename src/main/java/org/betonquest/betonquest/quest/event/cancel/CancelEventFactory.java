@@ -8,6 +8,8 @@ import org.betonquest.betonquest.api.quest.event.EventFactory;
 import org.betonquest.betonquest.api.quest.event.online.OnlineEventAdapter;
 import org.betonquest.betonquest.id.QuestCancelerID;
 import org.betonquest.betonquest.instruction.Instruction;
+import org.betonquest.betonquest.instruction.argument.IDArgument;
+import org.betonquest.betonquest.instruction.variable.Variable;
 
 /**
  * Factory for the cancel event.
@@ -36,7 +38,7 @@ public class CancelEventFactory implements EventFactory {
 
     @Override
     public Event parseEvent(final Instruction instruction) throws QuestException {
-        final QuestCancelerID cancelerID = instruction.getID(QuestCancelerID::new);
+        final Variable<QuestCancelerID> cancelerID = instruction.get(IDArgument.of(QuestCancelerID::new));
         final boolean bypass = instruction.hasArgument("bypass");
         return new OnlineEventAdapter(new CancelEvent(featureAPI, cancelerID, bypass),
                 loggerFactory.create(CancelEvent.class), instruction.getPackage());
