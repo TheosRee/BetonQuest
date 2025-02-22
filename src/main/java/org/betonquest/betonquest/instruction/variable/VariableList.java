@@ -18,6 +18,7 @@ public class VariableList<T> extends Variable<List<T>> {
 
     /**
      * Resolves a string that may contain variables to a variable of the given type.
+     * Any constant part will be validated in construction.
      *
      * @param variableProcessor the processor to create the variables
      * @param pack              the package in which the variable is used in
@@ -35,5 +36,10 @@ public class VariableList<T> extends Variable<List<T>> {
             }
             return list;
         });
+        if (!isConstant()) {
+            for (final String unresolved : input.split(",")) {
+                new Variable<>(variableProcessor, pack, unresolved, resolver);
+            }
+        }
     }
 }
