@@ -38,7 +38,7 @@ public class CancelEventFactory implements EventFactory {
 
     @Override
     public Event parseEvent(final Instruction instruction) throws QuestException {
-        final Variable<QuestCancelerID> cancelerID = instruction.get(IDArgument.of(QuestCancelerID::new));
+        final Variable<QuestCancelerID> cancelerID = instruction.get(IDArgument.ofSingle(QuestCancelerID::new));
         final boolean bypass = instruction.hasArgument("bypass");
         return new OnlineEventAdapter(new CancelEvent(featureAPI, cancelerID, bypass),
                 loggerFactory.create(CancelEvent.class), instruction.getPackage());

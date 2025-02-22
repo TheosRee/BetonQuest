@@ -20,7 +20,7 @@ public interface IDArgument<T extends ID> {
      * @param <I>      the ID type
      * @return the variables of the id
      */
-    static <I extends ID> VariableArgument<Variable<I>> of(final IDArgument<I> argument) {
+    static <I extends ID> VariableArgument<Variable<I>> ofSingle(final IDArgument<I> argument) {
         return (variableProcessor, pack, string)
                 -> new Variable<>(variableProcessor, pack, string, arg -> argument.convert(pack, arg));
     }
