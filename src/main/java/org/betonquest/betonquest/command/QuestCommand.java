@@ -31,6 +31,7 @@ import org.betonquest.betonquest.feature.journal.Pointer;
 import org.betonquest.betonquest.id.ConditionID;
 import org.betonquest.betonquest.id.EventID;
 import org.betonquest.betonquest.id.ItemID;
+import org.betonquest.betonquest.id.JournalEntryID;
 import org.betonquest.betonquest.id.ObjectiveID;
 import org.betonquest.betonquest.instruction.Item;
 import org.betonquest.betonquest.instruction.variable.VariableNumber;
@@ -432,8 +433,7 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
             try {
                 itemID = new ItemID(null, args[1]);
             } catch (final QuestException e) {
-                sendMessage(sender, "error",
-                        new PluginMessage.Replacement("error", e.getMessage()));
+                sendMessage(sender, "error", new PluginMessage.Replacement("error", e.getMessage()));
                 log.warn("Could not find Item: " + e.getMessage(), e);
                 return;
             }
@@ -449,8 +449,7 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
             final ProfileProvider profileProvider = BetonQuest.getInstance().getProfileProvider();
             give.execute(profileProvider.getProfile((Player) sender));
         } catch (final QuestException e) {
-            sendMessage(sender, "error",
-                    new PluginMessage.Replacement("error", e.getMessage()));
+            sendMessage(sender, "error", new PluginMessage.Replacement("error", e.getMessage()));
             log.warn("Error while creating an item: " + e.getMessage(), e);
         }
     }
@@ -459,22 +458,13 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
      * Purges profile's data.
      */
     private void purgePlayer(final CommandSender sender, final String... args) {
-        final Profile profile = getTargetProfile(sender, args);
-        if (profile == null) {
+        final PlayerData playerData = getTargetPlayerData(sender, args);
+        if (playerData == null) {
             return;
-        }
-        final PlayerData playerData;
-        if (profile.getOnlineProfile().isPresent()) {
-            playerData = dataStorage.get(profile);
-        } else {
-            log.debug("Profile is offline, loading his data");
-            playerData = new PlayerData(pluginMessage, profile);
         }
         log.debug("Purging player " + args[1]);
         playerData.purgePlayer();
-        // done
-        sendMessage(sender, "purged",
-                new PluginMessage.Replacement("player", args[1]));
+        sendMessage(sender, "purged", new PluginMessage.Replacement("player", args[1]));
     }
 
     /**
@@ -506,20 +496,27 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
         return BetonQuest.getInstance().getProfileProvider().getProfile(Bukkit.getOfflinePlayer(args[1]));
     }
 
+    @Nullable
+    private PlayerData getTargetPlayerData(final CommandSender sender, final String... args) {
+        final Profile profile = getTargetProfile(sender, args);
+        if (profile == null) {
+            return null;
+        }
+        if (profile.getOnlineProfile().isPresent()) {
+            return dataStorage.get(profile);
+        } else {
+            log.debug("Profile is offline, loading his data");
+            return new PlayerData(pluginMessage, profile);
+        }
+    }
+
     /**
      * Lists, adds or removes journal entries of certain profile.
      */
     private void handleJournals(final CommandSender sender, final String... args) {
-        final Profile profile = getTargetProfile(sender, args);
-        if (profile == null) {
+        final PlayerData playerData = getTargetPlayerData(sender, args);
+        if (playerData == null) {
             return;
-        }
-        final PlayerData playerData;
-        if (profile.getOnlineProfile().isPresent()) {
-            playerData = dataStorage.get(profile);
-        } else {
-            log.debug("Profile is offline, loading his data");
-            playerData = new PlayerData(pluginMessage, profile);
         }
         final Journal journal = playerData.getJournal();
         // if there are no arguments then list player's pointers
@@ -551,6 +548,13 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
         switch (args[2].toLowerCase(Locale.ROOT)) {
             case "add":
             case "a":
+                try {
+                    new JournalEntryID(null, pointerName);
+                } catch (final QuestException e) {
+                    log.warn("The journal entry'" + pointerName + "' does not exist!");
+                    log.debug("Tried to add non existing journal entry: " + e.getMessage(), e);
+                    return;
+                }
                 final Pointer pointer;
                 if (args.length < 5) {
                     final long timestamp = new Date().getTime();
@@ -613,16 +617,9 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
      * Lists, adds or removes points of certain profile.
      */
     private void handlePoints(final CommandSender sender, final String... args) {
-        final Profile profile = getTargetProfile(sender, args);
-        if (profile == null) {
+        final PlayerData playerData = getTargetPlayerData(sender, args);
+        if (playerData == null) {
             return;
-        }
-        final PlayerData playerData;
-        if (profile.getOnlineProfile().isPresent()) {
-            playerData = dataStorage.get(profile);
-        } else {
-            log.debug("Profile is offline, loading his data");
-            playerData = new PlayerData(pluginMessage, profile);
         }
         // if there are no arguments then list player's points
         if (args.length < 3 || "list".equalsIgnoreCase(args[2]) || "l".equalsIgnoreCase(args[2])) {
@@ -1315,6 +1312,16 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
             case "entry":
             case "e":
                 updateType = UpdateType.RENAME_ALL_ENTRIES;
+                //final JournalEntryID journalEntryID; // TODO rename with id?
+                try {
+                    //journalEntryID =
+                    new JournalEntryID(null, name);
+                    // instance.getFeatureAPI().renameJournalEntry(journalEntryID);
+                } catch (final QuestException e) {
+                    sendMessage(sender, "error", new PluginMessage.Replacement("error", e.getMessage()));
+                    log.warn("Could not find Journal: " + e.getMessage(), e);
+                    return;
+                }
                 for (final OnlineProfile onlineProfile : onlineProfiles) {
                     final Journal journal = dataStorage.get(onlineProfile).getJournal();
                     Pointer journalPointer = null;

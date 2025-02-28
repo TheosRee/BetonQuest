@@ -2,6 +2,7 @@ package org.betonquest.betonquest.quest.event.journal;
 
 import org.betonquest.betonquest.feature.journal.Journal;
 import org.betonquest.betonquest.feature.journal.Pointer;
+import org.betonquest.betonquest.id.JournalEntryID;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -24,7 +25,9 @@ class AddEntryJournalChangerTest {
     void testChangeJournalAddsPointer(@Mock final Journal journal) {
         final Instant now = Instant.now();
         final String entryName = "test_entry";
-        final AddEntryJournalChanger changer = new AddEntryJournalChanger(InstantSource.fixed(now), entryName);
+        final JournalEntryID entryID = mock(JournalEntryID.class);
+        when(entryID.getFullID()).thenReturn(entryName);
+        final AddEntryJournalChanger changer = new AddEntryJournalChanger(InstantSource.fixed(now), entryID);
         final ArgumentCaptor<Pointer> captor = ArgumentCaptor.forClass(Pointer.class);
 
         changer.changeJournal(journal);
