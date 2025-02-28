@@ -140,8 +140,8 @@ public class Journal {
         final String date = betonQuest.isMySQLUsed()
                 ? new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.ROOT).format(new Date(pointer.timestamp()))
                 : Long.toString(pointer.timestamp());
-        betonQuest.getSaver()
-                .add(new Record(UpdateType.ADD_JOURNAL, profile.getProfileUUID().toString(), pointer.pointer(), date));
+        betonQuest.getSaver().add(new Record(UpdateType.ADD_JOURNAL, profile.getProfileUUID().toString(),
+                pointer.pointer().getFullID(), date));
     }
 
     /**
@@ -151,14 +151,14 @@ public class Journal {
      */
     public void removePointer(final String pointerName) {
         for (final Pointer pointer : pointers) {
-            if (pointer.pointer().equalsIgnoreCase(pointerName)) {
+            if (pointer.pointer().getFullID().equalsIgnoreCase(pointerName)) {
                 final BetonQuest betonQuest = BetonQuest.getInstance();
                 betonQuest.callSyncBukkitEvent(new PlayerJournalDeleteEvent(profile, this, pointer));
                 final String date = betonQuest.isMySQLUsed()
                         ? new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.ROOT).format(new Date(pointer.timestamp()))
                         : Long.toString(pointer.timestamp());
-                betonQuest.getSaver()
-                        .add(new Record(UpdateType.REMOVE_JOURNAL, profile.getProfileUUID().toString(), pointer.pointer(), date));
+                betonQuest.getSaver().add(new Record(UpdateType.REMOVE_JOURNAL, profile.getProfileUUID().toString(),
+                        pointer.pointer().getFullID(), date));
                 pointers.remove(pointer);
                 break;
             }
@@ -195,16 +195,10 @@ public class Journal {
         for (final Pointer pointer : pointers) {
             final boolean displayDatePrefix = "false".equalsIgnoreCase(config.getString("journal.hide_date"));
             final String datePrefix = displayDatePrefix ? pointer.generateDatePrefix(config) + "\n" : "";
-            final JournalEntryID entryID;
-            try {
-                entryID = new JournalEntryID(null, pointer.pointer());
-            } catch (final QuestException e) {
-                log.warn("No defined journal entry " + pointer.pointer() + ": " + e.getMessage(), e);
-                continue;
-            }
+            final JournalEntryID entryID = pointer.pointer();
             final ParsedSectionMessage journalEntry = BetonQuest.getInstance().getFeatureAPI().getJournalEntry(entryID);
             if (journalEntry == null) {
-                log.warn("No journal entry " + pointer.pointer() + ": " + entryID);
+                log.warn("No journal entry " + entryID);
                 continue;
             }
             String text;

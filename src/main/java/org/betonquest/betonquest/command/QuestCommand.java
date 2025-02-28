@@ -522,7 +522,7 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
         // if there are no arguments then list player's pointers
         if (args.length < 3 || "list".equalsIgnoreCase(args[2]) || "l".equalsIgnoreCase(args[2])) {
             log.debug("Listing journal pointers");
-            final Predicate<Pointer> shouldDisplay = createListFilter(args, 3, Pointer::pointer);
+            final Predicate<Pointer> shouldDisplay = createListFilter(args, 3, pointer -> pointer.pointer().getFullID());
             sendMessage(sender, "player_journal");
             journal.getPointers().stream()
                     .filter(shouldDisplay)
@@ -548,8 +548,9 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
         switch (args[2].toLowerCase(Locale.ROOT)) {
             case "add":
             case "a":
+                final JournalEntryID entryID;
                 try {
-                    new JournalEntryID(null, pointerName);
+                    entryID = new JournalEntryID(null, pointerName);
                 } catch (final QuestException e) {
                     log.warn("The journal entry'" + pointerName + "' does not exist!");
                     log.debug("Tried to add non existing journal entry: " + e.getMessage(), e);
@@ -559,11 +560,11 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
                 if (args.length < 5) {
                     final long timestamp = new Date().getTime();
                     log.debug("Adding pointer with current date: " + timestamp);
-                    pointer = new Pointer(pointerName, timestamp);
+                    pointer = new Pointer(entryID, timestamp);
                 } else {
                     log.debug("Adding pointer with date " + args[4].replaceAll("_", " "));
                     try {
-                        pointer = new Pointer(pointerName,
+                        pointer = new Pointer(entryID,
                                 new SimpleDateFormat(Config.getConfigString("date_format"), Locale.ROOT)
                                         .parse(args[4].replaceAll("_", " ")).getTime());
                     } catch (final ParseException e) {
@@ -1312,11 +1313,10 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
             case "entry":
             case "e":
                 updateType = UpdateType.RENAME_ALL_ENTRIES;
-                //final JournalEntryID journalEntryID; // TODO rename with id?
+                final JournalEntryID oldEntryID;
                 try {
-                    //journalEntryID =
-                    new JournalEntryID(null, name);
-                    // instance.getFeatureAPI().renameJournalEntry(journalEntryID);
+                    oldEntryID = new JournalEntryID(null, name);
+                    instance.getFeatureAPI().renameJournalEntry(oldEntryID);
                 } catch (final QuestException e) {
                     sendMessage(sender, "error", new PluginMessage.Replacement("error", e.getMessage()));
                     log.warn("Could not find Journal: " + e.getMessage(), e);

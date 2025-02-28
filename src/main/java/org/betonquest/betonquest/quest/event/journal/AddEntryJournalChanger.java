@@ -34,6 +34,6 @@ public class AddEntryJournalChanger implements JournalChanger {
 
     @Override
     public void changeJournal(final Journal journal) {
-        journal.addPointer(new Pointer(entryID.getFullID(), instantSource.millis()));
+        journal.addPointer(new Pointer(entryID, instantSource.millis()));
     }
 }
