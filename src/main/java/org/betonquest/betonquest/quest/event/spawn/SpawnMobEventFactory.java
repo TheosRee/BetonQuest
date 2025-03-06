@@ -6,7 +6,6 @@ import org.betonquest.betonquest.api.quest.event.EventFactory;
 import org.betonquest.betonquest.api.quest.event.StaticEvent;
 import org.betonquest.betonquest.api.quest.event.StaticEventFactory;
 import org.betonquest.betonquest.api.quest.event.nullable.NullableEventAdapter;
-import org.betonquest.betonquest.id.ItemID;
 import org.betonquest.betonquest.instruction.Instruction;
 import org.betonquest.betonquest.instruction.Item;
 import org.betonquest.betonquest.instruction.variable.VariableNumber;
@@ -79,7 +78,6 @@ public class SpawnMobEventFactory implements EventFactory, StaticEventFactory {
 
     @Nullable
     private QuestItem getQuestItem(final Instruction instruction, final String key) throws QuestException {
-        final ItemID item = instruction.getID(instruction.getOptional(key), ItemID::new);
-        return item == null ? null : new QuestItem(item);
+        return instruction.getQuestItem(instruction.getOptional(key));
     }
 }

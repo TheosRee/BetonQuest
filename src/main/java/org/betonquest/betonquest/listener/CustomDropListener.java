@@ -1,10 +1,10 @@
 package org.betonquest.betonquest.listener;
 
 import org.betonquest.betonquest.BetonQuest;
+import org.betonquest.betonquest.api.feature.FeatureAPI;
 import org.betonquest.betonquest.api.logger.BetonQuestLogger;
 import org.betonquest.betonquest.api.quest.QuestException;
 import org.betonquest.betonquest.id.ItemID;
-import org.betonquest.betonquest.item.QuestItem;
 import org.bukkit.NamespacedKey;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -18,8 +18,11 @@ public class CustomDropListener implements Listener {
      */
     private final BetonQuestLogger log;
 
-    public CustomDropListener(final BetonQuestLogger log) {
+    private final FeatureAPI featureAPI;
+
+    public CustomDropListener(final BetonQuestLogger log, final FeatureAPI featureAPI) {
         this.log = log;
+        this.featureAPI = featureAPI;
     }
 
     @EventHandler(ignoreCancelled = true)
@@ -32,7 +35,7 @@ public class CustomDropListener implements Listener {
             if (dataContainerValue != null) {
                 final int separatorIndex = dataContainerValue.indexOf(':');
                 try {
-                    event.getDrops().add(new QuestItem(new ItemID(null, dataContainerValue.substring(0, separatorIndex)))
+                    event.getDrops().add(featureAPI.getItem(new ItemID(null, dataContainerValue.substring(0, separatorIndex)))
                             .generate(Integer.parseInt(dataContainerValue.substring(separatorIndex + 1))));
                 } catch (final QuestException e) {
                     log.warn("Error when dropping custom item from entity: " + e.getMessage(), e);

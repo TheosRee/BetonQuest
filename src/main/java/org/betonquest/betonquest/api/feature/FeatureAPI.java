@@ -1,14 +1,17 @@
 package org.betonquest.betonquest.api.feature;
 
+import org.betonquest.betonquest.api.quest.QuestException;
 import org.betonquest.betonquest.conversation.ConversationData;
 import org.betonquest.betonquest.feature.QuestCanceler;
 import org.betonquest.betonquest.feature.QuestCompass;
 import org.betonquest.betonquest.feature.journal.JournalMainPageEntry;
 import org.betonquest.betonquest.id.CompassID;
 import org.betonquest.betonquest.id.ConversationID;
+import org.betonquest.betonquest.id.ItemID;
 import org.betonquest.betonquest.id.JournalEntryID;
 import org.betonquest.betonquest.id.JournalMainPageID;
 import org.betonquest.betonquest.id.QuestCancelerID;
+import org.betonquest.betonquest.item.QuestItem;
 import org.betonquest.betonquest.kernel.processor.QuestRegistry;
 import org.betonquest.betonquest.message.ParsedSectionMessage;
 import org.jetbrains.annotations.Nullable;
@@ -110,5 +113,27 @@ public final class FeatureAPI {
      */
     public Map<JournalMainPageID, JournalMainPageEntry> getJournalMainPages() {
         return new HashMap<>(questRegistry.journalMainPages().getValues());
+    }
+
+    /**
+     * Gets a QuestItem by their id.
+     *
+     * @param itemID the id
+     * @return the stored quest item
+     * @throws QuestException if there exists no QuestItem with that id
+     */
+    public QuestItem getItem(final ItemID itemID) throws QuestException {
+        return questRegistry.items().getItem(itemID);
+    }
+
+    /**
+     * Generates a QuestItem just from instruction string.
+     *
+     * @param instruction the instruction string to parse
+     * @return the new parsed QuestItem
+     * @throws QuestException if the instruction cannot be parsed or Item could not be generated
+     */
+    public QuestItem generateItem(final String instruction) throws QuestException {
+        return questRegistry.items().generate(instruction);
     }
 }

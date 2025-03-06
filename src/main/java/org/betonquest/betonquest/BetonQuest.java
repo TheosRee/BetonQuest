@@ -439,9 +439,7 @@ public class BetonQuest extends JavaPlugin {
 
         ConversationColors.loadColors(loggerFactory.create(ConversationColors.class), config);
 
-        pluginManager.registerEvents(new MobKillListener(), this);
-
-        pluginManager.registerEvents(new CustomDropListener(loggerFactory.create(CustomDropListener.class)), this);
+        pluginManager.registerEvents(new MobKillListener(profileProvider), this);
 
         questTypeRegistries = QuestTypeRegistries.create(loggerFactory, this);
         featureRegistries = FeatureRegistries.create(loggerFactory);
@@ -466,6 +464,7 @@ public class BetonQuest extends JavaPlugin {
         featureAPI = new FeatureAPI(questRegistry);
         pluginManager.registerEvents(new JoinQuitListener(loggerFactory, questTypeAPI, playerDataStorage, pluginMessage,
                 profileProvider), this);
+        pluginManager.registerEvents(new CustomDropListener(loggerFactory.create(CustomDropListener.class), featureAPI), this);
 
         new CoreQuestTypes(loggerFactory, getServer(), getServer().getScheduler(), this,
                 questTypeAPI, pluginMessage, questRegistry.variables(), globalData, playerDataStorage, profileProvider)

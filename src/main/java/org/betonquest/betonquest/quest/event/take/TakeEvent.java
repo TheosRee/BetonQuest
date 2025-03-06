@@ -51,11 +51,8 @@ public class TakeEvent extends AbstractTakeEvent {
             neededDeletions.put(profile.getProfileUUID(), Pair.of(questItem, deleteAmount));
 
             checkSelectedTypes(profile);
-            final String itemName = questItem.getName() == null
-                    ? new ItemStack(questItem.getMaterial()).getItemMeta().getDisplayName()
-                    : questItem.getName();
             notificationSender.sendNotification(profile,
-                    new PluginMessage.Replacement("item", itemName),
+                    new PluginMessage.Replacement("item", questItem.getName()),
                     new PluginMessage.Replacement("amount", String.valueOf(deleteAmount - neededDeletions.get(profile.getProfileUUID()).getRight())));
         }
     }

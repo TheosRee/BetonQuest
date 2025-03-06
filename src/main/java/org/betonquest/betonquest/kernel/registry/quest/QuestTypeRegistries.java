@@ -2,12 +2,14 @@ package org.betonquest.betonquest.kernel.registry.quest;
 
 import org.betonquest.betonquest.BetonQuest;
 import org.betonquest.betonquest.api.logger.BetonQuestLoggerFactory;
+import org.betonquest.betonquest.kernel.registry.feature.ItemTypeRegistry;
 
 /**
  * Registry for quest core elements.
  *
  * @param condition The Registry holding registered condition types.
  * @param event     The Registry holding registered event types.
+ * @param item      The Registry holding registered item types.
  * @param objective The Registry holding registered objective types.
  * @param npc       The Registry holding registered npc types.
  * @param variable  The Registry holding registered variable types.
@@ -15,6 +17,7 @@ import org.betonquest.betonquest.api.logger.BetonQuestLoggerFactory;
 public record QuestTypeRegistries(
         ConditionTypeRegistry condition,
         EventTypeRegistry event,
+        ItemTypeRegistry item,
         ObjectiveTypeRegistry objective,
         NpcTypeRegistry npc,
         VariableTypeRegistry variable
@@ -31,6 +34,7 @@ public record QuestTypeRegistries(
         return new QuestTypeRegistries(
                 new ConditionTypeRegistry(loggerFactory.create(ConditionTypeRegistry.class)),
                 new EventTypeRegistry(loggerFactory.create(EventTypeRegistry.class), loggerFactory, betonQuest),
+                new ItemTypeRegistry(loggerFactory.create(ItemTypeRegistry.class)),
                 new ObjectiveTypeRegistry(loggerFactory.create(ObjectiveTypeRegistry.class)),
                 new NpcTypeRegistry(loggerFactory.create(NpcTypeRegistry.class)),
                 new VariableTypeRegistry(loggerFactory.create(VariableTypeRegistry.class))

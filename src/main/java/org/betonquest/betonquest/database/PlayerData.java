@@ -18,7 +18,7 @@ import org.betonquest.betonquest.feature.journal.Journal;
 import org.betonquest.betonquest.feature.journal.Pointer;
 import org.betonquest.betonquest.id.JournalEntryID;
 import org.betonquest.betonquest.id.ObjectiveID;
-import org.betonquest.betonquest.item.QuestItem;
+import org.betonquest.betonquest.kernel.processor.feature.ItemProcessor;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
@@ -197,7 +197,7 @@ public class PlayerData implements TagData {
         final int amount = backpackResults.getInt("amount");
         final ItemStack item;
         try {
-            item = new QuestItem(instruction).generate(amount);
+            item = BetonQuest.getInstance().getFeatureAPI().generateItem(instruction).generate(amount);
         } catch (final QuestException e) {
             log.warn("Could not load backpack item for " + profile
                     + ", with instruction '" + instruction + "', because: " + e.getMessage(), e);
@@ -535,7 +535,8 @@ public class PlayerData implements TagData {
         // quite expensive, should be changed
         saver.add(new Record(UpdateType.DELETE_BACKPACK, profileID));
         for (final ItemStack itemStack : backpack) {
-            final String instruction = QuestItem.itemToString(itemStack);
+            // final byte[] serialized = itemStack.serializeAsBytes(); // TODO use proper deserialization?
+            final String instruction = ItemProcessor.itemToString(itemStack);
             final String newAmount = String.valueOf(itemStack.getAmount());
             saver.add(new Record(UpdateType.ADD_BACKPACK, profileID, instruction, newAmount));
         }

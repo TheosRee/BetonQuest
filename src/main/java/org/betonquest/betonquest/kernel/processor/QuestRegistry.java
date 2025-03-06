@@ -12,6 +12,7 @@ import org.betonquest.betonquest.id.ID;
 import org.betonquest.betonquest.kernel.processor.feature.CancelerProcessor;
 import org.betonquest.betonquest.kernel.processor.feature.CompassProcessor;
 import org.betonquest.betonquest.kernel.processor.feature.ConversationProcessor;
+import org.betonquest.betonquest.kernel.processor.feature.ItemProcessor;
 import org.betonquest.betonquest.kernel.processor.feature.JournalEntryProcessor;
 import org.betonquest.betonquest.kernel.processor.feature.JournalMainPageProcessor;
 import org.betonquest.betonquest.kernel.processor.quest.ConditionProcessor;
@@ -41,6 +42,7 @@ import java.util.Map;
  * @param journalEntries   Journal Entries.
  * @param journalMainPages Journal Main Pages.
  * @param npcs             Npc getting.
+ * @param items            Quest Item logic.
  */
 @SuppressWarnings("PMD.CouplingBetweenObjects")
 public record QuestRegistry(
@@ -55,7 +57,8 @@ public record QuestRegistry(
         CompassProcessor compasses,
         JournalEntryProcessor journalEntries,
         JournalMainPageProcessor journalMainPages,
-        NpcProcessor npcs
+        NpcProcessor npcs,
+        ItemProcessor items
 ) {
 
     /**
@@ -80,14 +83,15 @@ public record QuestRegistry(
         final EventProcessor events = new EventProcessor(loggerFactory.create(EventProcessor.class), questTypeRegistries.event());
         final ObjectiveProcessor objectives = new ObjectiveProcessor(loggerFactory.create(ObjectiveProcessor.class), questTypeRegistries.objective());
         final VariableProcessor variables = new VariableProcessor(loggerFactory.create(VariableProcessor.class), questTypeRegistries.variable());
-        final CancelerProcessor cancelers = new CancelerProcessor(loggerFactory.create(CancelerProcessor.class), loggerFactory, pluginMessage, variables, messageParser, plugin.getPlayerDataStorage());
+        final CancelerProcessor cancelers = new CancelerProcessor(loggerFactory.create(CancelerProcessor.class), loggerFactory, plugin, pluginMessage, variables, messageParser, plugin.getPlayerDataStorage());
         final ConversationProcessor conversations = new ConversationProcessor(loggerFactory.create(ConversationProcessor.class), loggerFactory, plugin, variables, messageParser, plugin.getPlayerDataStorage(),
                 otherRegistries.conversationIO(), otherRegistries.interceptor());
         final CompassProcessor compasses = new CompassProcessor(loggerFactory.create(CompassProcessor.class), variables, messageParser, plugin.getPlayerDataStorage());
         final JournalEntryProcessor journalEntries = new JournalEntryProcessor(loggerFactory.create(JournalEntryProcessor.class), variables, messageParser, plugin.getPlayerDataStorage());
         final JournalMainPageProcessor journalMainPages = new JournalMainPageProcessor(loggerFactory.create(JournalMainPageProcessor.class), variables, messageParser, plugin.getPlayerDataStorage());
         final NpcProcessor npcs = new NpcProcessor(loggerFactory.create(NpcProcessor.class), loggerFactory, questTypeRegistries.npc(), pluginMessage, plugin, profileProvider);
-        return new QuestRegistry(log, eventScheduling, conditions, events, objectives, variables, cancelers, conversations, compasses, journalEntries, journalMainPages, npcs);
+        final ItemProcessor items = new ItemProcessor(loggerFactory.create(ItemProcessor.class), questTypeRegistries.item());
+        return new QuestRegistry(log, eventScheduling, conditions, events, objectives, variables, cancelers, conversations, compasses, journalEntries, journalMainPages, npcs, items);
     }
 
     /**
@@ -108,6 +112,7 @@ public record QuestRegistry(
         journalEntries.clear();
         journalMainPages.clear();
         npcs.clear();
+        items.clear();
 
         for (final QuestPackage pack : packages) {
             final String packName = pack.getQuestPath();
@@ -121,6 +126,7 @@ public record QuestRegistry(
             journalEntries.load(pack);
             journalMainPages.load(pack);
             npcs.load(pack);
+            items.load(pack);
             eventScheduling.loadData(pack);
 
             log.debug(pack, "Everything in package " + packName + " loaded");
@@ -130,7 +136,7 @@ public record QuestRegistry(
 
         log.info("There are " + String.join(", ", conditions.readableSize(), events.readableSize(),
                 objectives.readableSize(), cancelers.readableSize(), compasses.readableSize(),
-                journalEntries.readableSize(), journalMainPages.readableSize(), npcs.readableSize())
+                journalEntries.readableSize(), journalMainPages.readableSize(), npcs.readableSize(), items.readableSize())
                 + " and " + conversations.readableSize() + " loaded from " + packages.size() + " packages.");
 
         eventScheduling.startAll();
@@ -145,6 +151,7 @@ public record QuestRegistry(
         return Map.ofEntries(
                 conditions.metricsSupplier(),
                 events.metricsSupplier(),
+                items.metricsSupplier(),
                 npcs.metricsSupplier(),
                 objectives.metricsSupplier(),
                 variables.metricsSupplier()
