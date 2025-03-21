@@ -91,6 +91,6 @@ public abstract class QuestProcessor<I extends ID, T> {
      * @return the value size with the identifier
      */
     public String readableSize() {
-        return size() + " " + readable;
+        return readable + ": " + size();
     }
 }
