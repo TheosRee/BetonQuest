@@ -10,7 +10,6 @@ import org.betonquest.betonquest.api.bukkit.event.PlayerUpdatePointEvent;
 import org.betonquest.betonquest.api.logger.BetonQuestLogger;
 import org.betonquest.betonquest.api.profile.Profile;
 import org.betonquest.betonquest.api.quest.QuestException;
-import org.betonquest.betonquest.config.Config;
 import org.betonquest.betonquest.config.PluginMessage;
 import org.betonquest.betonquest.conversation.PlayerConversationState;
 import org.betonquest.betonquest.database.Saver.Record;
@@ -29,6 +28,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -80,9 +80,10 @@ public class PlayerData implements TagData, PointData {
     private PlayerConversationState activeConversation;
 
     /**
-     * The language for the profile.
+     * The language for the profile or {@code null} if it is default.
      */
-    private String profileLanguage = DEFAULT_LANGUAGE_KEY;
+    @Nullable
+    private String profileLanguage;
 
     /**
      * Loads the PlayerData of the given {@link Profile}.
@@ -160,7 +161,7 @@ public class PlayerData implements TagData, PointData {
     private void loadLanguage(final ResultSet playerResult) throws SQLException {
         profileLanguage = playerResult.getString("language");
         if (DEFAULT_LANGUAGE_KEY.equals(profileLanguage)) {
-            profileLanguage = Config.getLanguage();
+            profileLanguage = null;
         }
     }
 
@@ -178,7 +179,6 @@ public class PlayerData implements TagData, PointData {
     }
 
     private void setupProfile() {
-        profileLanguage = Config.getLanguage();
         saver.add(new Record(UpdateType.ADD_PROFILE, profileID));
         saver.add(new Record(UpdateType.ADD_PLAYER, profile.getPlayer().getUniqueId().toString(),
                 profileID, "default"));
@@ -500,6 +500,7 @@ public class PlayerData implements TagData, PointData {
      *
      * @return the language this profile uses
      */
+    @Nullable
     public String getLanguage() {
         return profileLanguage;
     }
@@ -507,14 +508,14 @@ public class PlayerData implements TagData, PointData {
     /**
      * Sets player's language.
      *
-     * @param lang language to set
+     * @param lang language to set or null if set to default
      */
-    public void setLanguage(final String lang) {
-        if (profileLanguage.equals(lang)) {
+    public void setLanguage(@Nullable final String lang) {
+        if (Objects.equals(profileLanguage, lang)) {
             return;
         }
         if (DEFAULT_LANGUAGE_KEY.equalsIgnoreCase(lang)) {
-            this.profileLanguage = Config.getLanguage();
+            this.profileLanguage = null;
         } else {
             this.profileLanguage = lang;
         }
