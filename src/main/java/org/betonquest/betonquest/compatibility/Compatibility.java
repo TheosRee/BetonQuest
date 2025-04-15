@@ -24,12 +24,14 @@ import org.betonquest.betonquest.compatibility.mmogroup.mmolib.MythicLibIntegrat
 import org.betonquest.betonquest.compatibility.mythicmobs.MythicMobsIntegrator;
 import org.betonquest.betonquest.compatibility.npc.citizens.CitizensIntegrator;
 import org.betonquest.betonquest.compatibility.npc.fancynpcs.FancyNpcsIntegrator;
+import org.betonquest.betonquest.compatibility.npc.simplenpcs.SimpleNPCsIntegrator;
 import org.betonquest.betonquest.compatibility.npc.znpcsplus.ZNPCsPlusIntegrator;
 import org.betonquest.betonquest.compatibility.placeholderapi.PlaceholderAPIIntegrator;
 import org.betonquest.betonquest.compatibility.protocollib.ProtocolLibIntegrator;
 import org.betonquest.betonquest.compatibility.quests.QuestsIntegrator;
 import org.betonquest.betonquest.compatibility.redischat.RedisChatIntegrator;
 import org.betonquest.betonquest.compatibility.shopkeepers.ShopkeepersIntegrator;
+import org.betonquest.betonquest.compatibility.simplemagic.SimpleMagicIntegrator;
 import org.betonquest.betonquest.compatibility.skript.SkriptIntegrator;
 import org.betonquest.betonquest.compatibility.traincarts.TrainCartsIntegrator;
 import org.betonquest.betonquest.compatibility.vault.VaultIntegrator;
@@ -232,6 +234,10 @@ public class Compatibility implements Listener {
     }
 
     private void registerCompatiblePlugins() {
+        // Atlas Start
+        register("SimpleNPCs", SimpleNPCsIntegrator.class);
+        register("SimpleMagic", SimpleMagicIntegrator.class);
+        // Atlas End
         register("MythicMobs", MythicMobsIntegrator.class);
         register("Citizens", CitizensIntegrator.class);
         register("Vault", VaultIntegrator.class);

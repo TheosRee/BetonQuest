@@ -18,8 +18,11 @@ import org.betonquest.betonquest.item.typehandler.UnbreakableHandler;
 import org.betonquest.betonquest.kernel.registry.TypeFactory;
 import org.betonquest.betonquest.util.BlockSelector;
 import org.betonquest.betonquest.util.Utils;
+import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataContainer;
+import org.bukkit.persistence.PersistentDataType;
 
 import java.util.HashMap;
 import java.util.List;
@@ -52,10 +55,18 @@ public class SimpleQuestItemFactory implements TypeFactory<QuestItem> {
      * @return converted string
      */
     public static String itemToString(final ItemStack item) {
-        final ItemMeta meta = item.getItemMeta();
-        if (meta == null) {
+        if (!item.hasItemMeta()) {
             return item.getType().toString();
         }
+        final ItemMeta meta = item.getItemMeta();
+        // Atlas start - just use PDC value if available
+        if (true) {
+            final PersistentDataContainer pdc = meta.getPersistentDataContainer();
+            final NamespacedKey key = new NamespacedKey("atlas", "material");
+            if (!pdc.has(key)) return item.getType().toString();
+            return pdc.get(key, PersistentDataType.STRING);
+        }
+        // Atlas end
 
         final StringBuilder builder = new StringBuilder();
         for (final ItemMetaHandler<? extends ItemMeta> staticHandler : STATIC_HANDLERS) {

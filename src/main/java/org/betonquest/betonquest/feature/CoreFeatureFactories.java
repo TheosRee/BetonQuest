@@ -7,6 +7,11 @@ import org.betonquest.betonquest.api.config.ConfigAccessor;
 import org.betonquest.betonquest.api.logger.BetonQuestLoggerFactory;
 import org.betonquest.betonquest.api.message.MessageParserRegistry;
 import org.betonquest.betonquest.api.quest.QuestTypeAPI;
+import org.betonquest.betonquest.atlas.AtlasItemFactory;
+import org.betonquest.betonquest.conversation.InventoryConvIO;
+import org.betonquest.betonquest.conversation.SimpleConvIO;
+import org.betonquest.betonquest.conversation.SlowTellrawConvIO;
+import org.betonquest.betonquest.conversation.TellrawConvIO;
 import org.betonquest.betonquest.conversation.interceptor.NonInterceptingInterceptorFactory;
 import org.betonquest.betonquest.conversation.interceptor.SimpleInterceptorFactory;
 import org.betonquest.betonquest.conversation.io.InventoryConvIOFactory;
@@ -116,6 +121,8 @@ public class CoreFeatureFactories {
 
         final MessageParserRegistry messageParserRegistry = registries.messageParser();
         registerMessageParsers(messageParserRegistry);
+
+        registries.item().register("atlas", new AtlasItemFactory()); // Atlas - add Atlas QuestItem
     }
 
     private void registerMessageParsers(final MessageParserRegistry messageParserRegistry) {

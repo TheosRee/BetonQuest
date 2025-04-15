@@ -46,6 +46,8 @@ hologram_update_interval: 200
 cmd_blacklist:
   - spawn
 hook:
+  simplenpcs: true
+  simplemagic: true
   citizens: true
   mythicmobs: true
   vault: true

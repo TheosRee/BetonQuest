@@ -1,5 +1,9 @@
 package org.betonquest.betonquest;
 
+import com.ags.atlasitemregistry.AtlasItemRegistryService;
+import com.github.arnhav.api.SimpleNPCService;
+import com.mc_atlas.simplemagic.SimpleMagic;
+import com.mc_atlas.simplemagic.api.SimpleMagicService;
 import io.papermc.lib.PaperLib;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.Logger;
@@ -22,7 +26,6 @@ import org.betonquest.betonquest.bstats.BStatsMetrics;
 import org.betonquest.betonquest.command.BackpackCommand;
 import org.betonquest.betonquest.command.CancelQuestCommand;
 import org.betonquest.betonquest.command.CompassCommand;
-import org.betonquest.betonquest.command.JournalCommand;
 import org.betonquest.betonquest.command.LangCommand;
 import org.betonquest.betonquest.command.QuestCommand;
 import org.betonquest.betonquest.compatibility.Compatibility;
@@ -261,6 +264,19 @@ public class BetonQuest extends JavaPlugin implements LanguageProvider {
         return instance;
     }
 
+    // Atlas Start
+    public static SimpleNPCService simpleNPCs() {
+        return Bukkit.getServer().getServicesManager().load(SimpleNPCService.class);
+    }
+
+    public static AtlasItemRegistryService itemRegistry() {
+        return Bukkit.getServer().getServicesManager().load(AtlasItemRegistryService.class);
+    }
+
+    public static SimpleMagicService simpleMagic() {
+        return Bukkit.getServer().getServicesManager().load(SimpleMagic.class);
+    }
+
     /**
      * Ensures that the given event is called on the main server thread.
      *
@@ -468,7 +484,7 @@ public class BetonQuest extends JavaPlugin implements LanguageProvider {
                 this, playerDataStorage, profileProvider, pluginMessage, config);
         getCommand("betonquest").setExecutor(questCommand);
         getCommand("betonquest").setTabCompleter(questCommand);
-        getCommand("journal").setExecutor(new JournalCommand(playerDataStorage, pluginMessage, profileProvider));
+        //getCommand("journal").setExecutor(new JournalCommand(playerDataStorage, pluginMessage, profileProvider)); // Atlas, deactivate Journal
         getCommand("backpack").setExecutor(new BackpackCommand(loggerFactory.create(BackpackCommand.class), config, pluginMessage, profileProvider));
         getCommand("cancelquest").setExecutor(new CancelQuestCommand(config, pluginMessage, profileProvider));
         getCommand("compass").setExecutor(new CompassCommand(config, pluginMessage, profileProvider));
@@ -607,6 +623,7 @@ public class BetonQuest extends JavaPlugin implements LanguageProvider {
             rpgMenu.onDisable();
         }
     }
+    // Atlas End
 
     /**
      * Get the BetonQuest logger factory.

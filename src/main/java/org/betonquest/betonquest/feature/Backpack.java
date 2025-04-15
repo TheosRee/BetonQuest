@@ -244,7 +244,7 @@ public class Backpack implements Listener {
             super();
             final boolean showJournalInBackpack = config.getBoolean("journal.show_in_backpack");
             this.page = page;
-            this.showJournal = showJournalInBackpack && !Journal.hasJournal(onlineProfile);
+            this.showJournal = false; //showJournalInBackpack && !Journal.hasJournal(onlineProfile); // Atlas, deactivate Journal
             this.backpackItems = playerData.getBackpack();
             if (showJournal) {
                 try {

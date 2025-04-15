@@ -19,8 +19,11 @@ import org.bukkit.ChatColor;
 import org.bukkit.Color;
 import org.bukkit.DyeColor;
 import org.bukkit.Location;
+import org.bukkit.NamespacedKey;
 import org.bukkit.World;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.persistence.PersistentDataContainer;
+import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
@@ -200,6 +203,14 @@ public final class Utils {
         if (item == null || item.getType().isAir()) {
             return false;
         }
+        // Atlas Start - use PDC for QuestItems
+        if (true) {
+            if (!item.hasItemMeta()) return false;
+            final PersistentDataContainer pdc = item.getItemMeta().getPersistentDataContainer();
+            final NamespacedKey key = new NamespacedKey("atlas", "rarity");
+            return pdc.has(key) && "QUEST".equals(pdc.get(key, PersistentDataType.STRING));
+        }
+        // Atlas End
         final List<Component> lore = item.getItemMeta().lore();
         if (lore == null) {
             return false;

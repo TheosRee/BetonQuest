@@ -328,6 +328,34 @@
       <optional>true</optional>
     </dependency>
 
+    <!-- Atlas Start -->
+    <dependency>
+      <groupId>com.ags</groupId>
+      <artifactId>SimpleNPCs</artifactId>
+      <version>1.0.9-SNAPSHOT</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.ags</groupId>
+      <artifactId>AtlasItemRegistry</artifactId>
+      <version>1.0-SNAPSHOT</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.mc_atlas</groupId>
+      <artifactId>SimpleMagic</artifactId>
+      <version>1.0-SNAPSHOT</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <!--    <dependency>-->
+    <!--      <groupId>co.bronet.machinations</groupId>-->
+    <!--      <artifactId>Machinations</artifactId>-->
+    <!--      <version>5.5.2047-RELEASE</version>-->
+    <!--      <scope>provided</scope>-->
+    <!--    </dependency>-->
+    <!-- Atlas End -->
+
     <!-- from minecraft repository -->
     <dependency>
       <groupId>com.mojang</groupId>
@@ -496,6 +524,21 @@
       <name>Maven Central</name>
       <url>https://repo.maven.apache.org/maven2/</url>
     </repository>
+    <!-- Atlas Start -->
+    <!--    <repository>-->
+    <!--      <id>betonquest-bronet-releases</id>-->
+    <!--      <url>https://repo.bronet.co/releases</url>-->
+    <!--    </repository>-->
+    <repository>
+      <id>atlasmc-repository-maven</id>
+      <name>Atlas MC Repository</name>
+      <url>https://repo.mc-atlas.com/maven</url>
+    </repository>
+    <repository>
+      <id>codemc-releases</id>
+      <url>https://repo.codemc.io/repository/maven-releases/</url>
+    </repository>
+    <!--Atlas End-->
   </repositories>
 
   <build>
