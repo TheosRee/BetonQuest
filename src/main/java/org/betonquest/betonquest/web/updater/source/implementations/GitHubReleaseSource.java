@@ -1,6 +1,6 @@
 package org.betonquest.betonquest.web.updater.source.implementations;
 
-import org.betonquest.betonquest.versioning.Version;
+import org.betonquest.betonquest.api.versioning.Version;
 import org.betonquest.betonquest.web.ContentSource;
 import org.betonquest.betonquest.web.WebContentSource;
 import org.betonquest.betonquest.web.updater.source.ReleaseUpdateSource;

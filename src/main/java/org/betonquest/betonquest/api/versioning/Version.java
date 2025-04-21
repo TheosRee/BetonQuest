@@ -1,4 +1,4 @@
-package org.betonquest.betonquest.versioning;
+package org.betonquest.betonquest.api.versioning;
 
 import org.apache.maven.artifact.versioning.DefaultArtifactVersion;
 import org.jetbrains.annotations.Nullable;

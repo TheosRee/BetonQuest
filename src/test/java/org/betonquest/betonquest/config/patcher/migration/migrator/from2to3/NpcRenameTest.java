@@ -1,6 +1,6 @@
 package org.betonquest.betonquest.config.patcher.migration.migrator.from2to3;
 
-import org.betonquest.betonquest.config.quest.Quest;
+import org.betonquest.betonquest.api.config.quest.Quest;
 import org.betonquest.betonquest.config.quest.QuestFixture;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.junit.jupiter.api.Test;

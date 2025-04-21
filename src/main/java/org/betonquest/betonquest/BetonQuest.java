@@ -18,6 +18,7 @@ import org.betonquest.betonquest.api.profile.OnlineProfile;
 import org.betonquest.betonquest.api.profile.ProfileProvider;
 import org.betonquest.betonquest.api.quest.QuestException;
 import org.betonquest.betonquest.api.quest.QuestTypeAPI;
+import org.betonquest.betonquest.api.versioning.Version;
 import org.betonquest.betonquest.bstats.BStatsMetrics;
 import org.betonquest.betonquest.command.BackpackCommand;
 import org.betonquest.betonquest.command.CancelQuestCommand;
@@ -29,8 +30,8 @@ import org.betonquest.betonquest.compatibility.Compatibility;
 import org.betonquest.betonquest.config.DefaultConfigAccessorFactory;
 import org.betonquest.betonquest.config.PluginMessage;
 import org.betonquest.betonquest.config.QuestManager;
+import org.betonquest.betonquest.config.patcher.migration.BetonQuestMigrator;
 import org.betonquest.betonquest.config.patcher.migration.Migrator;
-import org.betonquest.betonquest.config.patcher.migration.QuestMigrator;
 import org.betonquest.betonquest.conversation.AnswerFilter;
 import org.betonquest.betonquest.conversation.CombatTagger;
 import org.betonquest.betonquest.conversation.Conversation;
@@ -67,7 +68,6 @@ import org.betonquest.betonquest.playerhider.PlayerHider;
 import org.betonquest.betonquest.profile.UUIDProfileProvider;
 import org.betonquest.betonquest.quest.CoreQuestTypes;
 import org.betonquest.betonquest.schedule.LastExecutionCache;
-import org.betonquest.betonquest.versioning.Version;
 import org.betonquest.betonquest.versioning.java.JREVersionPrinter;
 import org.betonquest.betonquest.web.DownloadSource;
 import org.betonquest.betonquest.web.TempFileDownloadSource;
@@ -323,7 +323,7 @@ public class BetonQuest extends JavaPlugin implements LanguageProvider {
         log.debug(jreInfo);
 
         questManager = new QuestManager(loggerFactory, loggerFactory.create(QuestManager.class), configAccessorFactory,
-                getDataFolder(), new QuestMigrator(loggerFactory.create(QuestMigrator.class), getDescription()));
+                getDataFolder(), new BetonQuestMigrator(loggerFactory.create(BetonQuestMigrator.class), getDescription()));
         Notify.load(config, getPackages().values());
 
         setupDatabase();
@@ -542,7 +542,7 @@ public class BetonQuest extends JavaPlugin implements LanguageProvider {
         }
         defaultLanguage = config.getString("language", "en-US");
         questManager = new QuestManager(loggerFactory, loggerFactory.create(QuestManager.class), configAccessorFactory,
-                getDataFolder(), new QuestMigrator(loggerFactory.create(QuestMigrator.class), getDescription()));
+                getDataFolder(), new BetonQuestMigrator(loggerFactory.create(BetonQuestMigrator.class), getDescription()));
         try {
             pluginMessage.reload();
         } catch (final IOException | QuestException e) {

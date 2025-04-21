@@ -3,12 +3,12 @@ package org.betonquest.betonquest.config;
 import org.betonquest.betonquest.api.bukkit.config.custom.multi.MultiConfiguration;
 import org.betonquest.betonquest.api.config.ConfigAccessor;
 import org.betonquest.betonquest.api.config.ConfigAccessorFactory;
+import org.betonquest.betonquest.api.config.patcher.migration.QuestMigrator;
+import org.betonquest.betonquest.api.config.patcher.migration.VersionMissmatchException;
+import org.betonquest.betonquest.api.config.quest.Quest;
 import org.betonquest.betonquest.api.config.quest.QuestPackage;
 import org.betonquest.betonquest.api.logger.BetonQuestLogger;
 import org.betonquest.betonquest.api.logger.BetonQuestLoggerFactory;
-import org.betonquest.betonquest.config.patcher.migration.QuestMigrator;
-import org.betonquest.betonquest.config.patcher.migration.VersionMissmatchException;
-import org.betonquest.betonquest.config.quest.Quest;
 import org.betonquest.betonquest.config.quest.QuestPackageImpl;
 import org.betonquest.betonquest.config.quest.QuestTemplate;
 import org.bukkit.configuration.InvalidConfigurationException;
@@ -98,7 +98,7 @@ public class QuestManager {
                 try {
                     questMigrator.migrate(quest);
                 } catch (final VersionMissmatchException e) {
-                    log.warn("QuestPackage '" + quest.getQuestPath() + "': " + e.getMessage(), e);
+                    log.warn("QuestTemplate '" + quest.getQuestPath() + "': " + e.getMessage(), e);
                 }
                 try {
                     quest.applyQuestTemplates(templates);

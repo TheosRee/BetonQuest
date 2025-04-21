@@ -1,8 +1,11 @@
 package org.betonquest.betonquest.config.patcher.migration;
 
-import org.betonquest.betonquest.config.quest.Quest;
+import org.betonquest.betonquest.api.config.patcher.migration.QuestMigration;
+import org.betonquest.betonquest.api.config.patcher.migration.QuestMigrator;
+import org.betonquest.betonquest.api.config.patcher.migration.VersionMissmatchException;
+import org.betonquest.betonquest.api.config.quest.Quest;
+import org.betonquest.betonquest.api.versioning.Version;
 import org.betonquest.betonquest.config.quest.QuestFixture;
-import org.betonquest.betonquest.versioning.Version;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.junit.jupiter.api.Test;
 
@@ -26,7 +29,7 @@ class QuestMigratorTest extends QuestFixture {
     void version_no_set() throws IOException, InvalidConfigurationException, VersionMissmatchException {
         final Quest quest = setupQuest();
         final Version currentVersion = new Version("3.2.1-QUEST-5");
-        new QuestMigrator(logger, Collections.emptyList(), Collections.emptyMap(), currentVersion).migrate(quest);
+        new BetonQuestMigrator(logger, Collections.emptyList(), Collections.emptyMap(), currentVersion).migrate(quest);
         assertEquals(currentVersion.getVersion(), quest.getQuestConfig().getString(VERSION_PATH),
                 "The version should be set in the quest if none is present.");
         assertEquals(currentVersion.getVersion(), loadPackageFile().getString(VERSION_PATH),
@@ -38,7 +41,7 @@ class QuestMigratorTest extends QuestFixture {
         original.set(VERSION_PATH, "2.2.1-QUEST-0");
         final Quest quest = setupQuest();
         final Version fallback = new Version("3.0.0-QUEST-0");
-        new QuestMigrator(logger, Collections.emptyList(), Collections.emptyMap(), fallback).migrate(quest);
+        new BetonQuestMigrator(logger, Collections.emptyList(), Collections.emptyMap(), fallback).migrate(quest);
         assertEquals(fallback.getVersion(), quest.getQuestConfig().getString(VERSION_PATH),
                 "Older versions should be updated in the quest.");
         assertEquals(fallback.getVersion(), loadPackageFile().getString(VERSION_PATH),
@@ -51,7 +54,7 @@ class QuestMigratorTest extends QuestFixture {
         original.set(VERSION_PATH, qustVersion.getVersion());
         final Quest quest = setupQuest();
         final Version fallback = new Version("3.0.0-QUEST-0");
-        final QuestMigrator migrator = new QuestMigrator(logger, Collections.emptyList(), Collections.emptyMap(), fallback);
+        final QuestMigrator migrator = new BetonQuestMigrator(logger, Collections.emptyList(), Collections.emptyMap(), fallback);
         assertThrows(VersionMissmatchException.class, () -> migrator.migrate(quest),
                 "Newer versions in quest than migrator should throw");
     }
@@ -62,7 +65,7 @@ class QuestMigratorTest extends QuestFixture {
         final Quest quest = setupQuest();
         final Version fallback = new Version("3.0.0-QUEST-1");
         final QuestMigration mock = mock(QuestMigration.class);
-        new QuestMigrator(logger, Collections.singletonList(mock), Collections.emptyMap(), fallback).migrate(quest);
+        new BetonQuestMigrator(logger, Collections.singletonList(mock), Collections.emptyMap(), fallback).migrate(quest);
         verifyNoInteractions(mock);
     }
 
@@ -74,7 +77,7 @@ class QuestMigratorTest extends QuestFixture {
         final QuestMigration legacy = mock(QuestMigration.class);
         final QuestMigration versioned = mock(QuestMigration.class);
         final Map<Version, QuestMigration> migrationMap = Map.of(new Version("2.3.4-QUEST-7"), versioned);
-        new QuestMigrator(logger, Collections.singletonList(legacy), migrationMap, fallback).migrate(quest);
+        new BetonQuestMigrator(logger, Collections.singletonList(legacy), migrationMap, fallback).migrate(quest);
         verify(legacy, times(1)).migrate(any());
         verify(versioned, times(1)).migrate(any());
     }
@@ -91,7 +94,7 @@ class QuestMigratorTest extends QuestFixture {
                 newestMigrationVersion, newer
         );
         final Version fallback = new Version("3.2.0-QUEST-1");
-        new QuestMigrator(logger, Collections.emptyList(), migrationMap, fallback).migrate(quest);
+        new BetonQuestMigrator(logger, Collections.emptyList(), migrationMap, fallback).migrate(quest);
         verifyNoInteractions(older);
         verify(newer, times(1)).migrate(any());
     }
@@ -103,7 +106,7 @@ class QuestMigratorTest extends QuestFixture {
         final Map<Version, QuestMigration> migrationMap = Map.of(migrationVersion, mock(QuestMigration.class));
         final Version fallback = new Version("3.2.0-QUEST-1");
         final Quest quest = setupQuest();
-        new QuestMigrator(logger, Collections.emptyList(), migrationMap, fallback).migrate(quest);
+        new BetonQuestMigrator(logger, Collections.emptyList(), migrationMap, fallback).migrate(quest);
         assertEquals(migrationVersion.getVersion(), quest.getQuestConfig().getString(VERSION_PATH),
                 "Fallback version should not be set with existing migrations.");
     }

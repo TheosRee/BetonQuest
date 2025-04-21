@@ -1,4 +1,4 @@
-package org.betonquest.betonquest.versioning;
+package org.betonquest.betonquest.api.versioning;
 
 /**
  * Represent different strategies to select which versions are valid to update to.

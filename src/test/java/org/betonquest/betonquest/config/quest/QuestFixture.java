@@ -1,5 +1,6 @@
 package org.betonquest.betonquest.config.quest;
 
+import org.betonquest.betonquest.api.config.quest.Quest;
 import org.betonquest.betonquest.api.logger.BetonQuestLogger;
 import org.betonquest.betonquest.api.logger.BetonQuestLoggerFactory;
 import org.betonquest.betonquest.config.DefaultConfigAccessorFactory;
@@ -50,7 +51,7 @@ public class QuestFixture {
     protected Quest setupQuest() throws IOException, InvalidConfigurationException {
         final File packageConfigFile = questDirectory.resolve("package.yml").toFile();
         original.save(packageConfigFile);
-        return new Quest(logger, new DefaultConfigAccessorFactory(factory, logger), "test", questDirectory.toFile(), List.of(packageConfigFile));
+        return new QuestBase(logger, new DefaultConfigAccessorFactory(factory, logger), "test", questDirectory.toFile(), List.of(packageConfigFile));
     }
 
     protected Quest setupQuest(final String alternativePath)
@@ -59,7 +60,7 @@ public class QuestFixture {
         new YamlConfiguration().save(packageConfigFile);
         final File alternativeFile = questDirectory.resolve(alternativePath).toFile();
         original.save(alternativeFile);
-        return new Quest(logger, new DefaultConfigAccessorFactory(factory, logger), "test", questDirectory.toFile(),
+        return new QuestBase(logger, new DefaultConfigAccessorFactory(factory, logger), "test", questDirectory.toFile(),
                 List.of(packageConfigFile, alternativeFile));
     }
 

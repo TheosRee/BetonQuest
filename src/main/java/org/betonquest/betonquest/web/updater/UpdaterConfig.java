@@ -1,8 +1,8 @@
 package org.betonquest.betonquest.web.updater;
 
 import org.betonquest.betonquest.api.logger.BetonQuestLogger;
-import org.betonquest.betonquest.versioning.UpdateStrategy;
-import org.betonquest.betonquest.versioning.Version;
+import org.betonquest.betonquest.api.versioning.UpdateStrategy;
+import org.betonquest.betonquest.api.versioning.Version;
 import org.bukkit.configuration.ConfigurationSection;
 
 import java.util.Locale;

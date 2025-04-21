@@ -1,9 +1,9 @@
-package org.betonquest.betonquest.config.patcher.migration;
+package org.betonquest.betonquest.api.config.patcher.migration;
 
 import org.betonquest.betonquest.api.bukkit.config.custom.multi.MultiConfiguration;
 import org.betonquest.betonquest.api.config.ConfigAccessor;
-import org.betonquest.betonquest.config.quest.Quest;
-import org.betonquest.betonquest.versioning.Version;
+import org.betonquest.betonquest.api.config.quest.Quest;
+import org.betonquest.betonquest.api.versioning.Version;
 import org.bukkit.configuration.InvalidConfigurationException;
 
 import java.io.IOException;

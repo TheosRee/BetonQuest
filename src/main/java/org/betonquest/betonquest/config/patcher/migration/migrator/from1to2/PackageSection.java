@@ -2,8 +2,8 @@ package org.betonquest.betonquest.config.patcher.migration.migrator.from1to2;
 
 import org.betonquest.betonquest.api.bukkit.config.custom.multi.MultiConfiguration;
 import org.betonquest.betonquest.api.config.ConfigAccessor;
-import org.betonquest.betonquest.config.patcher.migration.QuestMigration;
-import org.betonquest.betonquest.config.quest.Quest;
+import org.betonquest.betonquest.api.config.patcher.migration.QuestMigration;
+import org.betonquest.betonquest.api.config.quest.Quest;
 import org.bukkit.configuration.InvalidConfigurationException;
 
 import java.io.FileNotFoundException;

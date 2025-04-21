@@ -6,7 +6,6 @@ import java.util.stream.Collectors;
 /**
  * Utility class for getting information about the Java Runtime Environment version.
  */
-
 public final class JREVersionPrinter {
     /**
      * The version of the JRE.
@@ -57,5 +56,3 @@ public final class JREVersionPrinter {
         return "Running on JRE " + version + " (build " + build + ", optional " + optional + ", pre-release info " + preReleaseInfo + ") by " + vendor;
     }
 }
-
-

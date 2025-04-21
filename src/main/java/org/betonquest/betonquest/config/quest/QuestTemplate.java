@@ -20,9 +20,9 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * This is an implementation of {@link Quest}, that gets and applies templates.
+ * This is an implementation of {@link QuestBase}, that gets and applies templates.
  */
-public class QuestTemplate extends Quest {
+public class QuestTemplate extends QuestBase {
     /**
      * A list of all templates that are applied to this {@link QuestTemplate}.
      */
@@ -35,7 +35,7 @@ public class QuestTemplate extends Quest {
     private MultiConfiguration templateConfig;
 
     /**
-     * Creates a new {@link QuestTemplate}. For more information see {@link Quest}.
+     * Creates a new {@link QuestTemplate}. For more information see {@link QuestBase}.
      *
      * @param log                   the logger that will be used for logging
      * @param configAccessorFactory the factory that will be used to create {@link ConfigAccessor}s

@@ -1,4 +1,4 @@
-package org.betonquest.betonquest.versioning;
+package org.betonquest.betonquest.api.versioning;
 
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.Nullable;
@@ -17,12 +17,12 @@ public class VersionComparator implements Comparator<Version>, Serializable {
     private static final long serialVersionUID = 1641779671214600158L;
 
     /**
-     * The chosen {@link UpdateStrategy}
+     * The chosen {@link UpdateStrategy}.
      */
     private final UpdateStrategy updateStrategy;
 
     /**
-     * List of qualifiers in prioritized order
+     * List of qualifiers in prioritized order.
      */
     private final List<String> qualifiers;
 
@@ -53,6 +53,8 @@ public class VersionComparator implements Comparator<Version>, Serializable {
     }
 
     /**
+     * Check if the other version is newer than the current one.
+     *
      * @param current The current version
      * @param other   The other version
      * @return true if the other version is newer than current
@@ -62,6 +64,8 @@ public class VersionComparator implements Comparator<Version>, Serializable {
     }
 
     /**
+     * Check if the other version is not older than the current one.
+     *
      * @param current The current version
      * @param other   The other version
      * @return true if the other version is newer or equal than current

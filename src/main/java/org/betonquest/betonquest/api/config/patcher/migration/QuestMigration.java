@@ -1,6 +1,6 @@
-package org.betonquest.betonquest.config.patcher.migration;
+package org.betonquest.betonquest.api.config.patcher.migration;
 
-import org.betonquest.betonquest.config.quest.Quest;
+import org.betonquest.betonquest.api.config.quest.Quest;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.InvalidConfigurationException;
 

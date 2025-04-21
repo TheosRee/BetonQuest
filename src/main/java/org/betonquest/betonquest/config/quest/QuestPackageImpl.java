@@ -12,11 +12,11 @@ import java.io.FileNotFoundException;
 import java.util.List;
 
 /**
- * This {@link QuestPackageImpl} represents all functionality based on a {@link Quest}.
+ * This {@link QuestPackageImpl} represents all functionality based on a {@link QuestBase}.
  */
 public class QuestPackageImpl extends QuestTemplate implements QuestPackage {
     /**
-     * Creates a new {@link QuestPackage}.  For more information see {@link Quest}.
+     * Creates a new {@link QuestPackage}.  For more information see {@link QuestBase}.
      *
      * @param log                   the logger that will be used for logging
      * @param configAccessorFactory the factory that will be used to create {@link ConfigAccessor}s

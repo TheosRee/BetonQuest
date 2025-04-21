@@ -1,4 +1,4 @@
-package org.betonquest.betonquest.config.patcher.migration;
+package org.betonquest.betonquest.api.config.patcher.migration;
 
 import java.io.Serial;
 

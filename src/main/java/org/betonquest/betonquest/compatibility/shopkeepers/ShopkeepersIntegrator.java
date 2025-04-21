@@ -1,14 +1,14 @@
 package org.betonquest.betonquest.compatibility.shopkeepers;
 
 import org.betonquest.betonquest.BetonQuest;
+import org.betonquest.betonquest.api.versioning.UpdateStrategy;
+import org.betonquest.betonquest.api.versioning.Version;
+import org.betonquest.betonquest.api.versioning.VersionComparator;
 import org.betonquest.betonquest.compatibility.HookException;
 import org.betonquest.betonquest.compatibility.Integrator;
 import org.betonquest.betonquest.compatibility.UnsupportedVersionException;
 import org.betonquest.betonquest.kernel.registry.quest.QuestTypeRegistries;
 import org.betonquest.betonquest.quest.PrimaryServerThreadData;
-import org.betonquest.betonquest.versioning.UpdateStrategy;
-import org.betonquest.betonquest.versioning.Version;
-import org.betonquest.betonquest.versioning.VersionComparator;
 import org.bukkit.Bukkit;
 import org.bukkit.Server;
 import org.bukkit.plugin.Plugin;

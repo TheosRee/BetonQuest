@@ -1,5 +1,6 @@
 package org.betonquest.betonquest.versioning;
 
+import org.betonquest.betonquest.api.versioning.Version;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;

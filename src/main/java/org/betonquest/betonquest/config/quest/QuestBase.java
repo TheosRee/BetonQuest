@@ -6,7 +6,7 @@ import org.betonquest.betonquest.api.bukkit.config.custom.multi.MultiSectionConf
 import org.betonquest.betonquest.api.config.ConfigAccessor;
 import org.betonquest.betonquest.api.config.ConfigAccessorFactory;
 import org.betonquest.betonquest.api.config.FileConfigAccessor;
-import org.betonquest.betonquest.api.config.quest.QuestPackage;
+import org.betonquest.betonquest.api.config.quest.Quest;
 import org.betonquest.betonquest.api.logger.BetonQuestLogger;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.InvalidConfigurationException;
@@ -22,9 +22,9 @@ import java.util.Map;
 /**
  * This is a basic implementation for managing a quest's files.
  */
-public class Quest {
+public class QuestBase implements Quest {
     /**
-     * The merged {@link MultiConfiguration} that represents this {@link Quest}.
+     * The merged {@link MultiConfiguration} that represents this {@link QuestBase}.
      */
     protected final MultiConfiguration config;
 
@@ -39,36 +39,36 @@ public class Quest {
     private final ConfigAccessorFactory configAccessorFactory;
 
     /**
-     * The address of this {@link Quest}.
+     * The address of this {@link QuestBase}.
      */
     private final String questPath;
 
     /**
-     * The root folder of this {@link Quest}.
+     * The root folder of this {@link QuestBase}.
      */
     private final File root;
 
     /**
-     * The list of all {@link ConfigAccessor}s of this {@link Quest}.
+     * The list of all {@link ConfigAccessor}s of this {@link QuestBase}.
      */
     private final List<FileConfigAccessor> configs;
 
     /**
-     * Creates a new {@link Quest}. The {@code questPath} represents the address of this {@link Quest}.
+     * Creates a new {@link QuestBase}. The {@code questPath} represents the address of this {@link QuestBase}.
      * <p>
      * All {@code files} are merged into one {@link MultiConfiguration} config.
      *
      * @param log                   the logger that will be used for logging
      * @param configAccessorFactory the factory that will be used to create {@link ConfigAccessor}s
-     * @param questPath             the path that addresses this {@link Quest}
-     * @param root                  the root file of this {@link Quest}
-     * @param files                 all files contained in this {@link Quest}
+     * @param questPath             the path that addresses this {@link QuestBase}
+     * @param root                  the root file of this {@link QuestBase}
+     * @param files                 all files contained in this {@link QuestBase}
      * @throws InvalidConfigurationException thrown if a {@link ConfigAccessor} could not be created
      *                                       or an exception occurred while creating the {@link MultiConfiguration}
      * @throws FileNotFoundException         thrown if a file could not be found during the creation
      *                                       of a {@link ConfigAccessor}
      */
-    protected Quest(final BetonQuestLogger log, final ConfigAccessorFactory configAccessorFactory, final String questPath, final File root, final List<File> files) throws InvalidConfigurationException, FileNotFoundException {
+    protected QuestBase(final BetonQuestLogger log, final ConfigAccessorFactory configAccessorFactory, final String questPath, final File root, final List<File> files) throws InvalidConfigurationException, FileNotFoundException {
         this.log = log;
         this.configAccessorFactory = configAccessorFactory;
         this.questPath = questPath;
@@ -92,23 +92,12 @@ public class Quest {
         return questFile.toURI().relativize(otherFile.toURI()).getPath();
     }
 
-    /**
-     * Gets the path that addresses this {@link QuestPackage}.
-     *
-     * @return the address
-     */
+    @Override
     public String getQuestPath() {
         return questPath;
     }
 
-    /**
-     * Tries to save all modifications in the {@link MultiSectionConfiguration} to files.
-     *
-     * @return true, and only true if there are no unsaved changes
-     * @throws IOException thrown if an exception was thrown by calling {@link FileConfigAccessor#save()}
-     *                     or {@link MultiSectionConfiguration#getUnsavedConfigs()} returned a {@link ConfigurationSection},
-     *                     that is not represented by this {@link QuestPackage}
-     */
+    @Override
     public boolean saveAll() throws IOException {
         boolean exceptionOccurred = false;
         unsaved:
@@ -133,15 +122,7 @@ public class Quest {
         return config.needSave();
     }
 
-    /**
-     * Gets the existing {@link ConfigAccessor} for the {@code relativePath}.
-     * If the {@link ConfigAccessor} for the {@code relativePath} does not exist, a new one is created.
-     *
-     * @param relativePath the relative path from the root of the package
-     * @return the already existing or newly created {@link ConfigAccessor}
-     * @throws InvalidConfigurationException thrown if there was an exception creating the new {@link ConfigAccessor}
-     * @throws FileNotFoundException         thrown if the file for the new {@link ConfigAccessor} could not be found
-     */
+    @Override
     public ConfigAccessor getOrCreateConfigAccessor(final String relativePath) throws InvalidConfigurationException, FileNotFoundException {
         for (final FileConfigAccessor configAccessor : configs) {
             if (root.toURI().relativize(configAccessor.getConfigurationFile().toURI()).getPath().equals(relativePath)) {
@@ -169,11 +150,7 @@ public class Quest {
         return newAccessor;
     }
 
-    /**
-     * The {@link MultiConfiguration} that represents this {@link Quest}.
-     *
-     * @return this actual config defining this
-     */
+    @Override
     public MultiConfiguration getQuestConfig() {
         return config;
     }

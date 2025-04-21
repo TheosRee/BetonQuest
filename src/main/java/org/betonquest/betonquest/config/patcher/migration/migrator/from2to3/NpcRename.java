@@ -1,8 +1,8 @@
 package org.betonquest.betonquest.config.patcher.migration.migrator.from2to3;
 
 import org.betonquest.betonquest.api.bukkit.config.custom.multi.MultiConfiguration;
-import org.betonquest.betonquest.config.patcher.migration.QuestMigration;
-import org.betonquest.betonquest.config.quest.Quest;
+import org.betonquest.betonquest.api.config.patcher.migration.QuestMigration;
+import org.betonquest.betonquest.api.config.quest.Quest;
 
 import java.util.List;
 
