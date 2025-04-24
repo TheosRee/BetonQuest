@@ -1,5 +1,6 @@
 package org.betonquest.betonquest.config.patcher.migration;
 
+import org.betonquest.betonquest.config.patcher.DoStuffWithVersions;
 import org.betonquest.betonquest.config.quest.Quest;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.InvalidConfigurationException;
@@ -10,13 +11,14 @@ import java.util.function.Function;
  * Migrates a {@link Quest}.
  */
 @FunctionalInterface
-public interface QuestMigration {
+public interface QuestMigration extends DoStuffWithVersions.Stuffy<Quest> {
     /**
-     * Migrates the configs.
+     * Migrates the Quest.
      *
      * @param quest the Quest to migrate
      * @throws InvalidConfigurationException if an error occurs
      */
+    @Override
     void migrate(Quest quest) throws InvalidConfigurationException;
 
     /**

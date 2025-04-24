@@ -51,7 +51,8 @@ class QuestMigratorTest extends QuestFixture {
         original.set(VERSION_PATH, qustVersion.getVersion());
         final Quest quest = setupQuest();
         final Version fallback = new Version("3.0.0-QUEST-0");
-        final QuestMigrator migrator = new QuestMigrator(logger, Collections.emptyList(), Collections.emptyMap(), fallback);
+        final Map<Version, QuestMigration> map = Collections.singletonMap(new Version(""), mock(QuestMigration.class));
+        final QuestMigrator migrator = new QuestMigrator(logger, Collections.emptyList(), map, fallback);
         assertThrows(VersionMissmatchException.class, () -> migrator.migrate(quest),
                 "Newer versions in quest than migrator should throw");
     }
@@ -73,7 +74,7 @@ class QuestMigratorTest extends QuestFixture {
         final Version fallback = new Version("3.0.0-QUEST-1");
         final QuestMigration legacy = mock(QuestMigration.class);
         final QuestMigration versioned = mock(QuestMigration.class);
-        final Map<Version, QuestMigration> migrationMap = Map.of(new Version("2.3.4-QUEST-7"), versioned);
+        final Map<Version, QuestMigration> migrationMap = Map.of(new Version("3.3.4-QUEST-7"), versioned);
         new QuestMigrator(logger, Collections.singletonList(legacy), migrationMap, fallback).migrate(quest);
         verify(legacy, times(1)).migrate(any());
         verify(versioned, times(1)).migrate(any());

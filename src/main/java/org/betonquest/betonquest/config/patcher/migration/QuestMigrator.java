@@ -1,6 +1,9 @@
 package org.betonquest.betonquest.config.patcher.migration;
 
+import org.betonquest.betonquest.api.bukkit.config.custom.multi.MultiConfiguration;
+import org.betonquest.betonquest.api.config.ConfigAccessor;
 import org.betonquest.betonquest.api.logger.BetonQuestLogger;
+import org.betonquest.betonquest.config.patcher.DoStuffWithVersions;
 import org.betonquest.betonquest.config.patcher.migration.migrator.from1to2.AuraSkillsRename;
 import org.betonquest.betonquest.config.patcher.migration.migrator.from1to2.EffectLib;
 import org.betonquest.betonquest.config.patcher.migration.migrator.from1to2.EventScheduling;
@@ -19,9 +22,9 @@ import org.betonquest.betonquest.config.quest.Quest;
 import org.betonquest.betonquest.versioning.UpdateStrategy;
 import org.betonquest.betonquest.versioning.Version;
 import org.betonquest.betonquest.versioning.VersionComparator;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.plugin.PluginDescriptionFile;
-import org.jetbrains.annotations.VisibleForTesting;
 
 import java.io.IOException;
 import java.util.List;
@@ -32,7 +35,8 @@ import java.util.TreeMap;
 /**
  * Migrates {@link Quest}s by Versions.
  */
-public class QuestMigrator {
+@SuppressWarnings("PMD.AvoidDuplicateLiterals")
+public class QuestMigrator extends DoStuffWithVersions<Quest, QuestMigration> {
     /**
      * Comparator for {@link Version} with the qualifier QUEST.
      */
@@ -49,9 +53,9 @@ public class QuestMigrator {
     private static final String LEGACY = "legacy";
 
     /**
-     * Custom logger for this class.
+     * The newest package version.
      */
-    private final BetonQuestLogger log;
+    private static final SettableVersion<Quest> FIRST_NON_LEGACY_VERSION = questVersion("3.0.0", 0);
 
     /**
      * The legacy migrations.
@@ -59,33 +63,17 @@ public class QuestMigrator {
     private final List<QuestMigration> legacyMigrations;
 
     /**
-     * The migrations by their version.
-     */
-    private final NavigableMap<SettableVersion, QuestMigration> migrations;
-
-    /**
-     * The newest package version.
-     */
-    private final SettableVersion fallbackVersion;
-
-    /**
      * Create a new Quest Migrator with custom migrations.
      *
      * @param log              the custom logger for this class
      * @param legacyMigrations the legacy migrations to apply if no version is set
      * @param migrations       the migrations by their version
-     * @param fallbackVersion  the version to set if no migrator is applied
+     * @param currentVersion   the current version to set
      */
-    @VisibleForTesting
-    QuestMigrator(final BetonQuestLogger log, final List<QuestMigration> legacyMigrations,
-                  final Map<Version, QuestMigration> migrations, final Version fallbackVersion) {
-        this.log = log;
+    protected QuestMigrator(final BetonQuestLogger log, final List<QuestMigration> legacyMigrations,
+                            final Map<Version, QuestMigration> migrations, final Version currentVersion) {
+        super(log, QUEST_VERSION_PATH, currentVersion, VERSION_COMPARATOR, migrations);
         this.legacyMigrations = legacyMigrations;
-        this.migrations = new TreeMap<>(VERSION_COMPARATOR);
-        for (final Map.Entry<Version, QuestMigration> entry : migrations.entrySet()) {
-            this.migrations.put(new SettableVersion(entry.getKey().getVersion()), entry.getValue());
-        }
-        this.fallbackVersion = new SettableVersion(fallbackVersion.getVersion());
     }
 
     /**
@@ -95,24 +83,25 @@ public class QuestMigrator {
      * @param pluginDescription the PluginDescriptionFile containing a semantic version,
      *                          used as fallback when no migrator is applied
      */
-    @SuppressWarnings("PMD.AvoidDuplicateLiterals")
     public QuestMigrator(final BetonQuestLogger log, final PluginDescriptionFile pluginDescription) {
-        this.log = log;
-        this.legacyMigrations = getLegacy();
-        this.migrations = new TreeMap<>(VERSION_COMPARATOR);
+        this(log, getLegacy(), getMigrations(), questVersion(pluginDescription.getVersion(), 0));
+    }
+
+    private static NavigableMap<Version, QuestMigration> getMigrations() {
+        final NavigableMap<Version, QuestMigration> migrations = new TreeMap<>(VERSION_COMPARATOR);
         migrations.put(questVersion("3.0.0", 1), new LanguageRename());
         migrations.put(questVersion("3.0.0", 2), new NpcRename());
         migrations.put(questVersion("3.0.0", 3), new AddSimpleTypeToQuestItem());
         migrations.put(questVersion("3.0.0", 4), new ListNamesRenameToPlural());
         migrations.put(questVersion("3.0.0", 5), new PickRandomPercentage());
-        this.fallbackVersion = questVersion(pluginDescription.getVersion(), 0);
+        return migrations;
     }
 
-    private SettableVersion questVersion(final String semanticVersion, final int number) {
-        return new SettableVersion(semanticVersion + "-QUEST-" + number);
+    private static SettableVersion<Quest> questVersion(final String semanticVersion, final int number) {
+        return new QuestVersion(semanticVersion + "-QUEST-" + number);
     }
 
-    private List<QuestMigration> getLegacy() {
+    private static List<QuestMigration> getLegacy() {
         return List.of(
                 new EventScheduling(),
                 new PackageSection(),
@@ -126,69 +115,64 @@ public class QuestMigrator {
         );
     }
 
-    /**
-     * Updates the Quest to the newest version.
-     *
-     * @param quest the Quest to update
-     * @throws InvalidConfigurationException when an error occurs
-     * @throws IOException                   when an error occurs
-     * @throws VersionMissmatchException     when the Quest version is newer than the max settable version
-     */
-    @SuppressWarnings({"PMD.CyclomaticComplexity", "PMD.AvoidCatchingGenericException", "PMD.CognitiveComplexity"})
-    public void migrate(final Quest quest) throws IOException, InvalidConfigurationException, VersionMissmatchException {
-        log.debug("Attempting to migrate package '" + quest.getQuestPath() + "'");
-        final String versionString = quest.getQuestConfig().getString(QUEST_VERSION_PATH);
-        final SettableVersion lastVersionToSet = migrations.isEmpty() ? fallbackVersion : migrations.lastKey();
-        if (versionString == null) {
-            log.debug("  No version present, just setting to '" + lastVersionToSet + "'");
-            lastVersionToSet.setVersion(quest, QUEST_VERSION_PATH);
-            quest.saveAll();
-            return;
-        }
+    @Override
+    protected SettableVersion<Quest> version(final String versionString) {
+        return new QuestVersion(versionString);
+    }
 
-        final Map<SettableVersion, QuestMigration> actualMigrations;
+    @Override
+    protected ConfigurationSection getConfig(final Quest quest) {
+        return quest.getQuestConfig();
+    }
+
+    @Override
+    protected void save(final Quest quest) throws IOException {
+        quest.saveAll();
+    }
+
+    @Override
+    public void migrate(final Quest quest) throws IOException, InvalidConfigurationException, VersionMissmatchException {
+        final String versionString = quest.getQuestConfig().getString(QUEST_VERSION_PATH);
         if (LEGACY.equalsIgnoreCase(versionString)) {
-            log.debug("  Legacy identifier set, applying legacy and versioned migrations");
+            log.debug(quest.getQuestPath() + ":  Legacy identifier set, applying legacy migrations");
             for (final QuestMigration legacyMigration : legacyMigrations) {
-                try {
-                    legacyMigration.migrate(quest);
-                } catch (final Exception e) {
-                    throw new InvalidConfigurationException("Unexpected error while applying legacy migration: " + e.getMessage(), e);
-                }
+                legacyMigration.migrate(quest);
                 quest.saveAll();
             }
-            actualMigrations = migrations;
-        } else {
-            final SettableVersion otherVersion = new SettableVersion(versionString);
-            if (lastVersionToSet.equals(otherVersion)) {
-                log.debug("  Version '" + otherVersion + "' is up to date");
-                return;
-            }
-            if (VERSION_COMPARATOR.isOtherNewerThanCurrent(lastVersionToSet, otherVersion)) {
-                throw new VersionMissmatchException("The version '" + otherVersion
-                        + "' is newer than the latest known version '" + lastVersionToSet + "'!\n"
-                        + "Quests with newer versions will probably cause issues. If you know that won't be the case"
-                        + " you can change the quest version to the latest known.");
-            }
-            log.debug("  Migrating from version '" + otherVersion + "' to '" + lastVersionToSet + "'");
-            actualMigrations = migrations.tailMap(otherVersion, false);
+        }
+        FIRST_NON_LEGACY_VERSION.setVersion(quest, QUEST_VERSION_PATH);
+        quest.saveAll();
+        super.migrate(quest);
+    }
+
+    /**
+     * Sets a version to a Quest.
+     */
+    public static class QuestVersion extends SettableVersion<Quest> {
+
+        /**
+         * Creates a new Version.
+         *
+         * @param versionString The raw version string
+         */
+        public QuestVersion(final String versionString) {
+            super(versionString);
         }
 
-        if (actualMigrations.isEmpty()) {
-            log.debug("  No newer migrations found, just setting version to '" + lastVersionToSet + "'");
-            lastVersionToSet.setVersion(quest, QUEST_VERSION_PATH);
-            quest.saveAll();
-            return;
-        }
-
-        for (final Map.Entry<SettableVersion, QuestMigration> entry : actualMigrations.entrySet()) {
-            try {
-                entry.getValue().migrate(quest);
-            } catch (final Exception e) {
-                throw new InvalidConfigurationException("Unexpected error while applying migration '" + entry.getKey() + "': " + e.getMessage(), e);
+        @Override
+        public void setVersion(final Quest quest, final String path) throws IOException {
+            final MultiConfiguration config = quest.getQuestConfig();
+            final boolean isSet = config.isSet(path);
+            config.set(path, getVersion());
+            config.setInlineComments(path, List.of("Don't change this! The plugin's automatic quest updater handles it."));
+            if (!isSet) {
+                try {
+                    final ConfigAccessor packageFile = quest.getOrCreateConfigAccessor("package.yml");
+                    config.associateWith(path, packageFile.getConfig());
+                } catch (final InvalidConfigurationException e) {
+                    throw new IllegalStateException("Could not load package file: " + e.getMessage(), e);
+                }
             }
-            entry.getKey().setVersion(quest, QUEST_VERSION_PATH);
-            quest.saveAll();
         }
     }
 }

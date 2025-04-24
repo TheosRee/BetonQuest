@@ -87,6 +87,7 @@ public class QuestManager {
             searchForPackages(templatesDir, templatesDir, FILE_NAME_INDICATOR, FILE_TYPE_INDICATOR, (questPath, questFile, files) -> {
                 final QuestTemplate quest = new QuestTemplate(loggerFactory.create(QuestTemplate.class), configAccessorFactory, questPath, questFile, files);
                 try {
+                    log.debug("Attempting to update QuestTemplate '" + quest.getQuestPath() + "'");
                     questMigrator.migrate(quest);
                 } catch (final VersionMissmatchException e) {
                     log.warn("QuestTemplate '" + quest.getQuestPath() + "': " + e.getMessage(), e);
@@ -96,6 +97,7 @@ public class QuestManager {
             searchForPackages(packagesDir, packagesDir, FILE_NAME_INDICATOR, FILE_TYPE_INDICATOR, (questPath, questFile, files) -> {
                 final QuestPackageImpl quest = new QuestPackageImpl(loggerFactory.create(QuestPackageImpl.class), configAccessorFactory, questPath, questFile, files);
                 try {
+                    log.debug("Attempting to update QuestPackage '" + quest.getQuestPath() + "'");
                     questMigrator.migrate(quest);
                 } catch (final VersionMissmatchException e) {
                     log.warn("QuestPackage '" + quest.getQuestPath() + "': " + e.getMessage(), e);
