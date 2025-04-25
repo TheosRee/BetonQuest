@@ -6,13 +6,14 @@ import org.betonquest.betonquest.api.config.patcher.PatchException;
 import org.betonquest.betonquest.api.config.patcher.PatchTransformer;
 import org.betonquest.betonquest.api.config.patcher.PatchTransformerRegistry;
 import org.betonquest.betonquest.api.logger.BetonQuestLogger;
+import org.betonquest.betonquest.config.patcher.migration.SettableVersion;
+import org.betonquest.betonquest.config.patcher.migration.VersionMissmatchException;
 import org.betonquest.betonquest.versioning.UpdateStrategy;
 import org.betonquest.betonquest.versioning.Version;
 import org.betonquest.betonquest.versioning.VersionComparator;
 import org.bukkit.configuration.Configuration;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.InvalidConfigurationException;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
@@ -28,7 +29,7 @@ import java.util.stream.Collectors;
 /**
  * Patches BetonQuest's configuration file.
  */
-public class Patcher {
+public class Patcher extends DoStuffWithVersions<FileConfigAccessor, Patcher.Patchy> {
     /**
      * Comparator for {@link Version} with the qualifier CONFIG.
      */
@@ -65,11 +66,6 @@ public class Patcher {
     private final PatchTransformerRegistry transformerRegistry;
 
     /**
-     * Contains all versions that are patchable.
-     */
-    private final NavigableMap<Version, List<Map<?, ?>>> patches;
-
-    /**
      * Creates a new Patcher.
      * <br>
      * Updates can be applied using {@link Patcher#patch(FileConfigAccessor)}.
@@ -80,16 +76,19 @@ public class Patcher {
      * @param patchConfig         the patchConfig that contains patches
      * @throws InvalidConfigurationException if the patchConfig is malformed
      */
-    public Patcher(final BetonQuestLogger log, final ConfigAccessor resourceAccessor, final PatchTransformerRegistry transformerRegistry, final ConfigurationSection patchConfig) throws InvalidConfigurationException {
+    public Patcher(final BetonQuestLogger log, final ConfigAccessor resourceAccessor,
+                   final PatchTransformerRegistry transformerRegistry, final ConfigurationSection patchConfig)
+            throws InvalidConfigurationException {
+        super(log, CONFIG_VERSION_PATH, new Version("0.0.0-CONFIG-0"), VERSION_COMPARATOR,
+                buildVersionIndex(new TreeMap<>(VERSION_COMPARATOR), patchConfig, ""));
         this.log = log;
         this.resourceAccessor = resourceAccessor;
         this.transformerRegistry = transformerRegistry;
-        this.patches = new TreeMap<>(VERSION_COMPARATOR);
-        buildVersionIndex(patchConfig, "");
     }
 
     @SuppressWarnings("PMD.AvoidLiteralsInIfCondition")
-    private void buildVersionIndex(final ConfigurationSection section, final String previousKeys) throws InvalidConfigurationException {
+    private static Map<Version, Patchy> buildVersionIndex(final Map<Version, Patchy> map, final ConfigurationSection section, final String previousKeys)
+            throws InvalidConfigurationException {
         for (final String key : section.getKeys(false)) {
             final String currentKey = previousKeys.isEmpty() ? key : previousKeys + "." + key;
             if (section.isConfigurationSection(key)) {
@@ -97,23 +96,37 @@ public class Patcher {
                 if (nestedSection == null) {
                     throw new InvalidConfigurationException("The patch file at '" + currentKey + "' is not a list or a section.");
                 }
-                buildVersionIndex(nestedSection, currentKey);
+                buildVersionIndex(map, nestedSection, currentKey);
             } else if (currentKey.split("\\.").length == 4) {
-                collectVersion(currentKey, section.getMapList(key));
+                collectVersion(map, currentKey, section.getMapList(key));
             } else {
                 throw new InvalidConfigurationException("The patch file at '" + currentKey + "' is too long or too short.");
             }
         }
+        return map;
     }
 
-    private void collectVersion(final String currentKey, @NotNull final List<Map<?, ?>> mapList) throws InvalidConfigurationException {
+    private static void collectVersion(final Map<Version, Patchy> map, final String currentKey, final List<Map<?, ?>> mapList)
+            throws InvalidConfigurationException {
         final Matcher matcher = VERSION_PATTERN.matcher(currentKey);
         if (!matcher.matches()) {
             throw new InvalidConfigurationException("The patch file at '" + currentKey + "' has an invalid version format.");
         }
         final String result = matcher.group(1) + "-CONFIG-" + matcher.group(2);
         final Version discoveredVersion = new Version(result);
-        patches.put(discoveredVersion, mapList);
+        map.put(discoveredVersion, new Patchy(mapList));
+    }
+
+    @Override
+    public void migrate(final FileConfigAccessor accessor) throws InvalidConfigurationException, VersionMissmatchException {
+        final Configuration config = accessor.getConfig();
+        config.setDefaults(resourceAccessor.getConfig());
+        config.options().copyDefaults(true);
+        try {
+            super.migrate(accessor);
+        } catch (final IOException e) {
+            throw new InvalidConfigurationException("Default values were applied to the config but could not be saved! Reason: " + e.getMessage(), e);
+        }
     }
 
     /**
@@ -123,11 +136,6 @@ public class Patcher {
      * @throws InvalidConfigurationException if the config could not be saved
      */
     public void patch(final FileConfigAccessor accessor) throws InvalidConfigurationException {
-        final Configuration config = accessor.getConfig();
-        final String configVersionString = config.getString(CONFIG_VERSION_PATH);
-        config.setDefaults(resourceAccessor.getConfig());
-        config.options().copyDefaults(true);
-
         final String logPrefix = String.format("The config file '%s' ", accessor.getConfigurationFile().getName());
         if (patches.isEmpty()) {
             log.debug(logPrefix + "has no patches to apply.");
@@ -143,11 +151,6 @@ public class Patcher {
                 log.info(logPrefix + "gets updated from " + displayVersion + "...");
                 patch(version, config);
             }
-        }
-        try {
-            accessor.save();
-        } catch (final IOException e) {
-            throw new InvalidConfigurationException("Default values were applied to the config but could not be saved! Reason: " + e.getMessage(), e);
         }
     }
 
@@ -210,5 +213,41 @@ public class Patcher {
     private void setConfigVersion(final ConfigurationSection config, final Version newVersion) {
         config.set(CONFIG_VERSION_PATH, newVersion.getVersion());
         config.setInlineComments(CONFIG_VERSION_PATH, List.of(VERSION_CONFIG_COMMENT));
+    }
+
+    @Override
+    protected SettableVersion<FileConfigAccessor> version(final String versionString) {
+        return new SettableVersion<>(versionString) {
+            @Override
+            public void setVersion(final FileConfigAccessor accessor, final String path) {
+                final Configuration config = accessor.getConfig();
+                config.set(path, getVersion());
+                config.setInlineComments(CONFIG_VERSION_PATH, List.of(VERSION_CONFIG_COMMENT));
+            }
+        };
+    }
+
+    @Override
+    protected ConfigurationSection getConfig(final FileConfigAccessor accessor) {
+        return accessor.getConfig();
+    }
+
+    @Override
+    protected void save(final FileConfigAccessor accessor) throws IOException {
+        accessor.save();
+    }
+
+    public static class Patchy implements Stuffy<FileConfigAccessor> {
+
+        private final List<Map<?, ?>> mapList;
+
+        public Patchy(final List<Map<?, ?>> mapList) {
+            this.mapList = mapList;
+        }
+
+        @Override
+        public void migrate(final FileConfigAccessor stuff) throws InvalidConfigurationException {
+
+        }
     }
 }

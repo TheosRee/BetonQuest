@@ -87,7 +87,7 @@ public abstract class DoStuffWithVersions<T, U extends DoStuffWithVersions.Stuff
     public void migrate(final T stuff) throws IOException, InvalidConfigurationException, VersionMissmatchException {
         final String versionString = getConfig(stuff).getString(versionPath);
         final SettableVersion<T> lastVersionToSet = migrations.isEmpty() ? fallbackVersion : migrations.lastKey();
-        if (versionString == null) {
+        if (versionString == null || versionString.isEmpty()) {
             log.debug("  No version present, just setting to '" + lastVersionToSet + "'");
             lastVersionToSet.setVersion(stuff, versionPath);
             save(stuff);
