@@ -53,7 +53,7 @@ public final class Backup {
             boolean done = true;
             final FileConfigAccessor config = configAccessorFactory.create(databaseBackupFile);
             // prepare the database and map
-            final Map<String, QueryResult> map = new HashMap<>();
+            final Map<String, ResultSet> map = new HashMap<>();
             final String[] tables = {"objectives", "tags", "points", "journals", "player", "backpack", "global_points",
                     "global_tags", "migration", "player_profile", "profile"};
             // open database connection
@@ -65,10 +65,10 @@ public final class Backup {
                 map.put(table, database.querySQL(QueryType.valueOf(enumName)));
             }
             // extract data from resultsets into the config file
-            for (final Map.Entry<String, QueryResult> entry : map.entrySet()) {
+            for (final Map.Entry<String, ResultSet> entry : map.entrySet()) {
                 LOG.debug("Saving " + entry.getKey() + " to the backup file");
                 // prepare resultset and meta
-                try (QueryResult queryResult = entry.getValue(); ResultSet res = queryResult.getResultSet()) {
+                try (ResultSet res = entry.getValue()) {
                     final ResultSetMetaData result = res.getMetaData();
                     // get the list of column names
                     final List<String> columns = new ArrayList<>();

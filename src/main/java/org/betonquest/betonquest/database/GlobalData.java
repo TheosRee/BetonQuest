@@ -51,21 +51,14 @@ public class GlobalData implements TagData, PointData {
      * Loads all data for the player and puts it in appropriate lists.
      */
     public final void loadAllGlobalData() {
-        try {
-            final Connector con = Connector.getInstance();
-            try (QueryResult globalTags = con.querySQL(QueryType.LOAD_ALL_GLOBAL_TAGS)) {
-                try (ResultSet globalTagsSet = globalTags.getResultSet()) {
-                    while (globalTagsSet.next()) {
-                        this.globalTags.add(globalTagsSet.getString("tag"));
-                    }
-                }
+        final Connector con = Connector.getInstance();
+        try (ResultSet globalTags = con.querySQL(QueryType.LOAD_ALL_GLOBAL_TAGS);
+             ResultSet globalPoints = con.querySQL(QueryType.LOAD_ALL_GLOBAL_POINTS)) {
+            while (globalTags.next()) {
+                this.globalTags.add(globalTags.getString("tag"));
             }
-            try (QueryResult globalPoints = con.querySQL(QueryType.LOAD_ALL_GLOBAL_POINTS)) {
-                try (ResultSet globalPointSet = globalPoints.getResultSet()) {
-                    while (globalPointSet.next()) {
-                        this.globalPoints.add(new Point(globalPointSet.getString("category"), globalPointSet.getInt("count")));
-                    }
-                }
+            while (globalPoints.next()) {
+                this.globalPoints.add(new Point(globalPoints.getString("category"), globalPoints.getInt("count")));
             }
             log.debug("There are " + this.globalTags.size() + " global_tags and " + this.globalPoints.size()
                     + " global_points loaded");

@@ -59,7 +59,7 @@ public final class Connector {
      * @param args arguments
      * @return ResultSet with the requested data
      */
-    public QueryResult querySQL(final QueryType type, final String... args) {
+    public ResultSet querySQL(final QueryType type, final String... args) {
         return querySQL(type, statement -> {
             for (int i = 0; i < args.length; i++) {
                 statement.setString(i + 1, args[i]);
@@ -75,14 +75,13 @@ public final class Connector {
      * @return ResultSet with the requested data
      */
     @SuppressWarnings("PMD.CloseResource")
-    public QueryResult querySQL(final QueryType type, final VariableResolver variableResolver) {
+    public ResultSet querySQL(final QueryType type, final VariableResolver variableResolver) {
         final String sql = type.createSql(prefix);
         try {
             final Connection connection = database.getConnection();
             final PreparedStatement statement = connection.prepareStatement(sql);
             variableResolver.resolve(statement);
-            final ResultSet resultSet = statement.executeQuery();
-            return new QueryResult(connection, statement, resultSet);
+            return statement.executeQuery();
         } catch (final SQLException e) {
             throw new IllegalStateException("There was an exception with SQL", e);
         }
