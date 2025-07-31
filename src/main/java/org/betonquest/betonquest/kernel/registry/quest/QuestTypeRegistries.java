@@ -15,6 +15,7 @@ public record QuestTypeRegistries(
         ConditionTypeRegistry condition,
         EventTypeRegistry event,
         ObjectiveTypeRegistry objective,
+        NewObjectiveTypeRegistry newObjective,
         VariableTypeRegistry variable
 ) {
 
@@ -30,6 +31,7 @@ public record QuestTypeRegistries(
                 new ConditionTypeRegistry(loggerFactory.create(ConditionTypeRegistry.class)),
                 new EventTypeRegistry(loggerFactory.create(EventTypeRegistry.class), loggerFactory, betonQuest),
                 new ObjectiveTypeRegistry(loggerFactory.create(ObjectiveTypeRegistry.class)),
+                new NewObjectiveTypeRegistry(loggerFactory.create(NewObjectiveTypeRegistry.class)),
                 new VariableTypeRegistry(loggerFactory.create(VariableTypeRegistry.class))
         );
     }

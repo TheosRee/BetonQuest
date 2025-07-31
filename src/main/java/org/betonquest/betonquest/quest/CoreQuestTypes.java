@@ -5,6 +5,8 @@ import org.betonquest.betonquest.api.LanguageProvider;
 import org.betonquest.betonquest.api.logger.BetonQuestLoggerFactory;
 import org.betonquest.betonquest.api.profile.ProfileProvider;
 import org.betonquest.betonquest.api.quest.QuestTypeAPI;
+import org.betonquest.betonquest.api.quest.objective.NewLoginObjFac;
+import org.betonquest.betonquest.api.quest.objective.NewSimpleObjFactory;
 import org.betonquest.betonquest.config.PluginMessage;
 import org.betonquest.betonquest.data.PlayerDataStorage;
 import org.betonquest.betonquest.database.GlobalData;
@@ -435,6 +437,10 @@ public class CoreQuestTypes {
         objectiveTypes.register("kill", new KillPlayerObjectiveFactory());
         objectiveTypes.register("location", new LocationObjectiveFactory());
         objectiveTypes.register("login", new LoginObjectiveFactory());
+        final NewSimpleObjFactory.FactoryData factoryData = new NewSimpleObjFactory.FactoryData(
+                loggerFactory, betonQuest.getPlayerDataStorage(), profileProvider, questTypeAPI);
+        betonQuest.getQuestRegistries().newObjective().register("login", new NewLoginObjFac(factoryData));
+        // as alternative also put that pattern into the factory, so the factoryData gets method injected in the register process
         objectiveTypes.register("logout", new LogoutObjectiveFactory());
         objectiveTypes.register("mobkill", new MobKillObjectiveFactory());
         objectiveTypes.register("npcinteract", new NpcInteractObjectiveFactory());

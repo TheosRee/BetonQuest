@@ -10,12 +10,14 @@ import org.betonquest.betonquest.api.bukkit.event.PlayerUpdatePointEvent;
 import org.betonquest.betonquest.api.logger.BetonQuestLogger;
 import org.betonquest.betonquest.api.profile.Profile;
 import org.betonquest.betonquest.api.quest.QuestException;
+import org.betonquest.betonquest.api.quest.objective.NewObjective;
 import org.betonquest.betonquest.config.PluginMessage;
 import org.betonquest.betonquest.conversation.PlayerConversationState;
 import org.betonquest.betonquest.database.Saver.Record;
 import org.betonquest.betonquest.feature.journal.Journal;
 import org.betonquest.betonquest.feature.journal.Pointer;
 import org.betonquest.betonquest.id.JournalEntryID;
+import org.betonquest.betonquest.id.NewObjID;
 import org.betonquest.betonquest.id.ObjectiveID;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.Nullable;
@@ -330,8 +332,13 @@ public class PlayerData implements TagData, PointData {
                 final ObjectiveID objectiveID = new ObjectiveID(null, objective);
                 BetonQuest.getInstance().getQuestTypeAPI().resumeObjective(profile, objectiveID, entry.getValue());
             } catch (final QuestException e) {
-                log.warn("Loaded '" + objective
-                        + "' objective from the database, but it is not defined in configuration. Skipping.", e);
+                try {
+                    final NewObjID objectiveID = new NewObjID(null, objective);
+                    BetonQuest.getInstance().getQuestTypeAPI().resumeObjective(profile, objectiveID, entry.getValue());
+                } catch (final QuestException e1) {
+                    log.warn("Loaded '" + objective
+                            + "' objective from the database, but it is not defined in configuration. Skipping.", e);
+                }
             }
         }
         objectives.clear();
@@ -354,6 +361,20 @@ public class PlayerData implements TagData, PointData {
      */
     public void addNewRawObjective(final ObjectiveID objectiveID) {
         final Objective obj;
+        try {
+            obj = BetonQuest.getInstance().getQuestTypeAPI().getObjective(objectiveID);
+        } catch (final QuestException e) {
+            log.warn(objectiveID.getPackage(), "Cannot add objective to player data: " + e.getMessage(), e);
+            return;
+        }
+        final String data = obj.getDefaultDataInstruction(profile);
+        if (addRawObjective(objectiveID.toString(), data)) {
+            saver.add(new Record(UpdateType.ADD_OBJECTIVES, profileID, objectiveID.toString(), data));
+        }
+    }
+
+    public void addNewRawObjective(final NewObjID objectiveID) {
+        final NewObjective obj;
         try {
             obj = BetonQuest.getInstance().getQuestTypeAPI().getObjective(objectiveID);
         } catch (final QuestException e) {
@@ -390,6 +411,11 @@ public class PlayerData implements TagData, PointData {
      * @param objectiveID the ID of the objective
      */
     public void removeRawObjective(final ObjectiveID objectiveID) {
+        objectives.remove(objectiveID.toString());
+        removeObjFromDB(objectiveID.toString());
+    }
+
+    public void removeRawObjective(final NewObjID objectiveID) {
         objectives.remove(objectiveID.toString());
         removeObjFromDB(objectiveID.toString());
     }

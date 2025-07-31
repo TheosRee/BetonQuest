@@ -6,9 +6,12 @@ import org.betonquest.betonquest.bstats.InstructionMetricsSupplier;
 import org.betonquest.betonquest.id.ID;
 import org.betonquest.betonquest.kernel.processor.quest.ConditionProcessor;
 import org.betonquest.betonquest.kernel.processor.quest.EventProcessor;
+import org.betonquest.betonquest.kernel.processor.quest.NewObjectiveProcessor;
 import org.betonquest.betonquest.kernel.processor.quest.ObjectiveProcessor;
 import org.betonquest.betonquest.kernel.processor.quest.VariableProcessor;
 import org.betonquest.betonquest.kernel.registry.quest.QuestTypeRegistries;
+import org.bukkit.plugin.Plugin;
+import org.bukkit.plugin.PluginManager;
 
 import java.util.Map;
 
@@ -24,6 +27,7 @@ public record CoreQuestRegistry(
         ConditionProcessor conditions,
         EventProcessor events,
         ObjectiveProcessor objectives,
+        NewObjectiveProcessor newObjectives,
         VariableProcessor variables
 ) {
 
@@ -33,11 +37,13 @@ public record CoreQuestRegistry(
      * @param loggerFactory       the logger factory used for new custom logger instances
      * @param questTypeRegistries the available quest types
      */
-    public CoreQuestRegistry(final BetonQuestLoggerFactory loggerFactory, final QuestTypeRegistries questTypeRegistries) {
+    public CoreQuestRegistry(final BetonQuestLoggerFactory loggerFactory, final QuestTypeRegistries questTypeRegistries,
+                             final PluginManager pluginManager, final Plugin plugin) {
         this(
                 new ConditionProcessor(loggerFactory.create(ConditionProcessor.class), questTypeRegistries.condition()),
                 new EventProcessor(loggerFactory.create(EventProcessor.class), questTypeRegistries.event()),
                 new ObjectiveProcessor(loggerFactory.create(ObjectiveProcessor.class), questTypeRegistries.objective()),
+                new NewObjectiveProcessor(loggerFactory.create(NewObjectiveProcessor.class), questTypeRegistries.newObjective(), pluginManager, plugin),
                 new VariableProcessor(loggerFactory.create(VariableProcessor.class), questTypeRegistries.variable())
         );
     }
@@ -49,6 +55,7 @@ public record CoreQuestRegistry(
         conditions.clear();
         events.clear();
         objectives.clear();
+        newObjectives.clear();
         variables.clear();
     }
 
@@ -61,6 +68,7 @@ public record CoreQuestRegistry(
         events.load(pack);
         conditions.load(pack);
         objectives.load(pack);
+        newObjectives.load(pack);
         variables.load(pack);
     }
 

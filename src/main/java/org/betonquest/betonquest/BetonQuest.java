@@ -370,7 +370,7 @@ public class BetonQuest extends JavaPlugin implements LanguageProvider {
         lastExecutionCache = new LastExecutionCache(loggerFactory.create(LastExecutionCache.class, "Cache"), cache);
 
         questTypeRegistries = QuestTypeRegistries.create(loggerFactory, this);
-        final CoreQuestRegistry coreQuestRegistry = new CoreQuestRegistry(loggerFactory, questTypeRegistries);
+        final CoreQuestRegistry coreQuestRegistry = new CoreQuestRegistry(loggerFactory, questTypeRegistries, getServer().getPluginManager(), this);
         questTypeAPI = new QuestTypeAPI(coreQuestRegistry);
 
         playerDataStorage = new PlayerDataStorage(loggerFactory, loggerFactory.create(PlayerDataStorage.class), config, coreQuestRegistry.objectives(), profileProvider);
@@ -491,7 +491,7 @@ public class BetonQuest extends JavaPlugin implements LanguageProvider {
                 new MobKillListener(profileProvider),
                 new CustomDropListener(loggerFactory.create(CustomDropListener.class), this, featureAPI),
                 new QuestItemHandler(config, playerDataStorage, pluginMessage, profileProvider),
-                new JoinQuitListener(loggerFactory, config, coreQuestRegistry.objectives(), playerDataStorage,
+                new JoinQuitListener(loggerFactory, config, coreQuestRegistry.objectives(), coreQuestRegistry.newObjectives(), playerDataStorage,
                         pluginMessage, profileProvider, updater)
         ).forEach(listener -> pluginManager.registerEvents(listener, this));
     }

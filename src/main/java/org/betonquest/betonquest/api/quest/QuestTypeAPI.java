@@ -2,8 +2,10 @@ package org.betonquest.betonquest.api.quest;
 
 import org.betonquest.betonquest.api.Objective;
 import org.betonquest.betonquest.api.profile.Profile;
+import org.betonquest.betonquest.api.quest.objective.NewObjective;
 import org.betonquest.betonquest.id.ConditionID;
 import org.betonquest.betonquest.id.EventID;
+import org.betonquest.betonquest.id.NewObjID;
 import org.betonquest.betonquest.id.ObjectiveID;
 import org.betonquest.betonquest.kernel.processor.CoreQuestRegistry;
 import org.jetbrains.annotations.Nullable;
@@ -101,6 +103,10 @@ public final class QuestTypeAPI {
         questRegistry.objectives().resume(profile, objectiveID, instruction);
     }
 
+    public void resumeObjective(final Profile profile, final NewObjID objectiveID, final String instruction) {
+        questRegistry.newObjectives().resume(profile, objectiveID, instruction);
+    }
+
     /**
      * Renames the objective instance.
      *
@@ -130,5 +136,9 @@ public final class QuestTypeAPI {
      */
     public Objective getObjective(final ObjectiveID objectiveID) throws QuestException {
         return questRegistry.objectives().get(objectiveID);
+    }
+
+    public NewObjective getObjective(final NewObjID objectiveID) throws QuestException {
+        return questRegistry.newObjectives().get(objectiveID);
     }
 }

@@ -7,11 +7,13 @@ import org.betonquest.betonquest.api.logger.BetonQuestLoggerFactory;
 import org.betonquest.betonquest.api.profile.OnlineProfile;
 import org.betonquest.betonquest.api.profile.Profile;
 import org.betonquest.betonquest.api.profile.ProfileProvider;
+import org.betonquest.betonquest.api.quest.objective.NewObjective;
 import org.betonquest.betonquest.config.PluginMessage;
 import org.betonquest.betonquest.conversation.ConversationResumer;
 import org.betonquest.betonquest.data.PlayerDataStorage;
 import org.betonquest.betonquest.database.PlayerData;
 import org.betonquest.betonquest.feature.journal.Journal;
+import org.betonquest.betonquest.kernel.processor.quest.NewObjectiveProcessor;
 import org.betonquest.betonquest.kernel.processor.quest.ObjectiveProcessor;
 import org.betonquest.betonquest.quest.objective.resourcepack.ResourcepackObjective;
 import org.betonquest.betonquest.web.updater.Updater;
@@ -45,6 +47,8 @@ public class JoinQuitListener implements Listener {
      */
     private final ObjectiveProcessor questTypeAPI;
 
+    private final NewObjectiveProcessor newObjectiveProcessor;
+
     /**
      * Holds loaded PlayerData.
      */
@@ -77,11 +81,12 @@ public class JoinQuitListener implements Listener {
      * @param updater           the updater to notify players
      */
     public JoinQuitListener(final BetonQuestLoggerFactory loggerFactory, final ConfigAccessor config,
-                            final ObjectiveProcessor questTypeAPI, final PlayerDataStorage playerDataStorage,
+                            final ObjectiveProcessor questTypeAPI, final NewObjectiveProcessor newObjectiveProcessor, final PlayerDataStorage playerDataStorage,
                             final PluginMessage pluginMessage, final ProfileProvider profileProvider, final Updater updater) {
         this.loggerFactory = loggerFactory;
         this.config = config;
         this.questTypeAPI = questTypeAPI;
+        this.newObjectiveProcessor = newObjectiveProcessor;
         this.playerDataStorage = playerDataStorage;
         this.pluginMessage = pluginMessage;
         this.profileProvider = profileProvider;
@@ -114,6 +119,7 @@ public class JoinQuitListener implements Listener {
         final PlayerData playerData = playerDataStorage.get(onlineProfile);
         playerData.startObjectives();
         questTypeAPI.startAll(onlineProfile, playerDataStorage);
+        newObjectiveProcessor.startAll(onlineProfile, playerDataStorage);
         checkResourcepack(player, onlineProfile);
 
         if (Journal.hasJournal(onlineProfile)) {
@@ -147,6 +153,9 @@ public class JoinQuitListener implements Listener {
         final OnlineProfile onlineProfile = profileProvider.getProfile(event.getPlayer());
         for (final Objective objective : questTypeAPI.getActive(onlineProfile)) {
             objective.pauseObjectiveForPlayer(onlineProfile);
+        }
+        for (final NewObjective newObjective : newObjectiveProcessor.getActive(onlineProfile)) {
+            newObjective.pauseObjectiveForPlayer(onlineProfile);
         }
         playerDataStorage.remove(onlineProfile);
     }
