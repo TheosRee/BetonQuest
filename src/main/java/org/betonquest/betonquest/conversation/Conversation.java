@@ -436,7 +436,7 @@ public class Conversation implements Listener {
                 new BukkitRunnable() {
                     @Override
                     public void run() {
-                        Bukkit.getServer().getPluginManager().callEvent(new PlayerConversationEndEvent(onlineProfile, Conversation.this));
+                        new PlayerConversationEndEvent(onlineProfile, Conversation.this).callEvent();
                     }
                 }.runTask(plugin);
             });
@@ -587,7 +587,7 @@ public class Conversation implements Listener {
 
                 @Override
                 public void run() {
-                    Bukkit.getServer().getPluginManager().callEvent(new PlayerConversationEndEvent(onlineProfile, Conversation.this));
+                    new PlayerConversationEndEvent(onlineProfile, Conversation.this).callEvent();
                 }
             }.runTask(plugin);
         } finally {
@@ -693,7 +693,7 @@ public class Conversation implements Listener {
                 // the conversation start event must be run on next tick
                 final PlayerConversationStartEvent event = new PlayerConversationStartEvent(onlineProfile, Conversation.this);
                 final Future<Void> eventDispatcherTask = Bukkit.getServer().getScheduler().callSyncMethod(plugin, () -> {
-                    Bukkit.getServer().getPluginManager().callEvent(event);
+                    event.callEvent();
                     return null;
                 });
 
@@ -759,7 +759,7 @@ public class Conversation implements Listener {
 
                     @Override
                     public void run() {
-                        Bukkit.getPluginManager().callEvent(optionEvent);
+                        optionEvent.callEvent();
                     }
                 }.runTask(plugin);
             } finally {
@@ -872,7 +872,7 @@ public class Conversation implements Listener {
                 new BukkitRunnable() {
                     @Override
                     public void run() {
-                        Bukkit.getServer().getPluginManager().callEvent(event);
+                        event.callEvent();
                     }
                 }.runTask(plugin);
             } catch (final QuestException e) {
