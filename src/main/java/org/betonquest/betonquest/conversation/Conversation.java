@@ -645,7 +645,7 @@ public class Conversation implements Listener {
         for (final String pointer : rawPointers) {
             final OptionType nextType = option.type() == PLAYER ? NPC : PLAYER;
             pointers.add(new ConversationOptionResolver(plugin.getQuestPackageManager(), plugin.getFeatureApi(),
-                    nextConvData.getPack(), nextConvData.getPublicData().convName(), nextType, pointer).resolve());
+                    nextConvData.getPack(), nextConvData.getPublicData().conversationID().get(), nextType, pointer).resolve());
         }
         return pointers;
     }

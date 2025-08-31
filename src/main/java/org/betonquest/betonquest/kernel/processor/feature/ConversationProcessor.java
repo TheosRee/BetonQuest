@@ -85,8 +85,8 @@ public class ConversationProcessor extends SectionProcessor<ConversationID, Conv
 
     @Override
     protected ConversationData loadSection(final QuestPackage pack, final ConfigurationSection section) throws QuestException {
-        final String convName = section.getName();
-        log.debug(pack, String.format("Loading conversation '%s'.", convName));
+        final ConversationID conversationID = getIdentifier(pack, section.getName());
+        log.debug(pack, String.format("Loading conversation '%s'.", conversationID));
 
         final Text quester = textCreator.parseFromSection(pack, section, "quester");
         final CreationHelper helper = new CreationHelper(pack, section);
@@ -95,10 +95,10 @@ public class ConversationProcessor extends SectionProcessor<ConversationID, Conv
         final Variable<InterceptorFactory> interceptor = helper.parseInterceptor();
         final Variable<List<EventID>> finalEvents = new VariableList<>(variableProcessor, pack, section.getString("final_events", ""), value -> new EventID(packManager, pack, value));
         final boolean invincible = plugin.getConfig().getBoolean("conversation.damage.invincible");
-        final ConversationData.PublicData publicData = new ConversationData.PublicData(convName, quester, blockMovement, finalEvents, convIO, interceptor, invincible);
+        final ConversationData.PublicData publicData = new ConversationData.PublicData(conversationID, quester, blockMovement, finalEvents, convIO, interceptor, invincible);
 
         return new ConversationData(loggerFactory.create(ConversationData.class), packManager,
-                variableProcessor, plugin.getQuestTypeApi(), plugin.getFeatureApi(), textCreator, pack, section, publicData);
+                variableProcessor, plugin.getQuestTypeApi(), plugin.getFeatureApi(), textCreator, section, publicData);
     }
 
     @Override
@@ -119,8 +119,7 @@ public class ConversationProcessor extends SectionProcessor<ConversationID, Conv
             try {
                 convData.checkExternalPointers();
             } catch (final QuestException e) {
-                log.warn(convData.getPack(), "Error in '" + convData.getPack().getQuestPath() + "."
-                        + convData.getPublicData().convName() + "' conversation: " + e.getMessage(), e);
+                log.warn(convData.getPack(), "Error in '" + convData.getPublicData().conversationID() + "' conversation: " + e.getMessage(), e);
                 return true;
             }
             return false;
