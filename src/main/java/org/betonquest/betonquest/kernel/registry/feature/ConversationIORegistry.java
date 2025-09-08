@@ -1,8 +1,8 @@
 package org.betonquest.betonquest.kernel.registry.feature;
 
+import org.betonquest.betonquest.api.kernel.FactoryRegistry;
 import org.betonquest.betonquest.api.logger.BetonQuestLogger;
 import org.betonquest.betonquest.conversation.ConversationIOFactory;
-import org.betonquest.betonquest.kernel.registry.FactoryRegistry;
 
 /**
  * Stores the Conversation IOs that can be used in BetonQuest.

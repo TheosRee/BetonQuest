@@ -1,12 +1,12 @@
 package org.betonquest.betonquest.kernel.registry.feature;
 
+import org.betonquest.betonquest.api.kernel.FactoryRegistry;
+import org.betonquest.betonquest.api.kernel.TypeFactory;
 import org.betonquest.betonquest.api.logger.BetonQuestLogger;
 import org.betonquest.betonquest.api.quest.QuestException;
 import org.betonquest.betonquest.item.QuestItem;
 import org.betonquest.betonquest.item.QuestItemSerializer;
 import org.betonquest.betonquest.item.QuestItemWrapper;
-import org.betonquest.betonquest.kernel.registry.FactoryRegistry;
-import org.betonquest.betonquest.kernel.registry.TypeFactory;
 
 import java.util.HashMap;
 import java.util.Map;

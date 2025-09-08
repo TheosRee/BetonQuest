@@ -1,10 +1,10 @@
 package org.betonquest.betonquest.kernel.registry.feature;
 
+import org.betonquest.betonquest.api.kernel.FactoryRegistry;
 import org.betonquest.betonquest.api.logger.BetonQuestLogger;
 import org.betonquest.betonquest.api.quest.QuestException;
 import org.betonquest.betonquest.api.text.TextParser;
 import org.betonquest.betonquest.api.text.TextParserRegistry;
-import org.betonquest.betonquest.kernel.registry.FactoryRegistry;
 
 /**
  * A registry for text parsers.

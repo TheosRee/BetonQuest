@@ -1,7 +1,7 @@
 package org.betonquest.betonquest.kernel.registry.feature;
 
+import org.betonquest.betonquest.api.kernel.FactoryRegistry;
 import org.betonquest.betonquest.api.logger.BetonQuestLogger;
-import org.betonquest.betonquest.kernel.registry.FactoryRegistry;
 import org.betonquest.betonquest.notify.NotifyIOFactory;
 
 /**

@@ -1,9 +1,9 @@
 package org.betonquest.betonquest.kernel.registry.feature;
 
+import org.betonquest.betonquest.api.kernel.FactoryRegistry;
 import org.betonquest.betonquest.api.logger.BetonQuestLogger;
 import org.betonquest.betonquest.api.schedule.Schedule;
 import org.betonquest.betonquest.api.schedule.Scheduler;
-import org.betonquest.betonquest.kernel.registry.FactoryRegistry;
 import org.betonquest.betonquest.schedule.EventScheduling;
 
 import java.util.Set;

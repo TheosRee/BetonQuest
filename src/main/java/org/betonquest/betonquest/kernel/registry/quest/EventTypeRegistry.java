@@ -1,6 +1,8 @@
 package org.betonquest.betonquest.kernel.registry.quest;
 
 import org.betonquest.betonquest.BetonQuest;
+import org.betonquest.betonquest.api.kernel.QuestTypeRegistry;
+import org.betonquest.betonquest.api.kernel.TypeFactory;
 import org.betonquest.betonquest.api.logger.BetonQuestLogger;
 import org.betonquest.betonquest.api.logger.BetonQuestLoggerFactory;
 import org.betonquest.betonquest.api.quest.PlayerQuestFactory;
@@ -9,8 +11,6 @@ import org.betonquest.betonquest.api.quest.event.PlayerEvent;
 import org.betonquest.betonquest.api.quest.event.PlayerlessEvent;
 import org.betonquest.betonquest.kernel.processor.adapter.EventAdapter;
 import org.betonquest.betonquest.kernel.processor.adapter.EventAdapterFactory;
-import org.betonquest.betonquest.kernel.registry.QuestTypeRegistry;
-import org.betonquest.betonquest.kernel.registry.TypeFactory;
 import org.jetbrains.annotations.Nullable;
 
 /**
