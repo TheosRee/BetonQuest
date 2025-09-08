@@ -16,7 +16,7 @@ public record QuestTypeRegistries(
         EventTypeRegistry event,
         ObjectiveTypeRegistry objective,
         VariableTypeRegistry variable
-) {
+) implements org.betonquest.betonquest.api.quest.QuestTypeRegistries {
 
     /**
      * Create a new quest registry for quest core elements.

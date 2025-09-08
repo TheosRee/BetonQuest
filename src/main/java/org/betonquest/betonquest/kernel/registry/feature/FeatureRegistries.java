@@ -24,7 +24,7 @@ public record FeatureRegistries(
         NpcTypeRegistry npc,
         NotifyIORegistry notifyIO,
         ScheduleRegistry eventScheduling
-) {
+) implements org.betonquest.betonquest.api.feature.FeatureRegistries {
 
     /**
      * Create a new other factory registry for quest elements not based on the Instruction object.

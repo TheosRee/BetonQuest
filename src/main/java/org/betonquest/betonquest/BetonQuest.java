@@ -784,20 +784,12 @@ public class BetonQuest extends JavaPlugin implements BetonQuestApi, LanguagePro
         return playerDataStorage;
     }
 
-    /**
-     * Gets the QuestRegistry holding the core Quest types.
-     *
-     * @return registry holding Conditions and Events
-     */
+    @Override
     public QuestTypeRegistries getQuestRegistries() {
         return questTypeRegistries;
     }
 
-    /**
-     * Gets the Registries holding other types.
-     *
-     * @return registry holding ConvIO, Interceptor, ...
-     */
+    @Override
     public FeatureRegistries getFeatureRegistries() {
         return featureRegistries;
     }
