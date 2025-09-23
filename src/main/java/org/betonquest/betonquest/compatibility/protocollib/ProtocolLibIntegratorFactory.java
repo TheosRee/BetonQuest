@@ -2,6 +2,7 @@ package org.betonquest.betonquest.compatibility.protocollib;
 
 import org.betonquest.betonquest.compatibility.Integrator;
 import org.betonquest.betonquest.compatibility.IntegratorFactory;
+import org.bukkit.plugin.Plugin;
 
 /**
  * Factory for creating {@link ProtocolLibIntegrator} instances.
@@ -14,7 +15,7 @@ public class ProtocolLibIntegratorFactory implements IntegratorFactory {
     }
 
     @Override
-    public Integrator getIntegrator() {
+    public Integrator getIntegrator(final Plugin plugin) {
         return new ProtocolLibIntegrator();
     }
 }
