@@ -3,6 +3,7 @@ package org.betonquest.betonquest.compatibility.mythicmobs;
 import org.betonquest.betonquest.compatibility.Compatibility;
 import org.betonquest.betonquest.compatibility.Integrator;
 import org.betonquest.betonquest.compatibility.IntegratorFactory;
+import org.bukkit.plugin.Plugin;
 
 /**
  * Factory for creating {@link MythicMobsIntegrator} instances.
@@ -23,7 +24,7 @@ public class MythicMobsIntegratorFactory implements IntegratorFactory {
     }
 
     @Override
-    public Integrator getIntegrator() {
+    public Integrator getIntegrator(final Plugin plugin) {
         return new MythicMobsIntegrator(compatibility);
     }
 }

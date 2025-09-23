@@ -4,6 +4,7 @@ import org.betonquest.betonquest.api.config.quest.QuestPackageManager;
 import org.betonquest.betonquest.api.logger.BetonQuestLoggerFactory;
 import org.betonquest.betonquest.compatibility.Integrator;
 import org.betonquest.betonquest.compatibility.IntegratorFactory;
+import org.bukkit.plugin.Plugin;
 
 /**
  * Factory for creating {@link DecentHologramsIntegrator} instances.
@@ -31,7 +32,7 @@ public class DecentHologramsIntegratorFactory implements IntegratorFactory {
     }
 
     @Override
-    public Integrator getIntegrator() {
+    public Integrator getIntegrator(final Plugin plugin) {
         return new DecentHologramsIntegrator(loggerFactory.create(DecentHologramsIntegrator.class), packManager);
     }
 }

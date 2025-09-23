@@ -195,7 +195,8 @@ public class Compatibility implements Listener {
             return;
         }
         final String name = hookedPlugin.getName();
-        if (!integrators.containsKey(name) || integrators.get(name).getRight() != null) {
+        final Pair<IntegratorFactory, Integrator> factoryPair = integrators.get(name);
+        if (factoryPair == null || factoryPair.getRight() != null) {
             return;
         }
 
@@ -205,12 +206,11 @@ public class Compatibility implements Listener {
             return;
         }
 
-        final Integrator integrator = integrators.get(name).getKey().getIntegrator();
         log.info("Hooking into " + name);
-
         try {
+            final Integrator integrator = factoryPair.getKey().getIntegrator(hookedPlugin);
             integrator.hook(betonQuestApi);
-            integrators.get(name).setValue(integrator);
+            factoryPair.setValue(integrator);
         } catch (final HookException exception) {
             final String message = String.format("Could not hook into %s %s! %s",
                     hookedPlugin.getName(),
