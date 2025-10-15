@@ -27,12 +27,13 @@ import org.betonquest.betonquest.id.JournalEntryID;
 import org.betonquest.betonquest.id.JournalMainPageID;
 import org.betonquest.betonquest.quest.event.IngameNotificationSender;
 import org.betonquest.betonquest.quest.event.NotificationLevel;
-import org.betonquest.betonquest.util.Utils;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
+import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.Nullable;
 
 import java.text.SimpleDateFormat;
@@ -44,14 +45,18 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 
 /**
  * Represents player's journal.
  */
-@SuppressWarnings({"PMD.TooManyMethods", "PMD.CouplingBetweenObjects", "PMD.GodClass"})
+@SuppressWarnings({"PMD.TooManyMethods", "PMD.CouplingBetweenObjects"})
 public class Journal {
+    /**
+     * Key that an ItemStack is the Journal.
+     */
+    public static final NamespacedKey JOURNAL_KEY = new NamespacedKey("betonquest", "journal");
+
     /**
      * Custom {@link BetonQuestLogger} instance for this class.
      */
@@ -144,39 +149,14 @@ public class Journal {
     /**
      * Checks if the item is the journal.
      *
-     * @param onlineProfile the {@link OnlineProfile} of the player
-     * @param item          ItemStack to check against being the journal
+     * @param item ItemStack to check against being the journal
      * @return true if the ItemStack is the journal, false otherwise
      */
-    public static boolean isJournal(final OnlineProfile onlineProfile, @Nullable final ItemStack item) {
-        if (item == null) {
+    public static boolean isJournal(@Nullable final ItemStack item) {
+        if (item == null || item.getType().isAir() || !item.hasItemMeta()) {
             return false;
         }
-        try {
-            if (!(item.getItemMeta() instanceof final BookMeta bookMeta)) {
-                return false;
-            }
-            final Component title = bookMeta.title();
-            final List<Component> lore = bookMeta.lore();
-            if (title == null || lore == null) {
-                return false;
-            }
-            final Component journalTitle = BetonQuest.getInstance().getPluginMessage().getMessage(onlineProfile, "journal_title");
-            return title.contains(journalTitle, Utils.COMPONENT_BI_PREDICATE)
-                    && Objects.equals(compactList(item.getItemMeta().lore()), compactList(getJournalLore(onlineProfile)));
-        } catch (final QuestException e) {
-            LOG.warn("Failed to check if the journal's title is correct: " + e.getMessage(), e);
-            return false;
-        }
-    }
-
-    private static List<Component> compactList(@Nullable final List<Component> list) {
-        if (list == null) {
-            return List.of();
-        }
-        return list.stream()
-                .map(Component::compact)
-                .toList();
+        return item.getItemMeta().getPersistentDataContainer().has(JOURNAL_KEY);
     }
 
     private static List<Component> getJournalLore(final Profile profile) throws QuestException {
@@ -193,7 +173,7 @@ public class Journal {
     public static boolean hasJournal(final OnlineProfile onlineProfile) {
         final Player player = onlineProfile.getPlayer();
         for (final ItemStack item : player.getInventory().getContents()) {
-            if (isJournal(onlineProfile, item)) {
+            if (isJournal(item)) {
                 return true;
             }
         }
@@ -416,6 +396,7 @@ public class Journal {
         final ItemStack item = new ItemStack(Material.WRITTEN_BOOK);
 
         final BookMeta meta = (BookMeta) item.getItemMeta();
+        meta.getPersistentDataContainer().set(JOURNAL_KEY, PersistentDataType.BYTE, (byte) 1);
         meta.title(pluginMessage.getMessage(profile, "journal_title"));
         meta.setAuthor(profile.getPlayer().getName());
         meta.setCustomModelData(config.getInt("journal.custom_model_data"));
@@ -472,7 +453,7 @@ public class Journal {
         final OnlineProfile onlineProfile = profile.getOnlineProfile().get();
         final Inventory inventory = onlineProfile.getPlayer().getInventory();
         for (int i = 0; i < inventory.getSize(); i++) {
-            if (isJournal(onlineProfile, inventory.getItem(i))) {
+            if (isJournal(inventory.getItem(i))) {
                 inventory.setItem(i, new ItemStack(Material.AIR));
                 return i;
             }

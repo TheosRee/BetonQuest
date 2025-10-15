@@ -30,6 +30,7 @@ class ConfigPatcherIT extends QuestFixture {
                 Arguments.of("config.yml", (Consumer<ConfigurationSection>) section -> {
                     assertEquals(section.get("conversation.default_io"), "menu,chest", "For old config, conversation.default_io should be menu,chest");
                     section.set("conversation.default_io", "menu,tellraw");
+                    section.set("join_item_updater", false);
                 }),
                 Arguments.of("lang/de-DE.yml", null),
                 Arguments.of("lang/en-US.yml", null),
