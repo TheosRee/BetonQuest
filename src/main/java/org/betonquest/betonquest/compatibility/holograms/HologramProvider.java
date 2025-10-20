@@ -1,5 +1,8 @@
 package org.betonquest.betonquest.compatibility.holograms;
 
+import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.text.minimessage.MiniMessage;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.betonquest.betonquest.BetonQuest;
 import org.betonquest.betonquest.api.BetonQuestApi;
 import org.betonquest.betonquest.api.config.quest.QuestPackage;
@@ -7,6 +10,8 @@ import org.betonquest.betonquest.api.logger.BetonQuestLoggerFactory;
 import org.betonquest.betonquest.api.profile.ProfileProvider;
 import org.betonquest.betonquest.api.text.TextParser;
 import org.betonquest.betonquest.compatibility.Integrator;
+import org.betonquest.betonquest.text.parser.MiniMessageParser;
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -94,7 +99,7 @@ public class HologramProvider implements Integrator {
     public void hook(final BetonQuestApi api) {
         final BetonQuest plugin = BetonQuest.getInstance();
         final BetonQuestLoggerFactory loggerFactory = api.getLoggerFactory();
-        final TextParser textParser = plugin.getTextParser();
+        final TextParser textParser = buildTextParser();
         this.locationHologramLoop = new LocationHologramLoop(loggerFactory, loggerFactory.create(LocationHologramLoop.class),
                 api.getQuestPackageManager(), plugin.getVariableProcessor(), this, plugin, textParser);
         plugin.addProcessor(locationHologramLoop);
@@ -103,6 +108,19 @@ public class HologramProvider implements Integrator {
                 api.getFeatureApi(), api.getFeatureRegistries().npc(), textParser);
         plugin.addProcessor(npcHologramLoop);
         plugin.getServer().getPluginManager().registerEvents(new HologramListener(api.getProfileProvider()), plugin);
+    }
+
+    private TextParser buildTextParser() {
+        final LegacyComponentSerializer legacySerializer = LegacyComponentSerializer.builder().build();
+        final MiniMessage miniMessage = MiniMessage.miniMessage();
+        final MiniMessage legacyMiniMessage = MiniMessage.builder()
+                .preProcessor(input -> {
+                    final TextComponent deserialize = legacySerializer.deserialize(ChatColor.translateAlternateColorCodes('&', input.replaceAll("(?<!\\\\)\\\\n", "\n")));
+                    final String serialize = miniMessage.serialize(deserialize);
+                    return serialize.replaceAll("\\\\<", "<");
+                })
+                .build();
+        return new MiniMessageParser(legacyMiniMessage);
     }
 
     @Override
