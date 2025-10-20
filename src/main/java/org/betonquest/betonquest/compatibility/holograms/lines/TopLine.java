@@ -1,8 +1,10 @@
 package org.betonquest.betonquest.compatibility.holograms.lines;
 
+import net.kyori.adventure.text.Component;
 import org.betonquest.betonquest.api.logger.BetonQuestLoggerFactory;
 import org.betonquest.betonquest.compatibility.holograms.BetonHologram;
-import org.bukkit.ChatColor;
+
+import static net.kyori.adventure.text.Component.text;
 
 /**
  * Creates a new instance for TopLine.
@@ -56,17 +58,22 @@ public class TopLine extends AbstractLine {
      *
      * @return Formatted lines ready for display on a hologram
      */
-    public String[] getLines() {
+    public Component[] getLines() {
         topXObject.queryDB();
 
-        final String[] lines = new String[linesAdded];
+        final Component[] lines = new Component[linesAdded];
         for (int i = 0; i < linesAdded; i++) {
             if (i >= topXObject.getLineCount()) {
-                lines[i] = "";
+                lines[i] = Component.empty();
                 continue;
             }
             final TopXLine line = topXObject.getEntries().get(i);
-            lines[i] = colors.place.toString() + (i + 1) + ". " + colors.name + line.playerName() + colors.dash + " - " + colors.score + line.count();
+            lines[i] = text()
+                    .append(colors.place.append(text((i + 1) + ". ")))
+                    .append(colors.name.append(text(line.playerName())))
+                    .append(colors.dash.append(text(" - ")))
+                    .append(colors.score.append(text(line.count())))
+                    .asComponent();
         }
         return lines;
     }
@@ -83,7 +90,7 @@ public class TopLine extends AbstractLine {
 
     @Override
     public void setLine(final BetonHologram hologram, final int index) {
-        final String[] lines = getLines();
+        final Component[] lines = getLines();
         for (int i = 0; i < lines.length; i++) {
             hologram.setLine(index + i, lines[i]);
         }
@@ -97,6 +104,6 @@ public class TopLine extends AbstractLine {
      * @param dash  color for dash
      * @param score color for score
      */
-    public record FormatColors(ChatColor place, ChatColor name, ChatColor dash, ChatColor score) {
+    public record FormatColors(Component place, Component name, Component dash, Component score) {
     }
 }
