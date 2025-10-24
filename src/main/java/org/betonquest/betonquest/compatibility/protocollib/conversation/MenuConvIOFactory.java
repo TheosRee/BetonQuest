@@ -69,46 +69,36 @@ public class MenuConvIOFactory implements ConversationIOFactory {
     public ConversationIO parse(final Conversation conversation, final OnlineProfile onlineProfile) throws QuestException {
         final MenuConvIOSettings settings = MenuConvIOSettings.fromConfigurationSection(textParser, config.getConfigurationSection("conversation.io.menu"));
         final FixedComponentLineWrapper componentLineWrapper = new FixedComponentLineWrapper(fontRegistry, settings.lineLength());
-        return new MenuConvIO(conversation, onlineProfile, colors, settings, componentLineWrapper, plugin, getControls(settings));
+        return new PLMenuConvIO(conversation, onlineProfile, colors, settings, componentLineWrapper, plugin, getControls(settings));
     }
 
-    @SuppressWarnings("PMD.CyclomaticComplexity")
     private Map<MenuConvIO.CONTROL, MenuConvIO.ACTION> getControls(final MenuConvIOSettings settings) throws QuestException {
         final Map<MenuConvIO.CONTROL, MenuConvIO.ACTION> controls = new EnumMap<>(MenuConvIO.CONTROL.class);
-        try {
-            for (final MenuConvIO.CONTROL control : controls(settings.controlCancel())) {
-                if (!controls.containsKey(control)) {
-                    controls.put(control, MenuConvIO.ACTION.CANCEL);
-                }
+        for (final MenuConvIO.CONTROL control : controls(settings.controlCancel(), "control_cancel")) {
+            if (!controls.containsKey(control)) {
+                controls.put(control, MenuConvIO.ACTION.CANCEL);
             }
-        } catch (final IllegalArgumentException e) {
-            throw new QuestException("Invalid data for 'control_cancel': " + settings.controlCancel(), e);
         }
-        try {
-            for (final MenuConvIO.CONTROL control : controls(settings.controlSelect())) {
-
-                if (!controls.containsKey(control)) {
-                    controls.put(control, MenuConvIO.ACTION.SELECT);
-                }
+        for (final MenuConvIO.CONTROL control : controls(settings.controlSelect(), "control_select")) {
+            if (!controls.containsKey(control)) {
+                controls.put(control, MenuConvIO.ACTION.SELECT);
             }
-        } catch (final IllegalArgumentException e) {
-            throw new QuestException("Invalid data for 'control_select': " + settings.controlSelect(), e);
         }
-        try {
-            for (final MenuConvIO.CONTROL control : controls(settings.controlMove())) {
-                if (!controls.containsKey(control)) {
-                    controls.put(control, MenuConvIO.ACTION.MOVE);
-                }
+        for (final MenuConvIO.CONTROL control : controls(settings.controlMove(), "control_move")) {
+            if (!controls.containsKey(control)) {
+                controls.put(control, MenuConvIO.ACTION.MOVE);
             }
-        } catch (final IllegalArgumentException e) {
-            throw new QuestException("Invalid data for 'control_move': " + settings.controlMove(), e);
         }
         return controls;
     }
 
-    private List<MenuConvIO.CONTROL> controls(final String string) {
-        return Arrays.stream(string.split(","))
-                .map(s -> s.toUpperCase(Locale.ROOT))
-                .map(MenuConvIO.CONTROL::valueOf).toList();
+    private List<MenuConvIO.CONTROL> controls(final String string, final String name) throws QuestException {
+        try {
+            return Arrays.stream(string.split(","))
+                    .map(s -> s.toUpperCase(Locale.ROOT))
+                    .map(MenuConvIO.CONTROL::valueOf).toList();
+        } catch (final IllegalArgumentException e) {
+            throw new QuestException("Invalid data for '" + name + "': " + string, e);
+        }
     }
 }
