@@ -132,10 +132,22 @@ public class BetonQuest extends JavaPlugin {
         coreComponentLoader.getOptional(ProfileProvider.class).map(ProfileProvider::getOnlineProfiles)
                 .ifPresent(onlineProfiles -> onlineProfiles.forEach(onlineProfile -> onlineProfile.getPlayer().closeInventory()));
 
-        coreComponentLoader.getOptional(Saver.class).ifPresent(Saver::end);
+        coreComponentLoader.getOptional(Saver.class).ifPresent(saver -> {
+            saver.end();
+            if (saver instanceof final Thread saverThread) {
+                try {
+                    saverThread.join();
+                } catch (final InterruptedException e) {
+                    log.error("Failed to properly join saver thread: " + e.getMessage(), e);
+                }
+            }
+        });
         coreComponentLoader.getOptional(IntegrationManager.class).ifPresent(IntegrationManager::disable);
         coreComponentLoader.getOptional(Compatibility.class).ifPresent(Compatibility::disable);
-        coreComponentLoader.getOptional(Connector.class).ifPresent(connector -> connector.getDatabase().closeConnection());
+        coreComponentLoader.getOptional(Connector.class).ifPresent(connector -> {
+            connector.getDatabase().setShuttingDown(true);
+            connector.getDatabase().closeConnection();
+        });
         coreComponentLoader.getOptional(PlayerHider.class).ifPresent(PlayerHider::stop);
         coreComponentLoader.getOptional(RPGMenu.class).ifPresent(RPGMenu::onDisable);
 

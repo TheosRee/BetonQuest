@@ -11,6 +11,8 @@ import org.betonquest.betonquest.database.SQLite;
 import org.betonquest.betonquest.lib.dependency.component.AbstractCoreComponent;
 import org.bukkit.plugin.Plugin;
 
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.Set;
 
 /**
@@ -58,13 +60,13 @@ public class DatabaseComponent extends AbstractCoreComponent {
                     config.getString("mysql.base"),
                     config.getString("mysql.user"),
                     config.getString("mysql.pass"));
-            try {
-                mySql.getConnection();
-                database = mySql;
-                this.mySql = true;
-                log.info("Successfully connected to MySQL database!");
-            } catch (final IllegalStateException e) {
-                log.warn("MySQL: " + e.getMessage(), e);
+            try (Connection con = mySql.getConnection()) {
+                if (!con.isClosed()) {
+                    database = mySql;
+                    log.info("Successfully connected to MySQL database!");
+                }
+            } catch (final SQLException e) {
+                log.error("Failed to connect to MySQL database: " + e.getMessage(), e);
             }
         }
         if (database == null) {

@@ -1,5 +1,8 @@
 package org.betonquest.betonquest.database;
 
+import org.betonquest.betonquest.api.logger.BetonQuestLogger;
+
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -53,7 +56,7 @@ public class Connector {
             }
         } catch (final SQLException e) {
             throw new IllegalStateException(
-                    "There was a exception with SQL executing query type '%s' with the following arguments: %s. Reason: %s"
+                    "There was an exception with SQL executing query type '%s' with the following arguments: %s. Reason: %s"
                             .formatted(type, args, e.getMessage()), e);
         }
     }
