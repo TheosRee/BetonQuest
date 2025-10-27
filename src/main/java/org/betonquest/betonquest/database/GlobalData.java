@@ -51,7 +51,7 @@ public class GlobalData implements TagData, PointData {
      * Loads all data for the player and puts it in appropriate lists.
      */
     public final void loadAllGlobalData() {
-        final Connector con = new Connector();
+        final Connector con = Connector.getInstance();
         try (ResultSet globalTags = con.querySQL(QueryType.LOAD_ALL_GLOBAL_TAGS);
              ResultSet globalPoints = con.querySQL(QueryType.LOAD_ALL_GLOBAL_POINTS)) {
             while (globalTags.next()) {

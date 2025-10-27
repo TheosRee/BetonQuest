@@ -69,8 +69,7 @@ public class TopXObject {
      */
     public void queryDB() {
         entries.clear();
-        final Connector con = new Connector();
-
+        final Connector con = Connector.getInstance();
         try (ResultSet resultSet = con.querySQL(orderType.getType(), statement -> {
             statement.setString(1, category);
             statement.setInt(2, limit);

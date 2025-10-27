@@ -1,7 +1,6 @@
 package org.betonquest.betonquest.database;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import org.betonquest.betonquest.api.config.ConfigAccessor;
 import org.betonquest.betonquest.api.logger.BetonQuestLogger;
 
 import java.util.Queue;
@@ -20,19 +19,9 @@ public class AsyncSaver extends Thread implements Saver {
     private final BetonQuestLogger log;
 
     /**
-     * The connector that connects to the database.
-     */
-    private final Connector con;
-
-    /**
      * The queue of records to be saved to the database.
      */
     private final Queue<Record> queue;
-
-    /**
-     * The amount of time, until the AsyncSaver tries to reconnect if there was a connection loss.
-     */
-    private final long reconnectInterval;
 
     /**
      * Whether the saver is currently running or not.
@@ -42,23 +31,19 @@ public class AsyncSaver extends Thread implements Saver {
     /**
      * Creates new database saver thread.
      *
-     * @param log    the logger that will be used for logging
-     * @param config the plugin configuration file
+     * @param log the logger that will be used for logging
      */
-    public AsyncSaver(final BetonQuestLogger log, final ConfigAccessor config) {
+    public AsyncSaver(final BetonQuestLogger log) {
         super();
         this.log = log;
-        this.con = new Connector();
         this.queue = new ConcurrentLinkedQueue<>();
         this.running = true;
-        this.reconnectInterval = config.getLong("mysql.reconnect_interval");
     }
 
     @Override
-    @SuppressFBWarnings("UW_UNCOND_WAIT")
-    @SuppressWarnings("PMD.CognitiveComplexity")
+    @SuppressFBWarnings({"UW_UNCOND_WAIT", "DCN_NULLPOINTER_EXCEPTION"})
+    @SuppressWarnings({"PMD.CognitiveComplexity", "PMD"})
     public void run() {
-        boolean active = false;
         while (true) {
             while (queue.isEmpty()) {
                 if (!running) {
@@ -66,26 +51,25 @@ public class AsyncSaver extends Thread implements Saver {
                 }
                 synchronized (this) {
                     try {
-                        active = false;
                         wait();
                     } catch (final InterruptedException e) {
                         log.warn("AsyncSaver got interrupted!");
                     }
                 }
             }
-            if (!active) {
-                while (!con.refresh()) {
-                    log.warn("Failed to re-establish connection with the database! Trying again in one second...");
-                    try {
-                        sleep(reconnectInterval);
-                    } catch (final InterruptedException e) {
-                        log.warn("AsyncSaver got interrupted!");
-                    }
-                }
-                active = true;
-            }
             final Record rec = queue.poll();
-            con.updateSQL(rec.type(), rec.args());
+            try {
+                final Connector con = Connector.getInstance();
+                if (con.getDatabase().isShuttingDown()) {
+                    log.warn("Database is shutting down. Skipping update for record: " + rec);
+                    continue;
+                }
+                con.updateSQL(rec.type(), rec.args());
+            } catch (final NullPointerException e) {
+                log.error("Failed to update database: " + e.getMessage(), e);
+            } catch (final RuntimeException e) {
+                log.error("Unexpected error during database update: " + e.getMessage(), e);
+            }
         }
     }
 

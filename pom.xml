@@ -415,6 +415,11 @@
       <artifactId>cron-utils</artifactId>
       <version>9.2.1</version>
     </dependency>
+    <dependency>
+      <groupId>com.zaxxer</groupId>
+      <artifactId>HikariCP</artifactId>
+      <version>6.2.1</version>
+    </dependency>
   </dependencies>
 
   <repositories>
@@ -576,6 +581,7 @@
                   <include>io.papermc:paperlib</include>
                   <include>com.cronutils:cron-utils</include>
                   <include>de.themoep:minedown-adventure</include>
+                  <include>com.zaxxer</include>
                 </includes>
               </artifactSet>
               <filters>
@@ -630,6 +636,10 @@
                 <relocation>
                   <pattern>de.themoep</pattern>
                   <shadedPattern>${project.groupId}.${project.artifactId}.dependencies.de.themoep</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>com.zaxxer.hikari</pattern>
+                  <shadedPattern>${project.groupId}.${project.artifactId}.dependencies.com.zaxxer.hikari</shadedPattern>
                 </relocation>
               </relocations>
             </configuration>

@@ -293,7 +293,7 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
                             break;
                         }
                         new Backup(loggerFactory.create(Backup.class), configAccessorFactory, instance.getDataFolder(),
-                                new Connector()).backup(instance.getDescription().getVersion());
+                                Connector.getInstance()).backup(instance.getDescription().getVersion());
                         break;
                     case "debug":
                         handleDebug(sender, args);
