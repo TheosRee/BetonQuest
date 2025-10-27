@@ -108,6 +108,8 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.time.InstantSource;
 import java.util.Collection;
 import java.util.List;
@@ -328,7 +330,7 @@ public class BetonQuest extends JavaPlugin implements BetonQuestApi, LanguagePro
 
         setupDatabase();
 
-        saver = new AsyncSaver(loggerFactory.create(AsyncSaver.class, "Database"), config.getLong("mysql.reconnect_interval"), connector);
+        saver = new AsyncSaver(loggerFactory.create(AsyncSaver.class, "Database"), connector);
         saver.start();
         new Backup(loggerFactory.create(Backup.class), configAccessorFactory, getDataFolder(), connector)
                 .loadDatabaseFromBackup();
@@ -456,13 +458,14 @@ public class BetonQuest extends JavaPlugin implements BetonQuestApi, LanguagePro
                     config.getString("mysql.base"),
                     config.getString("mysql.user"),
                     config.getString("mysql.pass"));
-            try {
-                mySql.getConnection();
-                database = mySql;
-                usesMySQL = true;
-                log.info("Successfully connected to MySQL database!");
-            } catch (final IllegalStateException e) {
-                log.warn("MySQL: " + e.getMessage(), e);
+            try (Connection con = mySql.getConnection()) {
+                if (!con.isClosed()) {
+                    database = mySql;
+                    usesMySQL = true;
+                    log.info("Successfully connected to MySQL database!");
+                }
+            } catch (final SQLException e) {
+                log.error("Failed to connect to MySQL database: " + e.getMessage(), e);
             }
         }
         if (database == null) {
@@ -626,11 +629,17 @@ public class BetonQuest extends JavaPlugin implements BetonQuestApi, LanguagePro
 
         if (saver != null) {
             saver.end();
+            try {
+                saver.join();
+            } catch (final InterruptedException e) {
+                log.error("Failed to properly join saver thread: " + e.getMessage(), e);
+            }
         }
         if (compatibility != null) {
             compatibility.disable();
         }
         if (connector != null) {
+            connector.getDatabase().setShuttingDown(true);
             connector.getDatabase().closeConnection();
         }
         if (playerHider != null) {
