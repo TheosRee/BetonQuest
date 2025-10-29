@@ -172,6 +172,11 @@
       <scope>provided</scope>
       <optional>true</optional>
     </dependency>
+    <dependency>
+      <groupId>de.tr7zw</groupId>
+      <artifactId>item-nbt-api</artifactId>
+      <version>2.14.1</version>
+    </dependency>
 
     <!-- from neetgames repository -->
     <dependency>
@@ -576,6 +581,7 @@
                   <include>io.papermc:paperlib</include>
                   <include>com.cronutils:cron-utils</include>
                   <include>de.themoep:minedown-adventure</include>
+                  <include>de.tr7zw</include>
                 </includes>
               </artifactSet>
               <filters>
@@ -630,6 +636,10 @@
                 <relocation>
                   <pattern>de.themoep</pattern>
                   <shadedPattern>${project.groupId}.${project.artifactId}.dependencies.de.themoep</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>de.tr7zw.changeme.nbtapi</pattern>
+                  <shadedPattern>${project.groupId}.${project.artifactId}.dependencies.de.tr7zw.nbtapi</shadedPattern>
                 </relocation>
               </relocations>
             </configuration>

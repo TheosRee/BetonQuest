@@ -17,9 +17,12 @@ import org.betonquest.betonquest.item.typehandler.EnchantmentsHandler;
 import org.betonquest.betonquest.item.typehandler.FireworkHandler;
 import org.betonquest.betonquest.item.typehandler.FlagHandler;
 import org.betonquest.betonquest.item.typehandler.HeadHandler;
+import org.betonquest.betonquest.item.typehandler.ItemHandler;
 import org.betonquest.betonquest.item.typehandler.ItemMetaHandler;
+import org.betonquest.betonquest.item.typehandler.ItemStackHandler;
 import org.betonquest.betonquest.item.typehandler.LoreHandler;
 import org.betonquest.betonquest.item.typehandler.NameHandler;
+import org.betonquest.betonquest.item.typehandler.NbtHandler;
 import org.betonquest.betonquest.item.typehandler.PotionHandler;
 import org.betonquest.betonquest.item.typehandler.QuestHandler;
 import org.betonquest.betonquest.item.typehandler.UnbreakableHandler;
@@ -110,10 +113,12 @@ public class SimpleQuestItemFactory implements TypeFactory<QuestItemWrapper> {
                 new FireworkHandler()
         );
 
+        final List<ItemStackHandler<?>> stackHandlers = List.of(new NbtHandler());
+
         if (!arguments.isEmpty()) {
-            fillHandler(handlers, arguments);
+            fillHandler(handlers, stackHandlers, arguments);
         }
-        return new SimpleQuestItem(selector, handlers, name, lore);
+        return new SimpleQuestItem(selector, handlers, stackHandlers, name, lore);
     }
 
     @Override
@@ -131,13 +136,21 @@ public class SimpleQuestItemFactory implements TypeFactory<QuestItemWrapper> {
         return new ShallowWrapper(parseInstruction(material, arguments));
     }
 
-    private void fillHandler(final List<ItemMetaHandler<?>> handlers, final List<String> arguments) throws QuestException {
-        final Map<String, ItemMetaHandler<?>> keyToHandler = new HashMap<>();
+    private void fillHandler(final List<ItemMetaHandler<?>> handlers, final List<ItemStackHandler<?>> stackHandlers,
+                             final List<String> arguments) throws QuestException {
+        final Map<String, ItemHandler<?, ?>> keyToHandler = new HashMap<>();
         for (final ItemMetaHandler<?> handler : handlers) {
             for (final String key : handler.keys()) {
                 keyToHandler.put(key, handler);
             }
         }
+
+        for (final ItemStackHandler<?> handler : stackHandlers) {
+            for (final String key : handler.keys()) {
+                keyToHandler.put(key, handler);
+            }
+        }
+
         for (final String part : arguments) {
             if (part.isEmpty()) {
                 continue; //catch empty string caused by multiple whitespaces in instruction split
@@ -146,7 +159,7 @@ public class SimpleQuestItemFactory implements TypeFactory<QuestItemWrapper> {
             final String argumentName = getArgumentName(part.toLowerCase(Locale.ROOT));
             final String data = getArgumentData(part);
 
-            final ItemMetaHandler<?> handler = Utils.getNN(keyToHandler.get(argumentName), "Unknown argument: " + argumentName);
+            final ItemHandler<?, ?> handler = Utils.getNN(keyToHandler.get(argumentName), "Unknown argument: " + argumentName);
             handler.set(argumentName, data);
         }
     }

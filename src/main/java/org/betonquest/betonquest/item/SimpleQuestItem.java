@@ -4,6 +4,7 @@ import net.kyori.adventure.text.Component;
 import org.betonquest.betonquest.api.profile.Profile;
 import org.betonquest.betonquest.api.quest.QuestException;
 import org.betonquest.betonquest.item.typehandler.ItemMetaHandler;
+import org.betonquest.betonquest.item.typehandler.ItemStackHandler;
 import org.betonquest.betonquest.item.typehandler.LoreHandler;
 import org.betonquest.betonquest.item.typehandler.NameHandler;
 import org.betonquest.betonquest.util.BlockSelector;
@@ -41,29 +42,36 @@ public class SimpleQuestItem implements QuestItem {
     private final List<ItemMetaHandler<? extends ItemMeta>> handlers;
 
     /**
+     * Handlers defining the QuestItem.
+     */
+    private final List<ItemStackHandler<?>> stackHandlers;
+
+    /**
      * Creates a new QuestItem with "Vanilla Handlers".
      *
-     * @param selector the base Material Selector for the ItemStack generation
-     * @param handlers the populated handlers defining the QuestItem, including name and lore
-     * @param name     providing display name for variables
-     * @param lore     providing lore lines for variables
+     * @param selector      the base Material Selector for the ItemStack generation
+     * @param handlers      the populated handlers defining the QuestItem, including name and lore
+     * @param stackHandlers the populated stack handlers defining the QuestItem
+     * @param name          providing display name for variables
+     * @param lore          providing lore lines for variables
      */
     public SimpleQuestItem(final BlockSelector selector, final List<ItemMetaHandler<?>> handlers,
-                           final NameHandler name, final LoreHandler lore) {
+                           final List<ItemStackHandler<?>> stackHandlers, final NameHandler name, final LoreHandler lore) {
         this.selector = selector;
         this.handlers = handlers;
+        this.stackHandlers = stackHandlers;
         this.name = name;
         this.lore = lore;
     }
 
     @Override
     public boolean equals(@Nullable final Object other) {
-        return other instanceof final SimpleQuestItem item && item.handlers.equals(handlers);
+        return other instanceof final SimpleQuestItem item && item.handlers.equals(handlers) && item.stackHandlers.equals(stackHandlers);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(selector, handlers);
+        return Objects.hash(selector, handlers, stackHandlers);
     }
 
     @Override
@@ -78,6 +86,11 @@ public class SimpleQuestItem implements QuestItem {
 
         for (final ItemMetaHandler<? extends ItemMeta> handler : handlers) {
             if (!handler.rawCheck(meta)) {
+                return false;
+            }
+        }
+        for (final ItemStackHandler<? extends ItemStack> handler : stackHandlers) {
+            if (!handler.rawCheck(item)) {
                 return false;
             }
         }
@@ -96,6 +109,10 @@ public class SimpleQuestItem implements QuestItem {
 
         for (final ItemMetaHandler<? extends ItemMeta> handler : handlers) {
             handler.rawPopulate(meta, profile);
+        }
+
+        for (final ItemStackHandler<?> stackHandler : stackHandlers) {
+            stackHandler.rawPopulate(item, profile);
         }
 
         item.setItemMeta(meta);
