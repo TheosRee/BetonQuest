@@ -38,7 +38,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -326,10 +330,23 @@ public class Conversation implements Listener {
      * @param options list of pointers to player options separated by commas
      */
     private void printOptions(final List<ResolvedOption> options) {
-        int optionsCount = 0;
+        final List<CompletableFuture<Optional<ResolvedOption>>> futures = new ArrayList<>();
         for (final ResolvedOption option : options) {
             final List<ConditionID> conditionIDs = option.conversationData().getConditionIDs(option.name(), option.type());
-            if (plugin.getQuestTypeApi().conditions(onlineProfile, conditionIDs)) {
+            futures.add(CompletableFuture.supplyAsync(() -> plugin.getQuestTypeApi().conditions(onlineProfile, conditionIDs)
+                    ? Optional.of(option) : Optional.empty()));
+        }
+        int optionsCount = 0;
+        for (final CompletableFuture<Optional<ResolvedOption>> future : futures) {
+            final Optional<ResolvedOption> resolved;
+            try {
+                resolved = future.get();
+            } catch (final CancellationException | ExecutionException | InterruptedException e) {
+                log.reportException(pack, e);
+                continue;
+            }
+            if (resolved.isPresent()) {
+                final ResolvedOption option = resolved.get();
                 optionsCount++;
                 availablePlayerOptions.put(optionsCount, option);
 
