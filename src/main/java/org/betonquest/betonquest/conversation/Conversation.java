@@ -547,7 +547,12 @@ public class Conversation {
         /**
          * A list of options the conversation will start from.
          */
-        private List<String> startingOptions = new ArrayList<>();
+        private final List<String> startingOptions;
+
+        /**
+         * If the condition check for starting options should be bypassed.
+         */
+        private final boolean force;
 
         /**
          * Starts a conversation at the given option.
@@ -556,7 +561,8 @@ public class Conversation {
          */
         public Starter(final String startingOption) {
             super();
-            startingOptions.add(startingOption);
+            startingOptions = List.of(startingOption);
+            this.force = true;
         }
 
         /**
@@ -564,6 +570,8 @@ public class Conversation {
          */
         public Starter() {
             super();
+            startingOptions = data.getStartingOptions();
+            this.force = false;
         }
 
         @Override
@@ -590,20 +598,9 @@ public class Conversation {
                 inOut.begin();
                 interceptor.begin();
 
-                if (startingOptions.isEmpty()) {
-                    startingOptions = data.getStartingOptions();
-                    final List<ResolvedOption> resolvedOptions = resolveOptions(startingOptions);
-                    // first select the option before sending message, so it
-                    // knows which is used
-                    selectOption(resolvedOptions, false);
-                } else {
-                    final List<ResolvedOption> resolvedOptions = resolveOptions(startingOptions);
-                    selectOption(resolvedOptions, true);
-                }
-
+                selectOption(resolveOptions(startingOptions), force);
                 printNPCText();
-                new ConversationOptionEvent(onlineProfile, Conversation.this, nextNPCOption,
-                        Conversation.this.nextNPCOption).callEvent();
+                new ConversationOptionEvent(onlineProfile, Conversation.this, nextNPCOption, nextNPCOption).callEvent();
             } finally {
                 lock.writeLock().unlock();
             }
