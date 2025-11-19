@@ -348,7 +348,7 @@ public class MenuConvIO extends ChatConvIO {
 
             event.setCancelled(true);
 
-            updateDisplay(getScrollDirection(event.getPreviousSlot(), event.getNewSlot()));
+            Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> updateDisplay(getScrollDirection(event.getPreviousSlot(), event.getNewSlot())));
         } finally {
             lock.unlock();
         }
