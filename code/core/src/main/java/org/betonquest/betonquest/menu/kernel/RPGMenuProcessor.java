@@ -11,7 +11,6 @@ import org.betonquest.betonquest.api.logger.BetonQuestLogger;
 import org.betonquest.betonquest.api.logger.BetonQuestLoggerFactory;
 import org.betonquest.betonquest.api.quest.QuestException;
 import org.betonquest.betonquest.api.quest.QuestTypeApi;
-import org.betonquest.betonquest.api.quest.Variables;
 import org.betonquest.betonquest.kernel.processor.SectionProcessor;
 import org.betonquest.betonquest.text.ParsedSectionTextCreator;
 import org.bukkit.configuration.ConfigurationSection;
@@ -40,11 +39,6 @@ public abstract class RPGMenuProcessor<I extends Identifier, T> extends SectionP
     protected final QuestTypeApi questTypeApi;
 
     /**
-     * Variable processor to create and resolve variables.
-     */
-    protected final Variables variables;
-
-    /**
      * The Item Parser instance.
      */
     protected final ItemParser itemParser;
@@ -58,19 +52,17 @@ public abstract class RPGMenuProcessor<I extends Identifier, T> extends SectionP
      * @param internal      the section name and/or bstats topic identifier
      * @param loggerFactory the logger factory to class specific loggers with
      * @param textCreator   the text creator to parse text
-     * @param variables     the variable processor to create and resolve variables
      * @param questTypeApi  the QuestTypeApi
      * @param featureApi    the Feature API
      */
     public RPGMenuProcessor(final BetonQuestLogger log, final QuestPackageManager packManager, final String readable,
                             final String internal, final BetonQuestLoggerFactory loggerFactory,
-                            final ParsedSectionTextCreator textCreator, final Variables variables,
+                            final ParsedSectionTextCreator textCreator,
                             final QuestTypeApi questTypeApi, final FeatureApi featureApi) {
-        super(log, packManager, readable, internal);
+        super(log, questTypeApi.variables(), packManager, readable, internal);
         this.loggerFactory = loggerFactory;
         this.textCreator = textCreator;
         this.questTypeApi = questTypeApi;
-        this.variables = variables;
         this.itemParser = new ItemParser(featureApi);
     }
 
@@ -126,7 +118,8 @@ public abstract class RPGMenuProcessor<I extends Identifier, T> extends SectionP
          */
         protected <U extends Identifier> VariableList<U> getID(final String path, final IdentifierArgument<U> argument)
                 throws QuestException {
-            return new VariableList<>(variables, pack, section.getString(path, ""), value -> argument.apply(packManager, pack, value));
+            return new VariableList<>(variables, pack, section.getString(path, ""),
+                    value -> argument.apply(variables, packManager, pack, value));
         }
     }
 }

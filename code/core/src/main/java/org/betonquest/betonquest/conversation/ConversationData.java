@@ -660,7 +660,7 @@ public class ConversationData {
 
         private <T> List<T> resolve(final ConfigurationSection conv, final String identifier,
                                     final IdentifierArgument<T> resolver) throws QuestException {
-            return resolve(conv, identifier, (value) -> resolver.apply(packManager, getPack(), value));
+            return resolve(conv, identifier, (value) -> resolver.apply(variables, packManager, getPack(), value));
         }
 
         @Nullable

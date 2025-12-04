@@ -5,6 +5,7 @@ import org.betonquest.betonquest.api.config.quest.QuestPackage;
 import org.betonquest.betonquest.api.config.quest.QuestPackageManager;
 import org.betonquest.betonquest.api.instruction.argument.types.ItemParser;
 import org.betonquest.betonquest.api.quest.QuestException;
+import org.betonquest.betonquest.api.quest.Variables;
 
 /**
  * Objectified parser for the Instruction to get a {@link T} from quest package manager, package and string.
@@ -22,11 +23,12 @@ public interface IdentifierArgument<T> {
     /**
      * Gets a {@link T} from string.
      *
+     * @param variables   the variable processor to create and resolve variables
      * @param packManager the quest package manager to get quest packages from
      * @param pack        the source package
      * @param string      the string to parse
      * @return the {@link T}
      * @throws QuestException when the string cannot be parsed as {@link T}
      */
-    T apply(QuestPackageManager packManager, QuestPackage pack, String string) throws QuestException;
+    T apply(Variables variables, QuestPackageManager packManager, QuestPackage pack, String string) throws QuestException;
 }

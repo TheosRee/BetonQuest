@@ -20,6 +20,7 @@ import org.jetbrains.annotations.Nullable;
  */
 @SuppressWarnings("NullAway.Init")
 public class SkriptConditionBQ extends Condition {
+
     /**
      * Custom {@link BetonQuestLogger} instance for this class.
      */
@@ -74,7 +75,7 @@ public class SkriptConditionBQ extends Condition {
         final String conditionID = condition.getSingle(event);
         try {
             final ProfileProvider profileProvider = plugin.getProfileProvider();
-            return plugin.getQuestTypeApi().condition(profileProvider.getProfile(player.getSingle(event)), new ConditionID(packManager, null, conditionID));
+            return plugin.getQuestTypeApi().condition(profileProvider.getProfile(player.getSingle(event)), new ConditionID(variables, packManager, null, conditionID));
         } catch (final QuestException e) {
             log.warn("Error while checking Skript condition - could not load condition with ID '" + conditionID + "': " + e.getMessage(), e);
             return false;

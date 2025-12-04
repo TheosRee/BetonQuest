@@ -18,6 +18,7 @@ import java.util.UUID;
  */
 @SuppressWarnings("PMD.ConstructorCallsOverridableMethod")
 public class ConditionRequirement extends BukkitCustomRequirement {
+
     /**
      * Custom {@link BetonQuestLogger} instance for this class.
      */
@@ -72,7 +73,7 @@ public class ConditionRequirement extends BukkitCustomRequirement {
                 log.warn("Error while running quest reward - Player with UUID '" + uuid + "' not found.");
                 return false;
             }
-            final ConditionID condition = new ConditionID(packManager, null, string);
+            final ConditionID condition = new ConditionID(variables, packManager, null, string);
             return questTypeApi.condition(profileProvider.getProfile(player), condition);
         } catch (final QuestException e) {
             log.warn("Error while checking quest requirement - BetonQuest condition '" + string + "' not found: " + e.getMessage(), e);
