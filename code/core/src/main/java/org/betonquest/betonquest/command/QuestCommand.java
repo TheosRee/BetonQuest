@@ -1516,7 +1516,7 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
         final Component hooked = displayVersionInfoHooked(compatibility.getBetonSource());
 
         final TextComponent.Builder externalHooked = Component.text();
-        for (final Compatibility.IntegrationSource source : compatibility.getSources()) {
+        for (final Compatibility.IntegrationSource source : compatibility.getExternalSources()) {
             final VariableComponent external = new VariableComponent(pluginMessage.getMessage(null, "command_version_output.external_hook",
                     new VariableReplacement("plugin", Component.text(source.getFrom())),
                     new VariableReplacement("hooked", displayVersionInfoHooked(source))));
@@ -1543,16 +1543,26 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
     private Component displayVersionInfoHooked(final Compatibility.IntegrationSource source) throws QuestException {
         final TextComponent.Builder hookedBuilder = Component.text();
         for (final Compatibility.IntegrationData data : source.getDataList()) {
-            final Plugin plugin = data.getTarget();
-            if (plugin == null) {
+            if (!data.isIntegrated()) {
                 continue;
             }
             if (!hookedBuilder.children().isEmpty()) {
                 hookedBuilder.append(Component.text(", "));
             }
+            final Plugin plugin = data.getTarget();
+            final String name;
+            final String version;
+            if (plugin == null) {
+                final String[] parts = data.getName().split(" ", 2);
+                name = parts[0];
+                version = parts[1];
+            } else {
+                name = plugin.getName();
+                version = plugin.getDescription().getVersion();
+            }
             hookedBuilder.append(pluginMessage.getMessage(null, "command_version_output.hook",
-                    new VariableReplacement("plugin", Component.text(plugin.getName())),
-                    new VariableReplacement("version", Component.text(plugin.getDescription().getVersion()))));
+                    new VariableReplacement("plugin", Component.text(name)),
+                    new VariableReplacement("version", Component.text(version))));
         }
         return hookedBuilder.build();
     }

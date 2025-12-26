@@ -1,9 +1,11 @@
 package org.betonquest.betonquest;
 
 import org.betonquest.betonquest.compatibility.BundledCompatibility;
+import org.betonquest.betonquest.compatibility.Compatibility;
 import org.betonquest.betonquest.mc_1_20_6.BundledMC_1_20_6;
 import org.betonquest.betonquest.mc_1_21_4.BundledMC_1_21_4;
-import org.betonquest.betonquest.versioning.MinecraftVersion;
+import org.betonquest.betonquest.versioning.UpdateStrategy;
+import org.betonquest.betonquest.versioning.VersionComparator;
 
 /**
  * Represents Multi Module Entry Point for BetonQuest plugin.
@@ -27,14 +29,12 @@ public class BetonQuestPlugin extends BetonQuest {
             getServer().getPluginManager().disablePlugin(this);
             return;
         }
-        final MinecraftVersion version = new MinecraftVersion(getServer());
-        if (version.isCompatibleWith("1.20.6")) {
-            new BundledMC_1_20_6(getLoggerFactory().create(BundledMC_1_20_6.class)).register(this);
-        }
-        if (version.isCompatibleWith("1.21.4")) {
-            new BundledMC_1_21_4(getLoggerFactory().create(BundledMC_1_21_4.class)).register(this);
-        }
-        new BundledCompatibility(getCompatibility(), this, this).registerCompatiblePlugins();
-        getCompatibility().init();
+        final Compatibility compatibility = getCompatibility();
+        final VersionComparator patch = new VersionComparator(UpdateStrategy.PATCH);
+        compatibility.registerVanilla("1.20.6",
+                () -> new BundledMC_1_20_6(getLoggerFactory().create(BundledMC_1_20_6.class), this));
+        compatibility.registerVanilla("1.21.4",
+                () -> new BundledMC_1_21_4(getLoggerFactory().create(BundledMC_1_21_4.class), this));
+        new BundledCompatibility(compatibility, this, this).registerCompatiblePlugins();
     }
 }

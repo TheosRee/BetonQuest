@@ -5,21 +5,27 @@ import org.betonquest.betonquest.api.config.ConfigAccessor;
 import org.betonquest.betonquest.api.logger.BetonQuestLogger;
 import org.betonquest.betonquest.compatibility.holograms.HologramIntegrator;
 import org.betonquest.betonquest.compatibility.holograms.HologramProvider;
+import org.betonquest.betonquest.versioning.UpdateStrategy;
+import org.betonquest.betonquest.versioning.Version;
+import org.betonquest.betonquest.versioning.VersionComparator;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
 /**
  * Loads compatibility with other plugins.
  */
+@SuppressWarnings("PMD.TooManyMethods")
 public class Compatibility {
 
     /**
@@ -43,11 +49,16 @@ public class Compatibility {
     private final String version;
 
     /**
-     * A map of all integrators.
+     * A list of all integrators.
      * The key is the name of the plugin, the value a list of pairs of the integrator factory and instance from it.
      * The instance must only exist if the plugin was hooked.
      */
-    private final Map<String, IntegrationSource> integrators = new TreeMap<>();
+    private final Set<IntegrationSource> allSources = new LinkedHashSet<>();
+
+    /**
+     * All external integrations by their source name.
+     */
+    private final Map<String, IntegrationSource> external = new TreeMap<>();
 
     /**
      * A map of plugin names and their integrator factories.
@@ -55,6 +66,11 @@ public class Compatibility {
      * The instance must only exist if the plugin was hooked.
      */
     private final Map<String, List<IntegrationData>> dataByPlugin = new TreeMap<>();
+
+    /**
+     * Integrations requiring a specific Minecraft version.
+     */
+    private final Map<Version, List<IntegrationData>> vanilla = new TreeMap<>(new VersionComparator(UpdateStrategy.PATCH));
 
     /**
      * BetonQuest provided integrations.
@@ -82,6 +98,7 @@ public class Compatibility {
         this.config = config;
         this.version = version;
         this.betonSource = new IntegrationSource(null);
+        allSources.add(betonSource);
     }
 
     /**
@@ -89,15 +106,24 @@ public class Compatibility {
      */
     public void init() {
         addExternalHooks();
+        integrateVanilla();
         for (final Plugin plugin : Bukkit.getPluginManager().getPlugins()) {
             integratePlugin(plugin);
         }
-        final String hooks = integrators.values().stream()
-                .filter(IntegrationSource::shouldBeListed)
-                .map(Object::toString)
+
+        final String hooks = betonSource.dataList.stream()
+                .filter(data -> data.integrated)
+                .map(data -> data.name)
                 .collect(Collectors.joining(", "));
         if (!hooks.isEmpty()) {
             log.info("Enabled compatibility for " + hooks + "!");
+        }
+        final String externalHooks = external.values().stream()
+                .filter(IntegrationSource::shouldBeListed)
+                .map(IntegrationSource::toStringgg)
+                .collect(Collectors.joining("; "));
+        if (!externalHooks.isEmpty()) {
+            log.info("Enabled external compatibilities: " + externalHooks);
         }
         postHook();
     }
@@ -127,8 +153,8 @@ public class Compatibility {
      *
      * @return what?
      */
-    public List<IntegrationSource> getSources() {
-        return List.copyOf(integrators.values());
+    public List<IntegrationSource> getExternalSources() {
+        return List.copyOf(external.values());
     }
 
     /**
@@ -137,7 +163,7 @@ public class Compatibility {
      */
     public void postHook() {
         final List<HologramIntegrator> hologramIntegrators = new ArrayList<>();
-        integrators.values().forEach(target -> target.dataList.stream()
+        allSources.forEach(source -> source.dataList.stream()
                 .filter(data -> data.integrator != null)
                 .forEach(data -> {
                     final Integrator integrator = data.integrator;
@@ -147,8 +173,8 @@ public class Compatibility {
                             hologramIntegrators.add(hologramIntegrator);
                         }
                     } catch (final HookException e) {
-                        log.warn("Error while enabling some features while post hooking into " + target.name
-                                + data.source.getFrom() + " reason: " + e.getMessage(), e);
+                        log.warn("Error while enabling some features while post hooking into " + data.name +
+                                " from " + data.source.getFrom() + " reason: " + e.getMessage(), e);
                     }
                 }));
         hologramProvider = new HologramProvider(hologramIntegrators);
@@ -159,7 +185,7 @@ public class Compatibility {
      * Reloads all loaded integrators.
      */
     public void reload() {
-        integrators.values().forEach(target -> target.dataList.stream()
+        allSources.forEach(source -> source.dataList.stream()
                 .map(integrationData -> integrationData.integrator)
                 .filter(Objects::nonNull)
                 .forEach(Integrator::reload));
@@ -172,13 +198,33 @@ public class Compatibility {
      * Disables all loaded integrators.
      */
     public void disable() {
-        integrators.values().forEach(integrationTarget -> integrationTarget.dataList.stream()
+        external.values().forEach(integrationTarget -> integrationTarget.dataList.stream()
                 .map(integrationData -> integrationData.integrator)
                 .filter(Objects::nonNull)
                 .forEach(Integrator::close));
         if (hologramProvider != null) {
             hologramProvider.close();
         }
+    }
+
+    private void integrateVanilla() {
+        vanilla.forEach((version, dataList) -> {
+            log.info("Integrating into Minecraft " + version);
+            dataList.forEach(data -> {
+                if (data.integrated) {
+                    return;
+                }
+                try {
+                    final Integrator integrator = data.integratorFactory.getIntegrator();
+                    integrator.hook(betonQuestApi);
+                    data.integrator = integrator;
+                } catch (final HookException exception) {
+                    log.warn("Could not hook into Minecraft %s! %s".formatted(version, exception.getMessage()), exception);
+                    log.warn("BetonQuest will work correctly, except for that single version integration.");
+                }
+                data.integrated = true;
+            });
+        });
     }
 
     private void integratePlugin(final Plugin hookedPlugin) {
@@ -248,9 +294,25 @@ public class Compatibility {
     }
 
     private void register(final String name, final IntegratorFactory integrator, final IntegrationSource source) {
-        final IntegrationData data = new IntegrationData(source, integrator);
+        final IntegrationData data = new IntegrationData(name, source, integrator);
         source.dataList.add(data);
         dataByPlugin.computeIfAbsent(name, ignored -> new ArrayList<>()).add(data);
+    }
+
+    /**
+     * Get.
+     *
+     * @param version    what?
+     * @param integrator what?
+     */
+    public void registerVanilla(final String version, final IntegratorFactory integrator) {
+        registerVanilla(version, integrator, betonSource);
+    }
+
+    private void registerVanilla(final String version, final IntegratorFactory integrator, final IntegrationSource source) {
+        final IntegrationData data = new IntegrationData("Minecraft " + version, source, integrator);
+        source.dataList.add(data);
+        vanilla.computeIfAbsent(new Version(version), ignored -> new ArrayList<>()).add(data);
     }
 
     private void addExternalHooks() {
@@ -258,10 +320,20 @@ public class Compatibility {
         ExternalHooks.getINTEGRATORS().forEach((name, list) -> list.forEach(pair -> {
             final String pluginName = pair.getValue().getName();
             log.debug("Loading external hook for " + name + " from " + pluginName);
-            final IntegrationSource source = integrators.computeIfAbsent(pluginName, IntegrationSource::new);
+            final IntegrationSource source = external.computeIfAbsent(pluginName, IntegrationSource::new);
             register(name, pair.getKey(), source);
+            external.put(name, source);
+            allSources.add(source);
         }));
         ExternalHooks.getINTEGRATORS().clear();
+        ExternalHooks.getVANILLA().forEach((version, list) -> list.forEach(pair -> {
+            final String pluginName = pair.getValue().getName();
+            log.debug("Loading external hook for Minecraft " + version + " from " + pluginName);
+            final IntegrationSource source = external.computeIfAbsent(pluginName, IntegrationSource::new);
+            registerVanilla(version, pair.getKey(), source);
+            allSources.add(source);
+        }));
+        ExternalHooks.getVANILLA().clear();
     }
 
     /**
@@ -294,13 +366,12 @@ public class Compatibility {
          * @return what?
          */
         public String getFrom() {
-            return name == null ? "" : (" (From " + name + ") ");
+            return name == null ? "BetonQuest" : name;
         }
 
-        @Override
-        public String toString() {
-            return getFrom() + "Hooked into: "
-                    + dataList.stream().map(Object::toString).collect(Collectors.joining(", "));
+        private String toStringgg() {
+            return getFrom() + " hooked "
+                    + dataList.stream().map(data -> data.name).collect(Collectors.joining(", "));
         }
 
         /**
@@ -317,6 +388,11 @@ public class Compatibility {
      * Data for a specific integration of a plugin.
      */
     public static final class IntegrationData {
+
+        /**
+         * Name of integration target.
+         */
+        private final String name;
 
         /**
          * Source used in stream references.
@@ -345,7 +421,8 @@ public class Compatibility {
         @Nullable
         private Integrator integrator;
 
-        private IntegrationData(final IntegrationSource source, final IntegratorFactory integratorFactory) {
+        private IntegrationData(final String name, final IntegrationSource source, final IntegratorFactory integratorFactory) {
+            this.name = name;
             this.source = source;
             this.integratorFactory = integratorFactory;
         }
@@ -358,6 +435,24 @@ public class Compatibility {
         @Nullable
         public Plugin getTarget() {
             return target;
+        }
+
+        /**
+         * Get.
+         *
+         * @return what?
+         */
+        public String getName() {
+            return name;
+        }
+
+        /**
+         * Get.
+         *
+         * @return what?
+         */
+        public boolean isIntegrated() {
+            return integrated;
         }
     }
 }

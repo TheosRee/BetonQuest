@@ -73,7 +73,7 @@ command_version_output:
     {external_hooks}
     {copy}
   hook: '@[minimessage]{plugin} <gray>({version})</gray>'
-  external_hook: '@[minimessage]<newline> <yellow>{plugin}</yellow><gray>{hooked}</gray>'
+  external_hook: '@[minimessage]<newline>  <yellow>{plugin}</yellow>: <gray>{hooked}</gray>'
   update: '@[minimessage]<newline><green>    <hover:show_text:''Click to download!''>(Version ''<dark_green>{version}</dark_green>'' is available. Click to download!)</hover></green>'
   copy: '@[minimessage]<newline><yellow><hover:show_text:''Click to copy!''>Click to copy everything to clipboard!</hover></yellow>'
 command_vector: '@[legacy]calculates a vector from first variable and saves it to the second'
