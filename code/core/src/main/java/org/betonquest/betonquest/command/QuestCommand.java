@@ -1513,14 +1513,24 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
     private void displayVersionInfo(final CommandSender sender, final String commandAlias) throws QuestException {
         final String updateCommand = "/" + commandAlias + " update";
 
-        final Component hooked = displayVersionInfoHooked();
+        final Component hooked = displayVersionInfoHooked(compatibility.getBetonSource());
+
+        final TextComponent.Builder externalHooked = Component.text();
+        for (final Compatibility.IntegrationSource source : compatibility.getSources()) {
+            final VariableComponent external = new VariableComponent(pluginMessage.getMessage(null, "command_version_output.external_hook",
+                    new VariableReplacement("plugin", Component.text(source.getFrom())),
+                    new VariableReplacement("hooked", displayVersionInfoHooked(source))));
+            externalHooked.append(external.resolve());
+        }
+
         final Component update = displayVersionInfoUpdate(instance.getUpdater());
         final Component copy = displayVersionInfoCopy(sender);
 
         final VariableComponent baseContent = new VariableComponent(pluginMessage.getMessage(null, "command_version_output.info",
                 new VariableReplacement("version", Component.text(instance.getDescription().getVersion())),
                 new VariableReplacement("server", Component.text(Bukkit.getServer().getVersion())),
-                new VariableReplacement("hooked", hooked)));
+                new VariableReplacement("hooked", hooked),
+                new VariableReplacement("external_hooks", externalHooked.build())));
         final Component copyContent = baseContent.resolve(
                 new VariableReplacement("update", Component.empty()),
                 new VariableReplacement("copy", Component.empty()));
@@ -1530,19 +1540,19 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
         sender.sendMessage(info);
     }
 
-    private Component displayVersionInfoHooked() throws QuestException {
+    private Component displayVersionInfoHooked(final Compatibility.IntegrationSource source) throws QuestException {
         final TextComponent.Builder hookedBuilder = Component.text();
-        for (final String plugin : compatibility.getHooked()) {
-            final Plugin plug = Bukkit.getPluginManager().getPlugin(plugin);
-            if (plug == null) {
+        for (final Compatibility.IntegrationData data : source.getDataList()) {
+            final Plugin plugin = data.getTarget();
+            if (plugin == null) {
                 continue;
             }
             if (!hookedBuilder.children().isEmpty()) {
                 hookedBuilder.append(Component.text(", "));
             }
             hookedBuilder.append(pluginMessage.getMessage(null, "command_version_output.hook",
-                    new VariableReplacement("plugin", Component.text(plugin)),
-                    new VariableReplacement("version", Component.text(plug.getDescription().getVersion()))));
+                    new VariableReplacement("plugin", Component.text(plugin.getName())),
+                    new VariableReplacement("version", Component.text(plugin.getDescription().getVersion()))));
         }
         return hookedBuilder.build();
     }

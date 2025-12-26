@@ -43,16 +43,23 @@ public class Compatibility {
     private final String version;
 
     /**
-     * BetonQuest plugin as source of integrations.
-     */
-    private final Plugin betonQuestPlugin;
-
-    /**
      * A map of all integrators.
      * The key is the name of the plugin, the value a list of pairs of the integrator factory and instance from it.
      * The instance must only exist if the plugin was hooked.
      */
-    private final Map<String, IntegrationTarget> integrators = new TreeMap<>();
+    private final Map<String, IntegrationSource> integrators = new TreeMap<>();
+
+    /**
+     * A map of plugin names and their integrator factories.
+     * The key is the name of the plugin, the value a list of pairs of the integrator factory and instance from it.
+     * The instance must only exist if the plugin was hooked.
+     */
+    private final Map<String, List<IntegrationData>> dataByPlugin = new TreeMap<>();
+
+    /**
+     * BetonQuest provided integrations.
+     */
+    private final IntegrationSource betonSource;
 
     /**
      * The instance of the HologramProvider.
@@ -63,19 +70,18 @@ public class Compatibility {
     /**
      * Loads all compatibility with other plugins that is available in the current runtime.
      *
-     * @param log              the custom logger for this class
-     * @param config           the config to check if an Integrator should be activated/hooked
-     * @param betonQuestApi    the BetonQuest API used to hook plugins
-     * @param version          the plugin version used in error messages
-     * @param betonQuestPlugin the BetonQuest plugin as source of integrations
+     * @param log           the custom logger for this class
+     * @param config        the config to check if an Integrator should be activated/hooked
+     * @param betonQuestApi the BetonQuest API used to hook plugins
+     * @param version       the plugin version used in error messages
      */
     public Compatibility(final BetonQuestLogger log, final BetonQuestApi betonQuestApi, final ConfigAccessor config,
-                         final String version, final Plugin betonQuestPlugin) {
+                         final String version) {
         this.log = log;
         this.betonQuestApi = betonQuestApi;
         this.config = config;
         this.version = version;
-        this.betonQuestPlugin = betonQuestPlugin;
+        this.betonSource = new IntegrationSource(null);
     }
 
     /**
@@ -86,6 +92,13 @@ public class Compatibility {
         for (final Plugin plugin : Bukkit.getPluginManager().getPlugins()) {
             integratePlugin(plugin);
         }
+        final String hooks = integrators.values().stream()
+                .filter(IntegrationSource::shouldBeListed)
+                .map(Object::toString)
+                .collect(Collectors.joining(", "));
+        if (!hooks.isEmpty()) {
+            log.info("Enabled compatibility for " + hooks + "!");
+        }
         postHook();
     }
 
@@ -94,11 +107,28 @@ public class Compatibility {
      *
      * @return the list of hooked plugins
      */
-    public List<String> getHooked() {
-        return integrators.values().stream()
-                .filter(target -> target.integrated)
-                .map(Object::toString)
-                .toList();
+    public List<String> getPluginNames() {
+        return dataByPlugin.entrySet().stream()
+                .filter(entry -> entry.getValue().stream().anyMatch(data -> data.integrated))
+                .map(Map.Entry::getKey).sorted().toList();
+    }
+
+    /**
+     * Get.
+     *
+     * @return what?
+     */
+    public IntegrationSource getBetonSource() {
+        return betonSource;
+    }
+
+    /**
+     * Get.
+     *
+     * @return what?
+     */
+    public List<IntegrationSource> getSources() {
+        return List.copyOf(integrators.values());
     }
 
     /**
@@ -106,10 +136,6 @@ public class Compatibility {
      * this method can be called to activate cross compatibility features.
      */
     public void postHook() {
-        final String hooks = String.join(", ", getHooked());
-        if (!hooks.isEmpty()) {
-            log.info("Enabled compatibility for " + hooks + "!");
-        }
         final List<HologramIntegrator> hologramIntegrators = new ArrayList<>();
         integrators.values().forEach(target -> target.dataList.stream()
                 .filter(data -> data.integrator != null)
@@ -121,9 +147,8 @@ public class Compatibility {
                             hologramIntegrators.add(hologramIntegrator);
                         }
                     } catch (final HookException e) {
-                        final String source = betonQuestPlugin.equals(data.source) ? "" : " ( from " + data.source.getName() + ") ";
                         log.warn("Error while enabling some features while post hooking into " + target.name
-                                + source + " reason: " + e.getMessage(), e);
+                                + data.source.getFrom() + " reason: " + e.getMessage(), e);
                     }
                 }));
         hologramProvider = new HologramProvider(hologramIntegrators);
@@ -161,8 +186,8 @@ public class Compatibility {
             return;
         }
         final String name = hookedPlugin.getName();
-        final IntegrationTarget list = integrators.get(name);
-        if (list == null || list.integrated) {
+        final List<IntegrationData> list = dataByPlugin.get(name);
+        if (list == null || list.isEmpty()) {
             return;
         }
 
@@ -173,8 +198,13 @@ public class Compatibility {
         }
 
         log.info("Hooking into " + name);
-        list.dataList.forEach(integrationData -> integrate(hookedPlugin, name, integrationData));
-        list.integrated = true;
+        list.forEach(integrationData -> {
+            if (integrationData.integrated) {
+                return;
+            }
+            integrate(hookedPlugin, name, integrationData);
+            integrationData.integrated = true;
+        });
     }
 
     @SuppressWarnings("PMD.AvoidCatchingGenericException")
@@ -183,6 +213,7 @@ public class Compatibility {
             final Integrator integrator = data.integratorFactory.getIntegrator();
             integrator.hook(betonQuestApi);
             data.integrator = integrator;
+            data.target = hookedPlugin;
         } catch (final HookException exception) {
             final String message = String.format("Could not hook into %s %s! %s",
                     hookedPlugin.getName(),
@@ -207,33 +238,36 @@ public class Compatibility {
     }
 
     /**
-     * Adds a new Integrator Factory for a Plugin.
+     * Adds a new Integrator Factory for a Plugin with BetonQuest as source.
      *
      * @param name       the plugin name
      * @param integrator the integrator factory
      */
     public void register(final String name, final IntegratorFactory integrator) {
-        register(name, integrator, betonQuestPlugin);
+        register(name, integrator, betonSource);
     }
 
-    private void register(final String name, final IntegratorFactory integrator, final Plugin source) {
-        integrators.computeIfAbsent(name, IntegrationTarget::new).dataList
-                .add(new IntegrationData(source, integrator));
+    private void register(final String name, final IntegratorFactory integrator, final IntegrationSource source) {
+        final IntegrationData data = new IntegrationData(source, integrator);
+        source.dataList.add(data);
+        dataByPlugin.computeIfAbsent(name, ignored -> new ArrayList<>()).add(data);
     }
 
     private void addExternalHooks() {
         log.debug("Adding external integrators…");
         ExternalHooks.getINTEGRATORS().forEach((name, list) -> list.forEach(pair -> {
-            log.debug("Receiving new hook for " + name + " from " + pair.getValue().getName());
-            register(name, pair.getKey(), pair.getValue());
+            final String pluginName = pair.getValue().getName();
+            log.debug("Loading external hook for " + name + " from " + pluginName);
+            final IntegrationSource source = integrators.computeIfAbsent(pluginName, IntegrationSource::new);
+            register(name, pair.getKey(), source);
         }));
         ExternalHooks.getINTEGRATORS().clear();
     }
 
     /**
-     * Holds integration for a single plugin.
+     * Holds integration from a single plugin.
      */
-    private static final class IntegrationTarget {
+    public static final class IntegrationSource {
 
         /**
          * List of integrations for the plugin.
@@ -241,38 +275,53 @@ public class Compatibility {
         private final List<IntegrationData> dataList = new ArrayList<>();
 
         /**
-         * Name of the target plugin.
+         * Name of the source plugin.
          */
+        @Nullable
         private final String name;
 
-        /**
-         * If the plugin was already integrated.
-         */
-        private boolean integrated;
-
-        private IntegrationTarget(final String name) {
+        private IntegrationSource(@Nullable final String name) {
             this.name = name;
+        }
+
+        private boolean shouldBeListed() {
+            return dataList.stream().anyMatch(data -> data.integrator != null);
+        }
+
+        /**
+         * Get.
+         *
+         * @return what?
+         */
+        public String getFrom() {
+            return name == null ? "" : (" (From " + name + ") ");
         }
 
         @Override
         public String toString() {
-            if (dataList.size() == 1 && "BetonQuest".equals(dataList.get(0).source.getName())) {
-                return name;
-            }
-            return name + "(" + dataList.stream().map(data -> data.source.getName())
-                    .collect(Collectors.joining(", ")) + ")";
+            return getFrom() + "Hooked into: "
+                    + dataList.stream().map(Object::toString).collect(Collectors.joining(", "));
+        }
+
+        /**
+         * Get.
+         *
+         * @return immutable list of data
+         */
+        public List<IntegrationData> getDataList() {
+            return List.copyOf(dataList);
         }
     }
 
     /**
      * Data for a specific integration of a plugin.
      */
-    private static final class IntegrationData {
+    public static final class IntegrationData {
 
         /**
-         * The source plugin.
+         * Source used in stream references.
          */
-        private final Plugin source;
+        private final IntegrationSource source;
 
         /**
          * The factory to create a new Integration.
@@ -280,14 +329,35 @@ public class Compatibility {
         private final IntegratorFactory integratorFactory;
 
         /**
+         * The target plugin, if hooked.
+         */
+        @Nullable
+        private Plugin target;
+
+        /**
+         * If an integration was attempted. The integrator may still be null if it was not successful.
+         */
+        private boolean integrated;
+
+        /**
          * The created Integrator.
          */
         @Nullable
         private Integrator integrator;
 
-        private IntegrationData(final Plugin source, final IntegratorFactory integratorFactory) {
+        private IntegrationData(final IntegrationSource source, final IntegratorFactory integratorFactory) {
             this.source = source;
             this.integratorFactory = integratorFactory;
+        }
+
+        /**
+         * Get.
+         *
+         * @return what?
+         */
+        @Nullable
+        public Plugin getTarget() {
+            return target;
         }
     }
 }

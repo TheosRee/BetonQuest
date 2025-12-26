@@ -398,7 +398,7 @@ public class BetonQuest extends JavaPlugin implements BetonQuestApi, LanguagePro
             throw new IllegalStateException("Could not load conversation colors! " + e.getMessage(), e);
         }
 
-        compatibility = new Compatibility(loggerFactory.create(Compatibility.class), this, config, version, this);
+        compatibility = new Compatibility(loggerFactory.create(Compatibility.class), this, config, version);
 
         registerCommands(receiverSelector, debugHistoryHandler, playerDataFactory);
 
