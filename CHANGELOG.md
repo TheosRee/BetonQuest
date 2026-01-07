@@ -131,6 +131,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - `menu` conv io no longer ignores canceled events to process as input
 - `citizens` npc hiding now uses the inbuilt player filter trait
 - `global` property for objectives renamed to `auto-once`
+- `menu` conv io now has a right click control and that is now used instead left click when right-clicking a NPC
 ### Deprecated
 ### Removed
 - undocumented prefix feature in conversation
