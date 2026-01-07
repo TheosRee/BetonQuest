@@ -192,9 +192,9 @@ Every io has its own settings that can be configured in the `io` section.
     7. For `npc_name_type` `chat`, the alignment of the name, `left`, `right` or `center`.
     8. Separate the NPC name with an empty line from the text.
     9. Separate the NPC text from the player options by filling remaining space with empty lines.
-    10. Comma separated actions to select an option, `jump`, `left_click` or `sneak`.
+    10. Comma separated actions to select an option, `jump`, `left_click`, `right_click` or `sneak`.
     11. Comma separated actions to move the selection, `move` or `scroll`.
-    12. Comma separated actions to cancel the conversation, `jump`, `left_click` or `sneak`.
+    12. Comma separated actions to cancel the conversation, `jump`, `left_click`, `right_click` or `sneak`.
     13. The format of the NPC name. Placeholder `{npc_name}`
     14. The format of the NPC text. Placeholder `{npc_text}`
     15. A prefix that gets applied to the start of a new line if the actual text is too long.

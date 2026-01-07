@@ -127,6 +127,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Variables to Placeholders. This change won't harm any user scripts, it's only a conceptual change
 - Events to Actions.
 - `menu` conv io no longer ignores canceled events to process as input
+- `menu` conv io now has a right click control and that is now used instead left click when right-clicking a NPC
 ### Deprecated
 ### Removed
 - undocumented prefix feature in conversation

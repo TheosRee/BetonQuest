@@ -236,6 +236,8 @@ public class MenuConvIO extends ChatConvIO {
             final Action action = event.getAction();
             if (action == Action.LEFT_CLICK_AIR || action == Action.LEFT_CLICK_BLOCK) {
                 handleSteering(CONTROL.LEFT_CLICK);
+            } else if (action == Action.RIGHT_CLICK_AIR || action == Action.RIGHT_CLICK_BLOCK) {
+                handleSteering(CONTROL.RIGHT_CLICK);
             }
         } finally {
             lock.unlock();
@@ -261,7 +263,7 @@ public class MenuConvIO extends ChatConvIO {
 
             event.setCancelled(true);
 
-            handleSteering(CONTROL.LEFT_CLICK);
+            handleSteering(CONTROL.RIGHT_CLICK);
         } finally {
             lock.unlock();
         }
@@ -415,7 +417,11 @@ public class MenuConvIO extends ChatConvIO {
         /**
          * The player left-clicked.
          */
-        LEFT_CLICK
+        LEFT_CLICK,
+        /**
+         * The player right-clicked.
+         */
+        RIGHT_CLICK
     }
 
     /**
