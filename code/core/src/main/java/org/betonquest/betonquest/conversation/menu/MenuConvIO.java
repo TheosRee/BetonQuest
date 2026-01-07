@@ -219,7 +219,6 @@ public class MenuConvIO extends ChatConvIO {
      *
      * @param event the event
      */
-    @SuppressWarnings("PMD.CollapsibleIfStatements")
     @EventHandler(priority = EventPriority.LOWEST)
     public void playerInteractEvent(final PlayerInteractEvent event) {
         if (state.isInactive() || !event.getPlayer().equals(onlineProfile.getPlayer())) {
@@ -236,9 +235,7 @@ public class MenuConvIO extends ChatConvIO {
 
             final Action action = event.getAction();
             if (action == Action.LEFT_CLICK_AIR || action == Action.LEFT_CLICK_BLOCK) {
-                if (controls.containsKey(CONTROL.LEFT_CLICK)) {
-                    handleSteering(controls.get(CONTROL.LEFT_CLICK));
-                }
+                handleSteering(CONTROL.LEFT_CLICK);
             }
         } finally {
             lock.unlock();
@@ -264,9 +261,7 @@ public class MenuConvIO extends ChatConvIO {
 
             event.setCancelled(true);
 
-            if (controls.containsKey(CONTROL.LEFT_CLICK)) {
-                handleSteering(controls.get(CONTROL.LEFT_CLICK));
-            }
+            handleSteering(CONTROL.LEFT_CLICK);
         } finally {
             lock.unlock();
         }
@@ -291,15 +286,19 @@ public class MenuConvIO extends ChatConvIO {
 
             event.setCancelled(true);
 
-            if (event.getCause() == EntityDamageEvent.DamageCause.ENTITY_ATTACK && controls.containsKey(CONTROL.LEFT_CLICK)) {
-                handleSteering(controls.get(CONTROL.LEFT_CLICK));
+            if (event.getCause() == EntityDamageEvent.DamageCause.ENTITY_ATTACK) {
+                handleSteering(CONTROL.LEFT_CLICK);
             }
         } finally {
             lock.unlock();
         }
     }
 
-    private void handleSteering(final ACTION action) {
+    private void handleSteering(final CONTROL control) {
+        final ACTION action = controls.get(control);
+        if (action == null) {
+            return;
+        }
         switch (action) {
             case CANCEL -> {
                 if (!conv.isMovementBlock()) {
