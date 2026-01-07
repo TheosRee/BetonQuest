@@ -25,7 +25,7 @@ import java.util.stream.Stream;
 /**
  * Loads compatibility with other plugins.
  */
-@SuppressWarnings({"PMD.CouplingBetweenObjects", "PMD.TooManyMethods"})
+@SuppressWarnings("PMD.CouplingBetweenObjects")
 public class Compatibility {
 
     /**
@@ -97,7 +97,7 @@ public class Compatibility {
      * Integrate plugins.
      */
     public void init() {
-        addExternalHooks();
+        ExternalIntegrations.init(log, this, external);
 
         vanillaData.forEach((version, dataList) -> {
             log.info("Integrating into Minecraft " + version);
@@ -245,7 +245,7 @@ public class Compatibility {
         registerPlugin(name, integrator, betonQuestSource);
     }
 
-    private void registerPlugin(final String name, final IntegratorFactory integrator, final BaseIntegrationSource source) {
+    /* default */ void registerPlugin(final String name, final IntegratorFactory integrator, final BaseIntegrationSource source) {
         final PluginIntegrationData data = new PluginIntegrationData(name, integrator);
         source.dataList.add(data);
         pluginData.computeIfAbsent(name, ignored -> new ArrayList<>()).add(data);
@@ -261,34 +261,16 @@ public class Compatibility {
         registerVanilla(version, integrator, betonQuestSource);
     }
 
-    private void registerVanilla(final String version, final IntegratorFactory integrator, final BaseIntegrationSource source) {
+    /* default */ void registerVanilla(final String version, final IntegratorFactory integrator, final BaseIntegrationSource source) {
         final VanillaIntegrationData data = new VanillaIntegrationData(version, integrator);
         source.dataList.add(data);
         vanillaData.computeIfAbsent(new Version(version), ignored -> new ArrayList<>()).add(data);
     }
 
-    private void addExternalHooks() {
-        log.debug("Adding external integrators…");
-        ExternalHooks.getINTEGRATORS().forEach((name, list) -> list.forEach(pair -> {
-            final String pluginName = pair.getValue().getName();
-            log.debug("Receiving external hook for " + name + " from " + pluginName);
-            final BaseIntegrationSource source = external.computeIfAbsent(pluginName, BaseIntegrationSource::new);
-            registerPlugin(name, pair.getKey(), source);
-        }));
-        ExternalHooks.getINTEGRATORS().clear();
-        ExternalHooks.getVANILLA().forEach((version, list) -> list.forEach(pair -> {
-            final String pluginName = pair.getValue().getName();
-            log.debug("Receiving external hook for Minecraft " + version + " from " + pluginName);
-            final BaseIntegrationSource source = external.computeIfAbsent(pluginName, BaseIntegrationSource::new);
-            registerVanilla(version, pair.getKey(), source);
-        }));
-        ExternalHooks.getVANILLA().clear();
-    }
-
     /**
      * Holds integration factories and their created integrations from a single plugin.
      */
-    private static final class BaseIntegrationSource implements IntegrationSource {
+    /* default */ static final class BaseIntegrationSource implements IntegrationSource {
 
         /**
          * List of integration data for the plugin.
@@ -300,7 +282,7 @@ public class Compatibility {
          */
         private final String name;
 
-        private BaseIntegrationSource(final String name) {
+        /* default */ BaseIntegrationSource(final String name) {
             this.name = name;
         }
 
