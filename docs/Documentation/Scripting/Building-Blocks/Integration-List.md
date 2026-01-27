@@ -654,11 +654,12 @@ actions:
 
 MMOItems usage is integrated to the [Items](../../Features/Items.md) system and thus used for actions and conditions.
 
-In addition, you can also add `quest-item` argument to tag them as "QuestItem".
+In addition, you can also add `quest-item` argument to tag them as "QuestItem" or `soulBound` to mark them as soul bound.
 
 ```YAML title="Example"
 items:
   crown: "mmoitem ARMOR SKELETON_CROWN"
+  boundBoot: "mmoitem ARMOR TRAVELERS_BOOTS soulBound"
   gem: "mmoitem GEMS SPEED_GEM quest-item"
 conditions:
   hasCrown: "hand crown"
