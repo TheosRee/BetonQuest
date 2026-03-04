@@ -6,12 +6,12 @@ import org.betonquest.betonquest.api.data.TagHolder;
 import org.betonquest.betonquest.api.logger.BetonQuestLogger;
 import org.betonquest.betonquest.database.Saver.Record;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * Represents an object storing all player-related data, which can load and save it.
@@ -36,7 +36,7 @@ public class GlobalData implements PersistentDataHolder {
     /**
      * The set global points.
      */
-    private final Map<String, Point> globalPoints = new HashMap<>();
+    private final Map<String, Integer> globalPoints = new HashMap<>();
 
     /**
      * Loads all global data from the database.
@@ -65,7 +65,7 @@ public class GlobalData implements PersistentDataHolder {
         connector.querySQL(QueryType.LOAD_ALL_GLOBAL_POINTS, new Arguments(), resultSet -> {
             while (resultSet.next()) {
                 final String category = resultSet.getString("category");
-                this.globalPoints.put(category, new Point(category, resultSet.getInt("count")));
+                this.globalPoints.put(category, resultSet.getInt("count"));
             }
         }, "Could not load global points.");
 
@@ -116,7 +116,7 @@ public class GlobalData implements PersistentDataHolder {
 
         @Override
         public Set<String> get() {
-            return globalTags;
+            return Collections.unmodifiableSet(globalTags);
         }
 
         @Override
@@ -151,8 +151,7 @@ public class GlobalData implements PersistentDataHolder {
 
         @Override
         public Map<String, Integer> get() {
-            return globalPoints.entrySet().stream()
-                    .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().getCount()));
+            return Collections.unmodifiableMap(globalPoints);
         }
 
         @Override
@@ -162,26 +161,21 @@ public class GlobalData implements PersistentDataHolder {
 
         @Override
         public Optional<Integer> get(final String category) {
-            final Point point = globalPoints.get(category);
-            if (point != null) {
-                return Optional.of(point.getCount());
-            }
-            return Optional.empty();
+            return Optional.ofNullable(globalPoints.get(category));
         }
 
         @Override
         public void set(final String category, final int points) {
             saver.add(new Record(UpdateType.REMOVE_GLOBAL_POINTS, category));
-            globalPoints.put(category, new Point(category, points));
+            globalPoints.put(category, points);
             saver.add(new Record(UpdateType.ADD_GLOBAL_POINTS, category, String.valueOf(points)));
         }
 
         @Override
         public void add(final String category, final int points) {
             saver.add(new Record(UpdateType.REMOVE_GLOBAL_POINTS, category));
-            final Point point = globalPoints.computeIfAbsent(category, cat -> new Point(category, 0));
-            point.addPoints(points);
-            saver.add(new Record(UpdateType.ADD_GLOBAL_POINTS, category, String.valueOf(point.getCount())));
+            final int newValue = globalPoints.compute(category, (cat, v) -> (v == null ? 0 : v) + points);
+            saver.add(new Record(UpdateType.ADD_GLOBAL_POINTS, category, String.valueOf(newValue)));
         }
 
         @Override
