@@ -149,15 +149,16 @@ public class NpcHologramLoop extends HologramLoop implements Listener, PostLoadT
                     try {
                         npc = npcManager.get(null, npcID);
                     } catch (final QuestException exception) {
-                        log.warn("Could not get Npc for id '" + npcID + "' at hologram creation: " + exception.getMessage(), exception);
+                        log.warn(npcID.getPackage(), "Could not get Npc for id '" + npcID + "' at hologram creation: " + exception.getMessage(), exception);
                         continue;
                     }
                     if (!npc.isSpawned()) {
+                        log.debug(npcID.getPackage(), "Npc '" + npcID + "' is not spawned at hologram creation");
                         continue;
                     }
                     final Optional<Location> location = npc.getLocation();
                     if (location.isEmpty()) {
-                        log.debug("Spawned Npc '" + npcID + "' has no location at hologram creation");
+                        log.debug(npcID.getPackage(), "Spawned Npc '" + npcID + "' has no location at hologram creation");
                         continue;
                     }
                     final BetonHologram hologram = hologramProvider.createHologram(location.get().add(holo.vector));
@@ -178,11 +179,13 @@ public class NpcHologramLoop extends HologramLoop implements Listener, PostLoadT
                     try {
                         npc = npcManager.get(null, npcID);
                     } catch (final QuestException exception) {
-                        log.warn("Could not get Npc for id '" + npcID + "' in hologram loop: " + exception.getMessage(), exception);
+                        log.warn(npcID.getPackage(), "Could not get Npc for id '%s' in hologram loop: %s"
+                                .formatted(npcID, exception.getMessage()), exception);
                         return;
                     }
                     final Optional<Location> npcLocation = npc.getLocation();
                     if (!npc.isSpawned() || npcLocation.isEmpty()) {
+                        log.debug(npcID.getPackage(), "Npc '%s' is not spawned or has no location in hologram loop".formatted(npcID));
                         if (hologram != null) {
                             hologram.disable();
                         }
@@ -190,11 +193,13 @@ public class NpcHologramLoop extends HologramLoop implements Listener, PostLoadT
                     }
                     final Location location = npcLocation.get().add(npcHologram.vector());
                     if (hologram == null) {
+                        log.debug(npcID.getPackage(), "Npc '" + npcID + "' creating new hologram in hologram loop");
                         final BetonHologram newHologram = hologramProvider.createHologram(location);
                         entry.setValue(newHologram);
                         npcHologram.holograms().add(newHologram);
                         updateHologram(newHologram);
                     } else {
+                        log.debug(npcID.getPackage(), "Npc '%s' updating hologram in hologram loop".formatted(npcID));
                         if (hologram.isDisabled()) {
                             hologram.enable();
                         }
