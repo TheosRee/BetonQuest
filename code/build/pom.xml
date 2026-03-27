@@ -33,6 +33,7 @@
     <mc_1_20_6.version>1.0.0${changelist}</mc_1_20_6.version>
     <mc_1_21_4.version>1.0.0${changelist}</mc_1_21_4.version>
     <compatibility.version>1.0.0${changelist}</compatibility.version>
+    <atlas.version>1.0.0${changelist}</atlas.version>
 
     <!-- dependency versions -->
     <paper-api.version>1.18.2-R0.1-SNAPSHOT</paper-api.version>
@@ -59,6 +60,11 @@
       <groupId>org.betonquest.betonquest</groupId>
       <artifactId>compatibility</artifactId>
       <version>${compatibility.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.betonquest.betonquest</groupId>
+      <artifactId>atlas</artifactId>
+      <version>${atlas.version}</version>
     </dependency>
 
     <!-- from papermc repository -->
