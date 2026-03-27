@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>org.betonquest</groupId>
+    <artifactId>parent</artifactId>
+    <version>2.7.0</version>
+  </parent>
+
+  <name>BetonQuest Atlas</name>
+  <groupId>org.betonquest.betonquest</groupId>
+  <artifactId>atlas</artifactId>
+  <version>${revision}${changelist}</version>
+  <description>Provides the Atlas specific Additions</description>
+
+  <properties>
+    <revision>1.0.0</revision>
+    <changelist>-SNAPSHOT</changelist>
+    <pit.report.skip>true</pit.report.skip>
+
+    <!-- module versions -->
+    <core.version>1.0.0${changelist}</core.version>
+
+    <!-- dependency versions -->
+    <paper-api.version>1.21.8-R0.1-SNAPSHOT</paper-api.version>
+
+    <!-- Atlas - Skip JavaDoc Creation -->
+    <maven.javadoc.skip>true</maven.javadoc.skip>
+  </properties>
+
+  <dependencies>
+    <!-- from betonquest module -->
+    <dependency>
+      <groupId>org.betonquest.betonquest</groupId>
+      <artifactId>core</artifactId>
+      <version>${core.version}</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <!-- from papermc repository -->
+    <dependency>
+      <groupId>io.papermc.paper</groupId>
+      <artifactId>paper-api</artifactId>
+      <version>${paper-api.version}</version>
+      <scope>provided</scope>
+    </dependency>
+  </dependencies>
+
+  <repositories>
+    <repository>
+      <id>betonquest-repo</id>
+      <url>https://repo.betonquest.org/betonquest/</url>
+    </repository>
+    <repository>
+      <id>betonquest-papermc-repo</id>
+      <url>https://repo.papermc.io/repository/maven-public/</url>
+    </repository>
+  </repositories>
+
+  <build>
+    <plugins>
+      <!-- Atlas - Disable checkstyle and PMD (for JavaDoc and braces) -->
+      <plugin>
+        <artifactId>maven-checkstyle-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>check</id>
+            <phase>none</phase>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <artifactId>maven-pmd-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>check</id>
+            <phase>none</phase>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+</project>
