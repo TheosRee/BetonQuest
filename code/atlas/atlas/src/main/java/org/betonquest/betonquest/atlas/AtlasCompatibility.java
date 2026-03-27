@@ -3,6 +3,7 @@ package org.betonquest.betonquest.atlas;
 import org.betonquest.betonquest.api.BetonQuestApi;
 import org.betonquest.betonquest.api.integration.Integration;
 import org.betonquest.betonquest.api.integration.IntegrationService;
+import org.betonquest.betonquest.atlas.atlasitemregistry.AtlasItemIntegrator;
 import org.betonquest.betonquest.atlas.simplenpc.SimpleNPCsIntegrator;
 import org.betonquest.betonquest.lib.integration.policy.Policies;
 import org.bukkit.plugin.Plugin;
@@ -37,6 +38,8 @@ public class AtlasCompatibility implements Integration {
     public void enable(final BetonQuestApi api) {
         integrationService.withPolicies(Policies.requirePlugin(SimpleNPCsIntegrator.PREFIX))
                 .register(plugin, SimpleNPCsIntegrator::new);
+        integrationService.withPolicies(Policies.requirePlugin("AtlasItemRegistry"))
+                .register(plugin, AtlasItemIntegrator::new);
     }
 
     @Override

@@ -27,6 +27,7 @@
     <!-- dependency versions -->
     <paper-api.version>1.21.8-R0.1-SNAPSHOT</paper-api.version>
     <SimpleNPCs.version>1.0.9-SNAPSHOT</SimpleNPCs.version>
+    <AtlasItemRegistry.version>1.0-SNAPSHOT</AtlasItemRegistry.version>
 
     <!-- Atlas - Skip JavaDoc Creation -->
     <maven.javadoc.skip>true</maven.javadoc.skip>
@@ -60,6 +61,12 @@
       <groupId>com.ags</groupId>
       <artifactId>SimpleNPCs</artifactId>
       <version>${SimpleNPCs.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.ags</groupId>
+      <artifactId>AtlasItemRegistry</artifactId>
+      <version>${AtlasItemRegistry.version}</version>
       <scope>provided</scope>
     </dependency>
   </dependencies>
