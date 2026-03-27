@@ -6,6 +6,7 @@ import org.betonquest.betonquest.api.integration.Integration;
 import org.betonquest.betonquest.api.integration.IntegrationService;
 import org.betonquest.betonquest.api.quest.FeatureRegistry;
 import org.betonquest.betonquest.atlas.atlasitemregistry.AtlasItemIntegrator;
+import org.betonquest.betonquest.atlas.conversation.CustomClickSlowTellrawConvIOFactory;
 import org.betonquest.betonquest.atlas.conversation.CustomClickTellrawConvIOFactory;
 import org.betonquest.betonquest.atlas.objective.PlaceholderObjectiveFactory;
 import org.betonquest.betonquest.atlas.simplenpc.SimpleNPCsIntegrator;
@@ -55,6 +56,7 @@ public class AtlasCompatibility implements Integration {
                 betonQuest.getComponentLoader().get(ConversationIORegistry.class);
         final ConversationColors colors = betonQuest.getConversationColors();
         conversationIORegistry.register("tellraw", new CustomClickTellrawConvIOFactory(colors));
+        conversationIORegistry.register("slowtellraw", new CustomClickSlowTellrawConvIOFactory(api.fonts(), colors));
     }
 
     @Override
