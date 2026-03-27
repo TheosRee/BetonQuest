@@ -4,6 +4,7 @@ import org.betonquest.betonquest.api.BetonQuestApi;
 import org.betonquest.betonquest.api.integration.Integration;
 import org.betonquest.betonquest.api.integration.IntegrationService;
 import org.betonquest.betonquest.atlas.atlasitemregistry.AtlasItemIntegrator;
+import org.betonquest.betonquest.atlas.objective.PlaceholderObjectiveFactory;
 import org.betonquest.betonquest.atlas.simplenpc.SimpleNPCsIntegrator;
 import org.betonquest.betonquest.lib.integration.policy.Policies;
 import org.bukkit.plugin.Plugin;
@@ -40,6 +41,8 @@ public class AtlasCompatibility implements Integration {
                 .register(plugin, SimpleNPCsIntegrator::new);
         integrationService.withPolicies(Policies.requirePlugin("AtlasItemRegistry"))
                 .register(plugin, AtlasItemIntegrator::new);
+
+        api.objectives().registry().register("placeholder", new PlaceholderObjectiveFactory());
     }
 
     @Override
