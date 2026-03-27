@@ -22,9 +22,11 @@
 
     <!-- module versions -->
     <core.version>1.0.0${changelist}</core.version>
+    <compatibility.version>1.0.0${changelist}</compatibility.version>
 
     <!-- dependency versions -->
     <paper-api.version>1.21.8-R0.1-SNAPSHOT</paper-api.version>
+    <SimpleNPCs.version>1.0.9-SNAPSHOT</SimpleNPCs.version>
 
     <!-- Atlas - Skip JavaDoc Creation -->
     <maven.javadoc.skip>true</maven.javadoc.skip>
@@ -38,12 +40,26 @@
       <version>${core.version}</version>
       <scope>provided</scope>
     </dependency>
+    <dependency>
+      <groupId>org.betonquest.betonquest</groupId>
+      <artifactId>compatibility</artifactId>
+      <version>${compatibility.version}</version>
+      <scope>provided</scope>
+    </dependency>
 
     <!-- from papermc repository -->
     <dependency>
       <groupId>io.papermc.paper</groupId>
       <artifactId>paper-api</artifactId>
       <version>${paper-api.version}</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <!-- Atlas -->
+    <dependency>
+      <groupId>com.ags</groupId>
+      <artifactId>SimpleNPCs</artifactId>
+      <version>${SimpleNPCs.version}</version>
       <scope>provided</scope>
     </dependency>
   </dependencies>
@@ -56,6 +72,10 @@
     <repository>
       <id>betonquest-papermc-repo</id>
       <url>https://repo.papermc.io/repository/maven-public/</url>
+    </repository>
+    <repository>
+      <id>atlasmc-repo</id>
+      <url>https://repo.mc-atlas.com/maven</url>
     </repository>
   </repositories>
 

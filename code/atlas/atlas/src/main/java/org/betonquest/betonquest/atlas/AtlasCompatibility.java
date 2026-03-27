@@ -3,12 +3,13 @@ package org.betonquest.betonquest.atlas;
 import org.betonquest.betonquest.api.BetonQuestApi;
 import org.betonquest.betonquest.api.integration.Integration;
 import org.betonquest.betonquest.api.integration.IntegrationService;
+import org.betonquest.betonquest.atlas.simplenpc.SimpleNPCsIntegrator;
+import org.betonquest.betonquest.lib.integration.policy.Policies;
 import org.bukkit.plugin.Plugin;
 
 /**
  * Allows to register features for Atlas.
  */
-@SuppressWarnings("PMD.UnusedPrivateField")
 public class AtlasCompatibility implements Integration {
 
     /**
@@ -34,7 +35,8 @@ public class AtlasCompatibility implements Integration {
 
     @Override
     public void enable(final BetonQuestApi api) {
-        // Empty
+        integrationService.withPolicies(Policies.requirePlugin(SimpleNPCsIntegrator.PREFIX))
+                .register(plugin, SimpleNPCsIntegrator::new);
     }
 
     @Override
