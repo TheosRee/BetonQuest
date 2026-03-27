@@ -1,6 +1,7 @@
 package org.betonquest.betonquest;
 
 import org.betonquest.betonquest.api.integration.IntegrationService;
+import org.betonquest.betonquest.atlas.AtlasCompatibility;
 import org.betonquest.betonquest.compatibility.BundledCompatibility;
 import org.betonquest.betonquest.faststats.FastStatsMetrics;
 import org.betonquest.betonquest.kernel.ProcessorDataLoader;
@@ -57,6 +58,9 @@ public class BetonQuestPlugin extends BetonQuest {
                 () -> new BundledMC_1_21_4(this));
         new BundledCompatibility(getBetonQuestApi().loggerFactory().create(BundledCompatibility.class), getPluginConfig(), this, integrationService)
                 .registerCompatiblePlugins(getServer().getServicesManager(), getComponentLoader().get(ProcessorDataLoader.class));
+
+        // Atlas
+        integrationService.withPolicies().register(this, () -> new AtlasCompatibility(this, integrationService));
     }
 
     private boolean isPaper() {
