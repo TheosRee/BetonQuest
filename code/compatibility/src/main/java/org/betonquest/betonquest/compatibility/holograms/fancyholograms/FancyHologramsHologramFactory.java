@@ -1,6 +1,6 @@
 package org.betonquest.betonquest.compatibility.holograms.fancyholograms;
 
-import de.oliver.fancyholograms.api.FancyHologramsPlugin;
+import com.fancyinnovations.fancyholograms.api.FancyHolograms;
 import org.betonquest.betonquest.api.QuestException;
 import org.betonquest.betonquest.api.config.quest.QuestPackage;
 import org.betonquest.betonquest.api.identifier.IdentifierFactory;
@@ -51,7 +51,7 @@ public class FancyHologramsHologramFactory implements BetonHologramFactory {
 
     @Override
     public BetonHologram createHologram(final Location location) {
-        return new FancyHologramsHologram(FancyHologramsPlugin.get().getHologramManager(), location);
+        return new FancyHologramsHologram(FancyHolograms.get().getHologramFactory(), location);
     }
 
     /**

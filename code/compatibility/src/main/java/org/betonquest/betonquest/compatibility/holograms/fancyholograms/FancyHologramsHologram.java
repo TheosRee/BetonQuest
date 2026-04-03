@@ -1,11 +1,10 @@
 package org.betonquest.betonquest.compatibility.holograms.fancyholograms;
 
-import de.oliver.fancyholograms.api.HologramManager;
-import de.oliver.fancyholograms.api.data.HologramData;
-import de.oliver.fancyholograms.api.data.ItemHologramData;
-import de.oliver.fancyholograms.api.data.TextHologramData;
-import de.oliver.fancyholograms.api.data.property.Visibility;
-import de.oliver.fancyholograms.api.hologram.Hologram;
+import com.fancyinnovations.fancyholograms.api.data.HologramData;
+import com.fancyinnovations.fancyholograms.api.data.ItemHologramData;
+import com.fancyinnovations.fancyholograms.api.data.TextHologramData;
+import com.fancyinnovations.fancyholograms.api.data.property.Visibility;
+import com.fancyinnovations.fancyholograms.api.hologram.Hologram;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.standard.StandardTags;
@@ -20,6 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 /**
  * FancyHolograms specific implementation of BetonHologram.
@@ -55,7 +55,7 @@ public class FancyHologramsHologram implements BetonHologram {
     /**
      * The hologram manager to create new Holograms.
      */
-    private final HologramManager manager;
+    private final Function<HologramData, Hologram> manager;
 
     /**
      * Data of the primary hologram.
@@ -83,14 +83,14 @@ public class FancyHologramsHologram implements BetonHologram {
      * @param manager  The hologram manager to create new holograms
      * @param location Zhe base location for the hologram
      */
-    public FancyHologramsHologram(final HologramManager manager, final Location location) {
+    public FancyHologramsHologram(final Function<HologramData, Hologram> manager, final Location location) {
         this.manager = manager;
         this.baseData = new TextHologramData("BQ Base Hologram", location);
         this.baseData.setPersistent(false);
         this.baseData.setVisibility(Visibility.MANUAL);
         this.baseData.setBackground(Hologram.TRANSPARENT);
         this.baseData.setText(List.of());
-        this.baseHologram = manager.create(this.baseData);
+        this.baseHologram = manager.apply(this.baseData);
         this.holograms = new ArrayList<>();
     }
 
@@ -102,9 +102,7 @@ public class FancyHologramsHologram implements BetonHologram {
         data.setVisibility(Visibility.MANUAL);
         data.setBackground(Hologram.TRANSPARENT);
         data.setText(List.of(translate(text)));
-        final Hologram hologram = manager.create(data);
-        hologram.createHologram();
-        return hologram;
+        return manager.apply(this.baseData);
     }
 
     private Hologram createItemLine(final int offset, final ItemStack item) {
@@ -115,9 +113,7 @@ public class FancyHologramsHologram implements BetonHologram {
         data.setVisibility(Visibility.MANUAL);
         data.setItemStack(item);
         data.setScale(DEFAULT_ITEM_SCALE);
-        final Hologram hologram = manager.create(data);
-        hologram.createHologram();
-        return hologram;
+        return manager.apply(data);
     }
 
     @Override
@@ -140,7 +136,6 @@ public class FancyHologramsHologram implements BetonHologram {
             return;
         }
         forceHide(oldLine);
-        oldLine.deleteHologram();
         holograms.set(index, createItemLine(index, item));
     }
 
@@ -152,7 +147,6 @@ public class FancyHologramsHologram implements BetonHologram {
             return;
         }
         forceHide(oldLine);
-        oldLine.deleteHologram();
         holograms.set(index, createTextLine(index, text));
     }
 
@@ -185,7 +179,7 @@ public class FancyHologramsHologram implements BetonHologram {
         if (baseHologram.isViewer(player)) {
             return;
         }
-        forAllHolograms(hologram -> hologram.forceShowHologram(player));
+        forAllHolograms(hologram -> hologram.spawnTo(player));
     }
 
     @Override
@@ -193,7 +187,7 @@ public class FancyHologramsHologram implements BetonHologram {
         if (!baseHologram.isViewer(player)) {
             return;
         }
-        forAllHolograms(hologram -> hologram.forceHideHologram(player));
+        forAllHolograms(hologram -> hologram.despawnFrom(player));
     }
 
     @Override
@@ -204,7 +198,12 @@ public class FancyHologramsHologram implements BetonHologram {
             data.setLocation(data instanceof ItemHologramData
                     ? location.clone().add(0, DEFAULT_ITEM_OFFSET, 0)
                     : location);
-            hologram.refreshForViewers();
+            for (final UUID viewer : baseHologram.getViewers()) {
+                final Player player = Bukkit.getPlayer(viewer);
+                if (player != null) {
+                    forAllHolograms(holo -> holo.updateFor(player));
+                }
+            }
             location.subtract(0, LINE_SPACING, 0);
         }
     }
@@ -215,7 +214,7 @@ public class FancyHologramsHologram implements BetonHologram {
             return;
         }
         Bukkit.getOnlinePlayers().forEach(player ->
-                forAllHolograms(hologram -> hologram.forceShowHologram(player)));
+                forAllHolograms(hologram -> hologram.spawnTo(player)));
     }
 
     @Override
@@ -227,7 +226,7 @@ public class FancyHologramsHologram implements BetonHologram {
         for (final UUID viewer : hologram.getViewers()) {
             final Player player = Bukkit.getPlayer(viewer);
             if (player != null) {
-                hologram.forceHideHologram(player);
+                hologram.despawnFrom(player);
             }
         }
     }
@@ -246,13 +245,11 @@ public class FancyHologramsHologram implements BetonHologram {
     public void disable() {
         this.disabled = true;
         hideAll();
-        forAllHolograms(Hologram::deleteHologram);
     }
 
     @Override
     public void enable() {
         this.disabled = false;
-        forAllHolograms(Hologram::createHologram);
     }
 
     @Override
