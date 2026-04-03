@@ -16,6 +16,7 @@ import org.betonquest.betonquest.compatibility.fakeblock.FakeBlockIntegrator;
 import org.betonquest.betonquest.compatibility.heroes.HeroesIntegrator;
 import org.betonquest.betonquest.compatibility.holograms.decentholograms.DecentHologramsIntegrator;
 import org.betonquest.betonquest.compatibility.holograms.fancyholograms.FancyHologramsIntegrator;
+import org.betonquest.betonquest.compatibility.holograms.fancyholograms3.FancyHolograms3Integrator;
 import org.betonquest.betonquest.compatibility.holograms.holographicdisplays.HolographicDisplaysIntegrator;
 import org.betonquest.betonquest.compatibility.itemsadder.ItemsAdderIntegrator;
 import org.betonquest.betonquest.compatibility.jobsreborn.JobsRebornIntegrator;
@@ -162,6 +163,7 @@ public final class BundledCompatibility {
         register("Train_Carts", () -> new TrainCartsIntegrator(), TrainCartsIntegrator.REQUIRED_VERSION);
         register(FancyNpcsIntegrator.PREFIX, () -> new FancyNpcsIntegrator(plugin), FancyNpcsIntegrator.getPolicies());
         register(FancyHologramsIntegrator.NAME, () -> new FancyHologramsIntegrator(), FancyHologramsIntegrator.getPolicies());
+        register(FancyHolograms3Integrator.NAME, () -> new FancyHolograms3Integrator(), FancyHolograms3Integrator.getPolicies());
         register(ZNPCsPlusIntegrator.PREFIX, () -> new ZNPCsPlusIntegrator(), ZNPCsPlusIntegrator.REQUIRED_VERSION);
         register("Nexo", () -> new NexoIntegrator(), NexoIntegrator.REQUIRED_VERSION);
         register("CraftEngine", () -> new CraftEngineIntegrator(), CraftEngineIntegrator.REQUIRED_VERSION);
