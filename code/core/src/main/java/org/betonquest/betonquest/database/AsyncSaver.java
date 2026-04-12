@@ -65,17 +65,11 @@ public class AsyncSaver extends Thread implements Saver {
                 }
             }
             final Record rec = queue.poll();
-            try {
-                if (con.getDatabase().isShuttingDown()) {
-                    log.warn("Database is shutting down. Skipping update for record: " + rec);
-                    continue;
-                }
-                con.updateSQL(rec.type(), new Arguments(rec.args()));
-            } catch (final NullPointerException e) {
-                log.error("Failed to update database: " + e.getMessage(), e);
-            } catch (final RuntimeException e) {
-                log.error("Unexpected error during database update: " + e.getMessage(), e);
+            if (con.getDatabase().isShuttingDown()) {
+                log.warn("Database is shutting down. Skipping update for record: " + rec);
+                continue;
             }
+            con.updateSQL(rec.type(), new Arguments(rec.args()));
         }
     }
 
