@@ -256,14 +256,29 @@ public class Conversation {
      * <br>
      * Note: this method now requires a prior call to
      * selectOption()
+     * <br>
+     * Is called in the lock.
+     * Immediate calls the NPC Actions and prints the next possible player options.
      */
     private void printNPCText() {
         if (nextNPCOption == null) {
-            new ConversationEnder().runTask(plugin);
+            endUnsafe();
             return;
         }
         inOut.setNpcResponse(data.getPublicData().getQuester(log, onlineProfile), data.getText(onlineProfile, nextNPCOption));
-        new NPCActionRunner(nextNPCOption).runTask(plugin);
+
+        actionManager.run(onlineProfile, data.getActionIDs(onlineProfile, nextNPCOption, NPC));
+
+        try {
+            if (state.isInactive()) {
+                return;
+            }
+            printOptions(resolvePointers(nextNPCOption));
+        } catch (final QuestException e) {
+            log.reportException(pack, e);
+            endCallable.run();
+            throw new IllegalStateException("Cannot ensure a valid conversation flow with unresolvable options.", e);
+        }
     }
 
     /**
@@ -278,13 +293,15 @@ public class Conversation {
             endCallable.run();
             throw new IllegalStateException("No selectable player option found in conversation " + identifier);
         }
-        new PlayerActionRunner(playerOption).runTask(plugin);
         availablePlayerOptions.clear();
+        new PlayerAnswerRunner(playerOption).runTaskAsynchronously(plugin);
     }
 
     /**
      * Selects all options the player can choose from based on the conditions.
      * Then passes these onto the conversationIO for printing.
+     * <br>
+     * If there are no selectable options ends the conversation.
      *
      * @param options list of pointers to player options separated by commas
      */
@@ -318,15 +335,10 @@ public class Conversation {
                 log.warn(pack, "Error while adding option '" + option.name() + "': " + e.getMessage(), e);
             }
         }
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                inOut.display();
-            }
-        }.runTask(plugin);
-        // end conversations if there are no possible options
+
+        inOut.display();
         if (availablePlayerOptions.isEmpty()) {
-            new ConversationEnder().runTask(plugin);
+            endUnsafe();
         }
     }
 
@@ -347,24 +359,28 @@ public class Conversation {
             lock.writeLock().lock();
         }
         try {
-            if (state.isInactive()) {
-                return;
-            }
-            state = ConversationState.ENDED;
-
-            log.debug(pack, "Ending conversation '" + identifier + FOR + onlineProfile + "'.");
-            inOut.end(() -> {
-                try {
-                    actionManager.run(onlineProfile, data.getPublicData().finalActions().getValue(onlineProfile));
-                } catch (final QuestException e) {
-                    log.warn(pack, "Error while firing final actions: " + e.getMessage(), e);
-                }
-
-                endConversationDelayed();
-            });
+            endUnsafe();
         } finally {
             lock.writeLock().unlock();
         }
+    }
+
+    private void endUnsafe() {
+        if (state.isInactive()) {
+            return;
+        }
+        state = ConversationState.ENDED;
+
+        log.debug(pack, "Ending conversation '" + identifier + FOR + onlineProfile + "'.");
+        inOut.end(() -> {
+            try {
+                actionManager.run(onlineProfile, data.getPublicData().finalActions().getValue(onlineProfile));
+            } catch (final QuestException e) {
+                log.warn(pack, "Error while firing final actions: " + e.getMessage(), e);
+            }
+
+            endConversationDelayed();
+        });
     }
 
     private void endConversationDelayed() {
@@ -387,9 +403,9 @@ public class Conversation {
     }
 
     /**
-     * If the conversation is ended.
+     * If the conversation is active.
      *
-     * @return whenever this conversation has already ended
+     * @return whenever this conversation has already started but not ended
      */
     public boolean isActive() {
         lock.readLock().lock();
@@ -486,15 +502,6 @@ public class Conversation {
      */
     public Location getCenter() {
         return center;
-    }
-
-    /**
-     * Gets the used conversation io.
-     *
-     * @return the ConversationIO object used by this conversation
-     */
-    public ConversationIO getIO() {
-        return inOut;
     }
 
     /**
@@ -625,8 +632,8 @@ public class Conversation {
                 conversation.inOut.begin();
                 conversation.interceptor.begin();
 
-                conversation.printNPCText();
                 new ConversationOptionEvent(onlineProfile, conversation, conversation.nextNPCOption, conversation.nextNPCOption).callEvent();
+                conversation.printNPCText();
             } finally {
                 conversation.lock.writeLock().unlock();
             }
@@ -646,38 +653,16 @@ public class Conversation {
     }
 
     /**
-     * Fires actions from an NPC option. Should be called on the main thread.
+     * Fires actions from the option and selects the next option, when still in conversation.
      */
-    private final class NPCActionRunner extends BukkitRunnable {
-
-        /**
-         * The NPC option that has been selected and should be printed.
-         */
-        private final ResolvedOption npcOption;
-
-        private NPCActionRunner(final ResolvedOption npcOption) {
-            super();
-            this.npcOption = npcOption;
-        }
-
-        @Override
-        public void run() {
-            actionManager.run(onlineProfile, data.getActionIDs(onlineProfile, npcOption, NPC));
-            new OptionPrinter(npcOption).runTaskAsynchronously(plugin);
-        }
-    }
-
-    /**
-     * Fires actions from the option. Should be called in the main thread.
-     */
-    private final class PlayerActionRunner extends BukkitRunnable {
+    private final class PlayerAnswerRunner extends BukkitRunnable {
 
         /**
          * The option that has been selected by the player.
          */
         private final ResolvedOption playerOption;
 
-        private PlayerActionRunner(final ResolvedOption playerOption) {
+        private PlayerAnswerRunner(final ResolvedOption playerOption) {
             super();
             this.playerOption = playerOption;
         }
@@ -685,27 +670,6 @@ public class Conversation {
         @Override
         public void run() {
             actionManager.run(onlineProfile, data.getActionIDs(onlineProfile, playerOption, PLAYER));
-            new ResponsePrinter(playerOption).runTaskAsynchronously(plugin);
-        }
-    }
-
-    /**
-     * Prints the NPC response to the player. Should be called asynchronously.
-     */
-    private final class ResponsePrinter extends BukkitRunnable {
-
-        /**
-         * The option that has been selected by the player and should be printed.
-         */
-        private final ResolvedOption playerOption;
-
-        private ResponsePrinter(final ResolvedOption playerOption) {
-            super();
-            this.playerOption = playerOption;
-        }
-
-        @Override
-        public void run() {
             if (state.isInactive()) {
                 return;
             }
@@ -716,10 +680,9 @@ public class Conversation {
                 }
 
                 selectOption(resolvePointers(playerOption), false);
-                printNPCText();
-
                 new ConversationOptionEvent(onlineProfile, Conversation.this, playerOption,
                         Conversation.this.nextNPCOption).callEvent();
+                printNPCText();
             } catch (final QuestException e) {
                 log.reportException(pack, e);
                 endCallable.run();
@@ -727,57 +690,6 @@ public class Conversation {
             } finally {
                 lock.readLock().unlock();
             }
-        }
-    }
-
-    /**
-     * Prints possible player options to a NPC option to the player. Should be called asynchronously.
-     */
-    private final class OptionPrinter extends BukkitRunnable {
-
-        /**
-         * The option that has been selected and should be printed.
-         */
-        private final ResolvedOption npcOption;
-
-        private OptionPrinter(final ResolvedOption npcOption) {
-            super();
-            this.npcOption = npcOption;
-        }
-
-        @Override
-        public void run() {
-            if (state.isInactive()) {
-                return;
-            }
-            lock.readLock().lock();
-            try {
-                if (state.isInactive()) {
-                    return;
-                }
-                printOptions(resolvePointers(npcOption));
-            } catch (final QuestException e) {
-                log.reportException(pack, e);
-                endCallable.run();
-                throw new IllegalStateException("Cannot ensure a valid conversation flow with unresolvable options.", e);
-            } finally {
-                lock.readLock().unlock();
-            }
-        }
-    }
-
-    /**
-     * Ends the conversation. Should be called in the main thread.
-     */
-    private final class ConversationEnder extends BukkitRunnable {
-
-        private ConversationEnder() {
-            super();
-        }
-
-        @Override
-        public void run() {
-            endConversation();
         }
     }
 }
