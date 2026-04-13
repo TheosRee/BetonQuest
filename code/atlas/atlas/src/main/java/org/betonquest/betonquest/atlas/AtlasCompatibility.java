@@ -5,6 +5,7 @@ import org.betonquest.betonquest.api.BetonQuestApi;
 import org.betonquest.betonquest.api.integration.Integration;
 import org.betonquest.betonquest.api.integration.IntegrationService;
 import org.betonquest.betonquest.api.quest.FeatureRegistry;
+import org.betonquest.betonquest.atlas.action.TeleportActionFactory;
 import org.betonquest.betonquest.atlas.atlasitemregistry.AtlasItemIntegrator;
 import org.betonquest.betonquest.atlas.conversation.CustomClickSlowTellrawConvIOFactory;
 import org.betonquest.betonquest.atlas.conversation.CustomClickTellrawConvIOFactory;
@@ -57,6 +58,8 @@ public class AtlasCompatibility implements Integration {
         final ConversationColors colors = betonQuest.getConversationColors();
         conversationIORegistry.register("tellraw", new CustomClickTellrawConvIOFactory(colors));
         conversationIORegistry.register("slowtellraw", new CustomClickSlowTellrawConvIOFactory(api.fonts(), colors));
+
+        api.actions().registry().register("teleport", new TeleportActionFactory(api.conversations()));
     }
 
     @Override
