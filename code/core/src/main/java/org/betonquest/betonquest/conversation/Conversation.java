@@ -265,15 +265,16 @@ public class Conversation {
             endUnsafe();
             return;
         }
-        inOut.setNpcResponse(data.getPublicData().getQuester(log, onlineProfile), data.getText(onlineProfile, nextNPCOption));
+        final ResolvedOption selected = nextNPCOption;
+        inOut.setNpcResponse(data.getPublicData().getQuester(log, onlineProfile), data.getText(onlineProfile, selected));
 
-        actionManager.run(onlineProfile, data.getActionIDs(onlineProfile, nextNPCOption, NPC));
+        actionManager.run(onlineProfile, data.getActionIDs(onlineProfile, selected, NPC));
 
         try {
             if (state.isInactive()) {
                 return;
             }
-            printOptions(resolvePointers(nextNPCOption));
+            printOptions(resolvePointers(selected));
         } catch (final QuestException e) {
             log.reportException(pack, e);
             endCallable.run();
