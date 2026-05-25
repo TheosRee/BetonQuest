@@ -22,7 +22,7 @@ public class MythicCastSkillActionFactory implements PlayerActionFactory {
     /**
      * How many splits the metadata part must have.
      */
-    private static final int METADATA_SPLIT_COUNT = 1;
+    private static final int METADATA_SPLIT_COUNT = 2;
 
     /**
      * Factory to create new class specific loggers.
@@ -51,7 +51,7 @@ public class MythicCastSkillActionFactory implements PlayerActionFactory {
         final BetonQuestLogger log = loggerFactory.create(MythicCastSkillAction.class);
         final Argument<List<Map.Entry<String, String>>> metadata = instruction.parse(string -> {
             final String[] split = string.split(":", METADATA_SPLIT_COUNT);
-            if (split.length == METADATA_SPLIT_COUNT) {
+            if (split.length != METADATA_SPLIT_COUNT) {
                 throw new QuestException("Invalid metadata part: " + string);
             }
             return Map.entry(split[0], split[1]);
