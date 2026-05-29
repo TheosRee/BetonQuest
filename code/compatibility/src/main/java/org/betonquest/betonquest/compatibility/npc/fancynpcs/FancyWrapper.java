@@ -10,6 +10,10 @@ import org.betonquest.betonquest.api.quest.npc.NpcWrapper;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.HashSet;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 /**
  * FancyNpcs wrapper to get a Npc.
  */
@@ -55,7 +59,8 @@ public class FancyWrapper implements NpcWrapper<Npc> {
     public org.betonquest.betonquest.api.quest.npc.Npc<Npc> getNpc(@Nullable final Profile profile) throws QuestException {
         Npc npc = null;
         final String npcId = this.npcId.getValue(profile);
-        if (byName.getValue(profile).orElse(false)) {
+        final boolean byName = this.byName.getValue(profile).orElse(false);
+        if (byName) {
             for (final Npc aNpc : npcManager.getAllNpcs()) {
                 if (npcId.equals(aNpc.getData().getName())) {
                     if (npc != null) {
@@ -68,8 +73,31 @@ public class FancyWrapper implements NpcWrapper<Npc> {
             npc = npcManager.getNpcById(npcId);
         }
         if (npc == null) {
-            throw new QuestException("Fancy Npc with " + (byName.getValue(profile).orElse(false) ? "name" : "id") + " " + npcId + " not found");
+            throw new QuestException("Fancy Npc with " + (byName ? "name" : "id") + " " + npcId + " not found");
         }
         return new FancyAdapter(plugin, npc);
+    }
+
+    @Override
+    public Set<org.betonquest.betonquest.api.quest.npc.Npc<Npc>> getNpcs(@Nullable final Profile profile) throws QuestException {
+        final Set<Npc> npcs = new HashSet<>();
+        final String npcId = this.npcId.getValue(profile);
+        final boolean byName = this.byName.getValue(profile).orElse(false);
+        if (byName) {
+            for (final Npc aNpc : npcManager.getAllNpcs()) {
+                if (npcId.equals(aNpc.getData().getName())) {
+                    npcs.add(aNpc);
+                }
+            }
+        } else {
+            final Npc aNpc = npcManager.getNpcById(npcId);
+            if (aNpc != null) {
+                npcs.add(aNpc);
+            }
+        }
+        if (npcs.isEmpty()) {
+            throw new QuestException("No Fancy Npc with " + (byName ? "name" : "id") + " " + npcId + " found");
+        }
+        return npcs.stream().map(npc -> new FancyAdapter(plugin, npc)).collect(Collectors.toSet());
     }
 }

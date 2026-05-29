@@ -9,6 +9,9 @@ import org.betonquest.betonquest.api.quest.npc.Npc;
 import org.betonquest.betonquest.api.quest.npc.NpcWrapper;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.HashSet;
+import java.util.Set;
+
 /**
  * Citizens wrapper to get a Npc.
  */
@@ -52,5 +55,20 @@ public class CitizensNameWrapper implements NpcWrapper<NPC> {
             throw new QuestException("NPC with name '" + npcName + "' not found");
         }
         return new CitizensAdapter(selectedNpc);
+    }
+
+    @Override
+    public Set<Npc<NPC>> getNpcs(@Nullable final Profile profile) throws QuestException {
+        final Set<Npc<NPC>> npcs = new HashSet<>();
+        final String npcName = this.npcName.getValue(profile);
+        for (final NPC npc : registry) {
+            if (npc.getName().equals(npcName)) {
+                npcs.add(new CitizensAdapter(npc));
+            }
+        }
+        if (npcs.isEmpty()) {
+            throw new QuestException("NPC with name '" + npcName + "' not found");
+        }
+        return npcs;
     }
 }
