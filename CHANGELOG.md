@@ -12,6 +12,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - `heal` action to change the current health of a player
 ### Changed
 - `language` config option is now a section; the default language moved to `language.default`
+- `mmoitem` now checks for soulbound when set
 ### Deprecated
 ### Removed
 ### Fixed
