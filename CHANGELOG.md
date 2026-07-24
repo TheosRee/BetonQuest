@@ -10,6 +10,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ### Deprecated
 ### Removed
 ### Fixed
+- `NoSuchMethodError` with `Journal` and `simple` books by using different methods
 ### Security
 
 ## [3.1.0] - 2026-07-19
