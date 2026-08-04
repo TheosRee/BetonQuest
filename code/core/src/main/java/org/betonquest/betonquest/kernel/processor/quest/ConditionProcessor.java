@@ -1,15 +1,19 @@
 package org.betonquest.betonquest.kernel.processor.quest;
 
 import org.betonquest.betonquest.api.QuestException;
+import org.betonquest.betonquest.api.config.quest.QuestPackageManager;
 import org.betonquest.betonquest.api.identifier.ConditionIdentifier;
 import org.betonquest.betonquest.api.identifier.IdentifierFactory;
 import org.betonquest.betonquest.api.logger.BetonQuestLogger;
 import org.betonquest.betonquest.api.profile.Profile;
+import org.betonquest.betonquest.api.quest.condition.NullableConditionAdapter;
 import org.betonquest.betonquest.api.service.condition.ConditionManager;
 import org.betonquest.betonquest.api.service.instruction.Instructions;
+import org.betonquest.betonquest.id.condition.DefaultConditionIdentifier;
 import org.betonquest.betonquest.kernel.processor.TypedQuestProcessor;
 import org.betonquest.betonquest.kernel.processor.adapter.ConditionAdapter;
 import org.betonquest.betonquest.kernel.registry.quest.ConditionTypeRegistry;
+import org.betonquest.betonquest.quest.condition.section.SectionConditionFactory;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitScheduler;
@@ -18,6 +22,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -40,6 +45,11 @@ public class ConditionProcessor extends TypedQuestProcessor<ConditionIdentifier,
     private final Plugin plugin;
 
     /**
+     * Factory to create section conditions for configuration sections.
+     */
+    private final SectionFactory<ConditionIdentifier, ConditionAdapter> sectionFactory;
+
+    /**
      * Create a new Condition Processor to store Conditions and checks them.
      *
      * @param log                        the custom logger for this class
@@ -48,14 +58,27 @@ public class ConditionProcessor extends TypedQuestProcessor<ConditionIdentifier,
      * @param conditionIdentifierFactory the factory to create condition identifiers
      * @param plugin                     the plugin instance
      * @param instructionApi             the instruction api
+     * @param packManager                the quest package manager to get quest packages from
      */
     public ConditionProcessor(final BetonQuestLogger log,
                               final ConditionTypeRegistry conditionTypes, final BukkitScheduler scheduler,
                               final IdentifierFactory<ConditionIdentifier> conditionIdentifierFactory, final Plugin plugin,
-                              final Instructions instructionApi) {
+                              final Instructions instructionApi, final QuestPackageManager packManager) {
         super(log, conditionTypes, conditionIdentifierFactory, instructionApi, "Condition", "conditions");
         this.scheduler = scheduler;
         this.plugin = plugin;
+        final SectionConditionFactory factory = new SectionConditionFactory(this, conditionIdentifierFactory, packManager);
+        this.sectionFactory = identifier -> {
+            final NullableConditionAdapter adapter = factory.fromSection(identifier);
+            final ConditionAdapter conditionAdapter = new ConditionAdapter(identifier.getPackage(), adapter, adapter);
+            return Map.entry(new DefaultConditionIdentifier(identifier.getPackage(), identifier.get(), false), conditionAdapter);
+        };
+    }
+
+    @Override
+    @Nullable
+    protected SectionFactory<ConditionIdentifier, ConditionAdapter> sectionFactory() {
+        return sectionFactory;
     }
 
     /**

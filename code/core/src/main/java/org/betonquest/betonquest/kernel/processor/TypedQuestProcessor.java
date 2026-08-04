@@ -13,8 +13,10 @@ import org.betonquest.betonquest.api.service.instruction.Instructions;
 import org.betonquest.betonquest.bstats.CompositeInstructionMetricsSupplier;
 import org.betonquest.betonquest.bstats.MetricsHolder;
 import org.betonquest.betonquest.kernel.registry.FactoryTypeRegistry;
+import org.betonquest.betonquest.quest.condition.section.SectionIdentifier;
 import org.betonquest.betonquest.util.MetricsUtils;
 import org.bukkit.configuration.ConfigurationSection;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.HashSet;
 import java.util.Map;
@@ -76,15 +78,16 @@ public abstract class TypedQuestProcessor<I extends ReadableIdentifier, T> exten
             return;
         }
         for (final String key : section.getKeys(true)) {
-            if (section.isConfigurationSection(key)) {
-                continue;
-            }
             if (key.contains(" ")) {
                 log.warn(pack, readable + " name cannot contain spaces: '" + key + "' in pack '" + pack.getQuestPath() + "'");
                 continue;
             }
             try {
-                loadKey(key, pack);
+                if (section.isConfigurationSection(key)) {
+                    loadSectionKey(key, pack);
+                } else {
+                    loadKey(key, pack);
+                }
             } catch (final QuestException e) {
                 log.warn(pack, "Error while loading " + readable + " '" + key + "' in pack '" + pack.getQuestPath() + "': " + e.getMessage(), e);
             }
@@ -106,6 +109,28 @@ public abstract class TypedQuestProcessor<I extends ReadableIdentifier, T> exten
         }
     }
 
+    private void loadSectionKey(final String key, final QuestPackage pack) throws QuestException {
+        final SectionFactory<I, T> sectionFactory = sectionFactory();
+        if (sectionFactory == null) {
+            return;
+        }
+        try {
+            final Map.Entry<I, T> entry = sectionFactory.fromSection(new SectionIdentifier(pack, key, internal));
+            final I identifier = entry.getKey();
+            final T parsed = entry.getValue();
+            values.put(identifier, parsed);
+            postCreation(identifier, parsed);
+            log.debug(pack, "  " + readable + " '" + identifier + "' loaded");
+        } catch (final QuestException e) {
+            throw new QuestException("Error in '%s' %s (section in pack '%s'): %s".formatted(key, readable, pack, e.getMessage()), e);
+        }
+    }
+
+    @Nullable
+    protected SectionFactory<I, T> sectionFactory() {
+        return null;
+    }
+
     /**
      * Allows for using the {@link T} after successful creation.
      *
@@ -115,5 +140,10 @@ public abstract class TypedQuestProcessor<I extends ReadableIdentifier, T> exten
     @SuppressWarnings("PMD.EmptyMethodInAbstractClassShouldBeAbstract")
     protected void postCreation(final I identifier, final T value) {
         // Empty
+    }
+
+    public interface SectionFactory<I, T> {
+
+        Map.Entry<I, T> fromSection(SectionIdentifier sectionIdentifier) throws QuestException;
     }
 }

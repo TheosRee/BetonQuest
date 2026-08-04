@@ -71,6 +71,11 @@ public class SectionConditionFactory implements PlayerConditionFactory, Playerle
         return new NullableConditionAdapter(new ConjunctionCondition(conditionIDs, conditionManager));
     }
 
+    public NullableConditionAdapter fromSection(final SectionIdentifier sectionIdentifier) throws QuestException {
+        final List<ConditionIdentifier> conditionIDs = identifiersFromSectionName(sectionIdentifier);
+        return new NullableConditionAdapter(new ConjunctionCondition(profile -> conditionIDs, conditionManager));
+    }
+
     private List<ConditionIdentifier> identifiersFromSectionName(final SectionIdentifier identifier) throws QuestException {
         final QuestPackage pack = identifier.getPackage();
         final String identifierSection = identifier.getSection();
