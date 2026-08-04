@@ -2,6 +2,7 @@ package org.betonquest.betonquest.kernel.component.types;
 
 import org.betonquest.betonquest.api.LanguageProvider;
 import org.betonquest.betonquest.api.config.Localizations;
+import org.betonquest.betonquest.api.config.quest.QuestPackageManager;
 import org.betonquest.betonquest.api.dependency.DependencyProvider;
 import org.betonquest.betonquest.api.logger.BetonQuestLoggerFactory;
 import org.betonquest.betonquest.api.profile.ProfileProvider;
@@ -13,6 +14,7 @@ import org.betonquest.betonquest.api.service.npc.NpcManager;
 import org.betonquest.betonquest.api.service.objective.ObjectiveManager;
 import org.betonquest.betonquest.data.PlayerDataStorage;
 import org.betonquest.betonquest.database.GlobalData;
+import org.betonquest.betonquest.id.condition.ConditionIdentifierFactory;
 import org.betonquest.betonquest.kernel.registry.quest.ConditionTypeRegistry;
 import org.betonquest.betonquest.lib.dependency.component.AbstractCoreComponent;
 import org.betonquest.betonquest.quest.condition.advancement.AdvancementConditionFactory;
@@ -60,6 +62,7 @@ import org.betonquest.betonquest.quest.condition.random.RandomConditionFactory;
 import org.betonquest.betonquest.quest.condition.ride.RideConditionFactory;
 import org.betonquest.betonquest.quest.condition.scoreboard.ScoreboardObjectiveConditionFactory;
 import org.betonquest.betonquest.quest.condition.scoreboard.ScoreboardTagConditionFactory;
+import org.betonquest.betonquest.quest.condition.section.SectionConditionFactory;
 import org.betonquest.betonquest.quest.condition.slots.EmptySlotsConditionFactory;
 import org.betonquest.betonquest.quest.condition.sneak.SneakConditionFactory;
 import org.betonquest.betonquest.quest.condition.stage.StageConditionFactory;
@@ -96,7 +99,7 @@ public class ConditionTypesComponent extends AbstractCoreComponent {
                 BetonQuestLoggerFactory.class, ProfileProvider.class, GlobalData.class, PlayerDataStorage.class,
                 Localizations.class, LanguageProvider.class, Instructions.class,
                 ConditionTypeRegistry.class, Conversations.class, ConditionManager.class, ObjectiveManager.class,
-                NpcManager.class, Functions.class);
+                NpcManager.class, Functions.class, ConditionIdentifierFactory.class, QuestPackageManager.class);
     }
 
     @Override
@@ -116,6 +119,8 @@ public class ConditionTypesComponent extends AbstractCoreComponent {
         final ObjectiveManager objectiveManager = getDependency(ObjectiveManager.class);
         final NpcManager npcManager = getDependency(NpcManager.class);
         final Functions functions = getDependency(Functions.class);
+        final ConditionIdentifierFactory conditionIdentifierFactory = getDependency(ConditionIdentifierFactory.class);
+        final QuestPackageManager questPackageManager = getDependency(QuestPackageManager.class);
 
         conditionTypes.register("advancement", new AdvancementConditionFactory(server));
         conditionTypes.registerCombined("and", new ConjunctionConditionFactory(conditionManager));
@@ -164,6 +169,8 @@ public class ConditionTypesComponent extends AbstractCoreComponent {
         conditionTypes.register("rating", new ArmorRatingConditionFactory());
         conditionTypes.register("realtime", new RealTimeConditionFactory());
         conditionTypes.register("ride", new RideConditionFactory());
+        conditionTypes.registerCombined("section", new SectionConditionFactory(conditionManager,
+                conditionIdentifierFactory, questPackageManager));
         conditionTypes.register("score", new ScoreboardObjectiveConditionFactory());
         conditionTypes.register("scoretag", new ScoreboardTagConditionFactory());
         conditionTypes.register("sneak", new SneakConditionFactory());
