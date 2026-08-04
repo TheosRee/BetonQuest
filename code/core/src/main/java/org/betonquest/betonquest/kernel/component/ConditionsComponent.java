@@ -57,7 +57,7 @@ public class ConditionsComponent extends AbstractCoreComponent {
         identifiers.register(ConditionIdentifier.class, conditionIdentifierFactory);
         final ConditionTypeRegistry conditionTypeRegistry = new ConditionTypeRegistry(loggerFactory.create(ConditionTypeRegistry.class));
         final ConditionProcessor conditionProcessor = new ConditionProcessor(loggerFactory.create(ConditionProcessor.class),
-                conditionTypeRegistry, bukkitScheduler, conditionIdentifierFactory, plugin, instructions, questPackageManager);
+                conditionTypeRegistry, bukkitScheduler, conditionIdentifierFactory, plugin, instructions);
 
         dependencyProvider.take(ConditionIdentifierFactory.class, conditionIdentifierFactory);
         dependencyProvider.take(ConditionTypeRegistry.class, conditionTypeRegistry);
