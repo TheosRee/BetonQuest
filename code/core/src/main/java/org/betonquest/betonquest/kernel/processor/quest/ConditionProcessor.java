@@ -9,7 +9,6 @@ import org.betonquest.betonquest.api.profile.Profile;
 import org.betonquest.betonquest.api.quest.condition.NullableConditionAdapter;
 import org.betonquest.betonquest.api.service.condition.ConditionManager;
 import org.betonquest.betonquest.api.service.instruction.Instructions;
-import org.betonquest.betonquest.id.condition.DefaultConditionIdentifier;
 import org.betonquest.betonquest.kernel.processor.TypedQuestProcessor;
 import org.betonquest.betonquest.kernel.processor.adapter.ConditionAdapter;
 import org.betonquest.betonquest.kernel.registry.quest.ConditionTypeRegistry;
@@ -22,7 +21,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -47,7 +45,7 @@ public class ConditionProcessor extends TypedQuestProcessor<ConditionIdentifier,
     /**
      * Factory to create section conditions for configuration sections.
      */
-    private final SectionFactory<ConditionIdentifier, ConditionAdapter> sectionFactory;
+    private final SectionFactory<ConditionAdapter> sectionFactory;
 
     /**
      * Create a new Condition Processor to store Conditions and checks them.
@@ -70,14 +68,13 @@ public class ConditionProcessor extends TypedQuestProcessor<ConditionIdentifier,
         final SectionConditionFactory factory = new SectionConditionFactory(this, conditionIdentifierFactory, packManager);
         this.sectionFactory = identifier -> {
             final NullableConditionAdapter adapter = factory.fromSection(identifier);
-            final ConditionAdapter conditionAdapter = new ConditionAdapter(identifier.getPackage(), adapter, adapter);
-            return Map.entry(new DefaultConditionIdentifier(identifier.getPackage(), identifier.get(), false), conditionAdapter);
+            return new ConditionAdapter(identifier.getPackage(), adapter, adapter);
         };
     }
 
     @Override
     @Nullable
-    protected SectionFactory<ConditionIdentifier, ConditionAdapter> sectionFactory() {
+    protected SectionFactory<ConditionAdapter> sectionFactory() {
         return sectionFactory;
     }
 

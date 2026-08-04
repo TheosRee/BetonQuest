@@ -110,24 +110,23 @@ public abstract class TypedQuestProcessor<I extends ReadableIdentifier, T> exten
     }
 
     private void loadSectionKey(final String key, final QuestPackage pack) throws QuestException {
-        final SectionFactory<I, T> sectionFactory = sectionFactory();
+        final SectionFactory<T> sectionFactory = sectionFactory();
         if (sectionFactory == null) {
             return;
         }
+        final I identifier = getIdentifier(pack, key);
         try {
-            final Map.Entry<I, T> entry = sectionFactory.fromSection(new SectionIdentifier(pack, key, internal));
-            final I identifier = entry.getKey();
-            final T parsed = entry.getValue();
+            final T parsed = sectionFactory.fromSection(new SectionIdentifier(pack, key, internal));
             values.put(identifier, parsed);
             postCreation(identifier, parsed);
             log.debug(pack, "  " + readable + " '" + identifier + "' loaded");
         } catch (final QuestException e) {
-            throw new QuestException("Error in '%s' %s (section in pack '%s'): %s".formatted(key, readable, pack, e.getMessage()), e);
+            throw new QuestException("Error in '%s' %s (section in pack '%s'): %s".formatted(identifier, readable, pack, e.getMessage()), e);
         }
     }
 
     @Nullable
-    protected SectionFactory<I, T> sectionFactory() {
+    protected SectionFactory<T> sectionFactory() {
         return null;
     }
 
@@ -142,8 +141,8 @@ public abstract class TypedQuestProcessor<I extends ReadableIdentifier, T> exten
         // Empty
     }
 
-    public interface SectionFactory<I, T> {
+    public interface SectionFactory<T> {
 
-        Map.Entry<I, T> fromSection(SectionIdentifier sectionIdentifier) throws QuestException;
+        T fromSection(SectionIdentifier sectionIdentifier) throws QuestException;
     }
 }

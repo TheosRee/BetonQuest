@@ -26,7 +26,7 @@ public class DefaultConditionIdentifier extends DefaultReadableIdentifier implem
      * @param identifier the identifier of the condition.
      * @param inverted   if the condition should be interpreted inverted.
      */
-    public DefaultConditionIdentifier(final QuestPackage pack, final String identifier, final boolean inverted) {
+    protected DefaultConditionIdentifier(final QuestPackage pack, final String identifier, final boolean inverted) {
         super(pack, identifier, CONDITION_SECTION);
         this.inverted = inverted;
     }

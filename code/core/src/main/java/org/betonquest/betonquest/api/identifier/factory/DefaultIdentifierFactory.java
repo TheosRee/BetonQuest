@@ -87,6 +87,23 @@ public abstract class DefaultIdentifierFactory<I extends Identifier> implements 
     }
 
     /**
+     * Ensures the specified section has any value for the identifier.
+     *
+     * @param resolvedIdentifier the identifier to check
+     * @param section            the section to check for
+     * @return the given identifier
+     * @throws QuestException if the section does not have any value
+     */
+    protected I requireValue(final I resolvedIdentifier, final String section) throws QuestException {
+        final MultiConfiguration config = resolvedIdentifier.getPackage().getConfig();
+        final String path = section + config.options().pathSeparator() + resolvedIdentifier.get();
+        if (!config.contains(path)) {
+            throw new QuestException("%s '%s' is not defined in section '%s'!".formatted(readableTypeName, resolvedIdentifier.getFull(), section));
+        }
+        return resolvedIdentifier;
+    }
+
+    /**
      * Directly parse an input string into a package and identifier.
      *
      * @param sourcePackage the package the identifier is in, or null if not specified
