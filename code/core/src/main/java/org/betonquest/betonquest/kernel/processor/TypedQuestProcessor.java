@@ -16,6 +16,7 @@ import org.betonquest.betonquest.kernel.registry.FactoryTypeRegistry;
 import org.betonquest.betonquest.quest.condition.section.SectionIdentifier;
 import org.betonquest.betonquest.util.MetricsUtils;
 import org.bukkit.configuration.ConfigurationSection;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashSet;
@@ -125,6 +126,12 @@ public abstract class TypedQuestProcessor<I extends ReadableIdentifier, T> exten
         }
     }
 
+    /**
+     * Get the factory for creating {@link T} for sections.
+     *
+     * @return the factory, if section nodes should get implementations
+     */
+    @SuppressWarnings("PMD.EmptyMethodInAbstractClassShouldBeAbstract")
     @Nullable
     protected SectionFactory<T> sectionFactory() {
         return null;
@@ -141,8 +148,22 @@ public abstract class TypedQuestProcessor<I extends ReadableIdentifier, T> exten
         // Empty
     }
 
+    /**
+     * Factory to create implementation that works on sections instead instruction strings.
+     *
+     * @param <T> the type to create
+     */
+    @FunctionalInterface
     public interface SectionFactory<T> {
 
+        /**
+         * Create a new {@link T} from an {@link Instruction}.
+         *
+         * @param sectionIdentifier the section to create for
+         * @return the newly created {@link T}
+         * @throws QuestException if the section cannot be parsed
+         */
+        @Contract(pure = true)
         T fromSection(SectionIdentifier sectionIdentifier) throws QuestException;
     }
 }
