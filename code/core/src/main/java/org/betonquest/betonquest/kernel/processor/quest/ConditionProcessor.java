@@ -1,7 +1,6 @@
 package org.betonquest.betonquest.kernel.processor.quest;
 
 import org.betonquest.betonquest.api.QuestException;
-import org.betonquest.betonquest.api.config.quest.QuestPackage;
 import org.betonquest.betonquest.api.identifier.ConditionIdentifier;
 import org.betonquest.betonquest.api.identifier.IdentifierFactory;
 import org.betonquest.betonquest.api.logger.BetonQuestLogger;
@@ -9,12 +8,12 @@ import org.betonquest.betonquest.api.profile.Profile;
 import org.betonquest.betonquest.api.quest.condition.NullableConditionAdapter;
 import org.betonquest.betonquest.api.service.condition.ConditionManager;
 import org.betonquest.betonquest.api.service.instruction.Instructions;
+import org.betonquest.betonquest.id.IdentifierUtil;
 import org.betonquest.betonquest.kernel.processor.TypedQuestProcessor;
 import org.betonquest.betonquest.kernel.processor.adapter.ConditionAdapter;
 import org.betonquest.betonquest.kernel.registry.quest.ConditionTypeRegistry;
 import org.betonquest.betonquest.quest.condition.logik.ConjunctionCondition;
 import org.bukkit.Bukkit;
-import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitScheduler;
 import org.jetbrains.annotations.Nullable;
@@ -22,7 +21,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -67,20 +65,9 @@ public class ConditionProcessor extends TypedQuestProcessor<ConditionIdentifier,
         this.scheduler = scheduler;
         this.plugin = plugin;
         this.sectionFactory = identifier -> {
-            final QuestPackage pack = identifier.getPackage();
-            final ConfigurationSection targetSection = pack.getConfig().getConfigurationSection(identifier.getSection() + "." + identifier.get());
-            if (targetSection == null) {
-                throw new QuestException("Target section '%s.%s' does not exist".formatted(identifier.getSection(), identifier.get()));
-            }
-            final List<ConditionIdentifier> identifiers = new ArrayList<>();
-            for (final Map.Entry<String, Object> entry : targetSection.getValues(true).entrySet()) {
-                if (entry.getValue() instanceof ConfigurationSection) {
-                    continue;
-                }
-                identifiers.add(identifierFactory.parseIdentifier(pack, identifier.get() + "." + entry.getKey()));
-            }
+            final List<ConditionIdentifier> identifiers = IdentifierUtil.subsectionIdentifiers(identifierFactory, identifier);
             final NullableConditionAdapter adapter = new NullableConditionAdapter(new ConjunctionCondition(profile -> identifiers, this));
-            return new ConditionAdapter(pack, adapter, adapter);
+            return new ConditionAdapter(identifier.getPackage(), adapter, adapter);
         };
     }
 
