@@ -2,7 +2,6 @@ package org.betonquest.betonquest.kernel.component.types;
 
 import org.betonquest.betonquest.api.LanguageProvider;
 import org.betonquest.betonquest.api.config.Localizations;
-import org.betonquest.betonquest.api.config.quest.QuestPackageManager;
 import org.betonquest.betonquest.api.dependency.DependencyProvider;
 import org.betonquest.betonquest.api.logger.BetonQuestLoggerFactory;
 import org.betonquest.betonquest.api.profile.ProfileProvider;
@@ -99,7 +98,7 @@ public class ConditionTypesComponent extends AbstractCoreComponent {
                 BetonQuestLoggerFactory.class, ProfileProvider.class, GlobalData.class, PlayerDataStorage.class,
                 Localizations.class, LanguageProvider.class, Instructions.class,
                 ConditionTypeRegistry.class, Conversations.class, ConditionManager.class, ObjectiveManager.class,
-                NpcManager.class, Functions.class, ConditionIdentifierFactory.class, QuestPackageManager.class);
+                NpcManager.class, Functions.class, ConditionIdentifierFactory.class);
     }
 
     @Override
@@ -120,7 +119,6 @@ public class ConditionTypesComponent extends AbstractCoreComponent {
         final NpcManager npcManager = getDependency(NpcManager.class);
         final Functions functions = getDependency(Functions.class);
         final ConditionIdentifierFactory conditionIdentifierFactory = getDependency(ConditionIdentifierFactory.class);
-        final QuestPackageManager questPackageManager = getDependency(QuestPackageManager.class);
 
         conditionTypes.register("advancement", new AdvancementConditionFactory(server));
         conditionTypes.registerCombined("and", new ConjunctionConditionFactory(conditionManager));
@@ -169,8 +167,7 @@ public class ConditionTypesComponent extends AbstractCoreComponent {
         conditionTypes.register("rating", new ArmorRatingConditionFactory());
         conditionTypes.register("realtime", new RealTimeConditionFactory());
         conditionTypes.register("ride", new RideConditionFactory());
-        conditionTypes.registerCombined("section", new SectionConditionFactory(conditionManager,
-                conditionIdentifierFactory, questPackageManager));
+        conditionTypes.registerCombined("section", new SectionConditionFactory(conditionManager, conditionIdentifierFactory));
         conditionTypes.register("score", new ScoreboardObjectiveConditionFactory());
         conditionTypes.register("scoretag", new ScoreboardTagConditionFactory());
         conditionTypes.register("sneak", new SneakConditionFactory());

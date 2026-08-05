@@ -13,7 +13,6 @@ import org.betonquest.betonquest.api.service.instruction.Instructions;
 import org.betonquest.betonquest.bstats.CompositeInstructionMetricsSupplier;
 import org.betonquest.betonquest.bstats.MetricsHolder;
 import org.betonquest.betonquest.kernel.registry.FactoryTypeRegistry;
-import org.betonquest.betonquest.quest.condition.section.SectionIdentifier;
 import org.betonquest.betonquest.util.MetricsUtils;
 import org.bukkit.configuration.ConfigurationSection;
 import org.jetbrains.annotations.Contract;
@@ -111,13 +110,13 @@ public abstract class TypedQuestProcessor<I extends ReadableIdentifier, T> exten
     }
 
     private void loadSectionKey(final String key, final QuestPackage pack) throws QuestException {
-        final SectionFactory<T> sectionFactory = sectionFactory();
+        final SectionFactory<I, T> sectionFactory = sectionFactory();
         if (sectionFactory == null) {
             return;
         }
         final I identifier = getIdentifier(pack, key);
         try {
-            final T parsed = sectionFactory.fromSection(new SectionIdentifier(pack, key, internal));
+            final T parsed = sectionFactory.fromSection(identifier);
             values.put(identifier, parsed);
             postCreation(identifier, parsed);
             log.debug(pack, "  " + readable + " '" + identifier + "' loaded");
@@ -133,7 +132,7 @@ public abstract class TypedQuestProcessor<I extends ReadableIdentifier, T> exten
      */
     @SuppressWarnings("PMD.EmptyMethodInAbstractClassShouldBeAbstract")
     @Nullable
-    protected SectionFactory<T> sectionFactory() {
+    protected SectionFactory<I, T> sectionFactory() {
         return null;
     }
 
@@ -154,7 +153,7 @@ public abstract class TypedQuestProcessor<I extends ReadableIdentifier, T> exten
      * @param <T> the type to create
      */
     @FunctionalInterface
-    public interface SectionFactory<T> {
+    public interface SectionFactory<I, T> {
 
         /**
          * Create a new {@link T} from an {@link Instruction}.
@@ -164,6 +163,6 @@ public abstract class TypedQuestProcessor<I extends ReadableIdentifier, T> exten
          * @throws QuestException if the section cannot be parsed
          */
         @Contract(pure = true)
-        T fromSection(SectionIdentifier sectionIdentifier) throws QuestException;
+        T fromSection(I sectionIdentifier) throws QuestException;
     }
 }

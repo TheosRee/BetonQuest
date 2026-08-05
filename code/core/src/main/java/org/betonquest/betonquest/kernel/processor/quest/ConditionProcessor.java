@@ -47,7 +47,7 @@ public class ConditionProcessor extends TypedQuestProcessor<ConditionIdentifier,
     /**
      * Factory to create section conditions for configuration sections.
      */
-    private final SectionFactory<ConditionAdapter> sectionFactory;
+    private final SectionFactory<ConditionIdentifier, ConditionAdapter> sectionFactory;
 
     /**
      * Create a new Condition Processor to store Conditions and checks them.
@@ -86,7 +86,7 @@ public class ConditionProcessor extends TypedQuestProcessor<ConditionIdentifier,
 
     @Override
     @Nullable
-    protected SectionFactory<ConditionAdapter> sectionFactory() {
+    protected SectionFactory<ConditionIdentifier, ConditionAdapter> sectionFactory() {
         return sectionFactory;
     }
 

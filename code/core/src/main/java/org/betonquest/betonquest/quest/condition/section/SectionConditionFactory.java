@@ -2,19 +2,16 @@ package org.betonquest.betonquest.quest.condition.section;
 
 import org.betonquest.betonquest.api.QuestException;
 import org.betonquest.betonquest.api.config.quest.QuestPackage;
-import org.betonquest.betonquest.api.config.quest.QuestPackageManager;
 import org.betonquest.betonquest.api.identifier.ConditionIdentifier;
 import org.betonquest.betonquest.api.identifier.IdentifierFactory;
 import org.betonquest.betonquest.api.instruction.Argument;
 import org.betonquest.betonquest.api.instruction.Instruction;
-import org.betonquest.betonquest.api.instruction.argument.InstructionArgumentParser;
 import org.betonquest.betonquest.api.quest.condition.NullableConditionAdapter;
 import org.betonquest.betonquest.api.quest.condition.PlayerCondition;
 import org.betonquest.betonquest.api.quest.condition.PlayerConditionFactory;
 import org.betonquest.betonquest.api.quest.condition.PlayerlessCondition;
 import org.betonquest.betonquest.api.quest.condition.PlayerlessConditionFactory;
 import org.betonquest.betonquest.api.service.condition.ConditionManager;
-import org.betonquest.betonquest.id.condition.DefaultConditionIdentifier;
 import org.betonquest.betonquest.quest.condition.logik.ConjunctionCondition;
 import org.bukkit.configuration.ConfigurationSection;
 
@@ -38,22 +35,14 @@ public class SectionConditionFactory implements PlayerConditionFactory, Playerle
     private final IdentifierFactory<ConditionIdentifier> identifierFactory;
 
     /**
-     * Parses the given string into an identifier to an existing section.
-     */
-    private final InstructionArgumentParser<SectionIdentifier> parser;
-
-    /**
      * Create the section condition factory.
      *
      * @param conditionManager  the condition manager
      * @param identifierFactory the factory to create identifier from section keys
-     * @param packageManager    the package manager used to resolve relative paths
      */
-    public SectionConditionFactory(final ConditionManager conditionManager, final IdentifierFactory<ConditionIdentifier> identifierFactory,
-                                   final QuestPackageManager packageManager) {
+    public SectionConditionFactory(final ConditionManager conditionManager, final IdentifierFactory<ConditionIdentifier> identifierFactory) {
         this.conditionManager = conditionManager;
         this.identifierFactory = identifierFactory;
-        this.parser = new SectionIdentifierParser(packageManager, "Condition", DefaultConditionIdentifier.CONDITION_SECTION);
     }
 
     @Override
@@ -67,11 +56,11 @@ public class SectionConditionFactory implements PlayerConditionFactory, Playerle
     }
 
     private NullableConditionAdapter parseAlternative(final Instruction instruction) throws QuestException {
-        final Argument<List<ConditionIdentifier>> conditionIDs = instruction.parse(parser).map(this::identifiersFromSectionName).get();
+        final Argument<List<ConditionIdentifier>> conditionIDs = instruction.identifier(ConditionIdentifier.class).map(this::subsectionIdentifiers).get();
         return new NullableConditionAdapter(new ConjunctionCondition(conditionIDs, conditionManager));
     }
 
-    private List<ConditionIdentifier> identifiersFromSectionName(final SectionIdentifier identifier) throws QuestException {
+    private List<ConditionIdentifier> subsectionIdentifiers(final ConditionIdentifier identifier) throws QuestException {
         final QuestPackage pack = identifier.getPackage();
         final String identifierSection = identifier.getSection();
         final ConfigurationSection section = pack.getConfig().getConfigurationSection(identifierSection);
