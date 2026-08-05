@@ -110,7 +110,7 @@ public abstract class TypedQuestProcessor<I extends ReadableIdentifier, T> exten
     }
 
     private void loadSectionKey(final String key, final QuestPackage pack) throws QuestException {
-        final SectionFactory<I, T> sectionFactory = sectionFactory();
+        final SectionFactory<I, T> sectionFactory = getSectionFactory();
         if (sectionFactory == null) {
             return;
         }
@@ -132,7 +132,7 @@ public abstract class TypedQuestProcessor<I extends ReadableIdentifier, T> exten
      */
     @SuppressWarnings("PMD.EmptyMethodInAbstractClassShouldBeAbstract")
     @Nullable
-    protected SectionFactory<I, T> sectionFactory() {
+    protected SectionFactory<I, T> getSectionFactory() {
         return null;
     }
 

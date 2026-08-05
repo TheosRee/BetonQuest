@@ -73,7 +73,7 @@ public class ConditionProcessor extends TypedQuestProcessor<ConditionIdentifier,
 
     @Override
     @Nullable
-    protected SectionFactory<ConditionIdentifier, ConditionAdapter> sectionFactory() {
+    protected SectionFactory<ConditionIdentifier, ConditionAdapter> getSectionFactory() {
         return sectionFactory;
     }
 
