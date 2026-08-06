@@ -44,16 +44,12 @@ import org.betonquest.betonquest.kernel.processor.feature.JournalEntryProcessor;
 import org.betonquest.betonquest.kernel.processor.quest.ObjectiveProcessor;
 import org.betonquest.betonquest.kernel.registry.feature.ItemTypeRegistry;
 import org.betonquest.betonquest.lib.instruction.argument.DefaultArgument;
-import org.betonquest.betonquest.logger.BetonQuestLogRecord;
 import org.betonquest.betonquest.logger.PlayerLogWatcher;
-import org.betonquest.betonquest.logger.format.ChatFormatter;
 import org.betonquest.betonquest.logger.handler.history.LogPublishingController;
 import org.betonquest.betonquest.quest.action.IngameNotificationSender;
 import org.betonquest.betonquest.quest.action.NoNotificationSender;
 import org.betonquest.betonquest.quest.action.NotificationLevel;
 import org.betonquest.betonquest.quest.action.give.GiveAction;
-import org.betonquest.betonquest.web.downloader.DownloadFailedException;
-import org.betonquest.betonquest.web.downloader.Downloader;
 import org.betonquest.betonquest.web.updater.Updater;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
@@ -66,7 +62,6 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -75,10 +70,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.UUID;
 import java.util.logging.Level;
-import java.util.stream.Stream;
 
 /**
  * Main admin command for quest editing.
@@ -121,11 +114,6 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
      * The {@link Localizations} instance.
      */
     private final Localizations localizations;
-
-    /**
-     * The plugin configuration accessor.
-     */
-    private final ConfigAccessor config;
 
     /**
      * The betonquest updater.
@@ -230,7 +218,6 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
         this.playerDataStorage = constructorParams.playerDataStorage();
         this.profileProvider = constructorParams.profileProvider();
         this.localizations = constructorParams.localizations();
-        this.config = constructorParams.configAccessor();
         this.updater = constructorParams.updater();
         this.reloader = constructorParams.reloader();
         this.saver = constructorParams.saver();
@@ -254,14 +241,15 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
                 new GlobalTagSubCommand(log, constructorParams),
                 new PointSubCommand(log, constructorParams),
                 new GlobalPointSubCommand(log, constructorParams),
-                new JournalSubCommand(log, constructorParams)
+                new JournalSubCommand(log, constructorParams),
+                new DownloadSubCommand(plugin, log, constructorParams)
         ).forEach(command -> {
             command.names().forEach(name -> subCommands.put(name, command));
             subCommandSuggestions.add(command.names().get(0));
         });
         subCommandSuggestions.addAll(Arrays.asList("item", "give",
                 "delete", "rename", "version", "purge",
-                "update", "reload", "backup", "debug", "download"));
+                "update", "reload", "backup", "debug"));
 
         this.versionSubCommand = new VersionSubCommand(plugin, constructorParams);
     }
@@ -334,9 +322,6 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
                     case "debug":
                         handleDebug(sender, args);
                         break;
-                    case "download":
-                        handleDownload(sender, args);
-                        break;
                     default:
                         // there was an unknown argument, so handle this
                         sendMessage(sender, "unknown_argument");
@@ -374,7 +359,6 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
                  "r" -> completeRenaming(args);
             case "purge" -> args.length == 2 ? Optional.empty() : Optional.of(new ArrayList<>());
             case "debug" -> completeDebug(args);
-            case "download" -> completeDownload(args);
             case "version",
                  "ver",
                  "v",
@@ -1016,102 +1000,6 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
         sendMessage(sender, "unknown_argument");
     }
 
-    @SuppressWarnings("PMD.AvoidCatchingGenericException")
-    private void handleDownload(final CommandSender sender, final String... args) {
-        if (args.length < 5) {
-            sendMessage(sender, "arguments");
-            return;
-        }
-        final String sourcePath = args[4];
-        final String targetPath;
-        boolean recursive = false;
-        boolean overwrite = false;
-        if (args.length < 6 || Set.of("recursive", "overwrite").contains(args[5])) {
-            targetPath = sourcePath;
-        } else {
-            targetPath = args[5];
-        }
-        for (int i = 5; i < args.length; i++) {
-            switch (args[i].toLowerCase(Locale.ROOT)) {
-                case "recursive" -> recursive = true;
-                case "overwrite" -> overwrite = true;
-                default -> {
-                    if (i > 5) {
-                        sendMessage(sender, "unknown_argument");
-                        return;
-                    }
-                }
-            }
-        }
-        final String githubNamespace = args[1];
-        final String ref = args[2];
-        final String offsetPath = args[3];
-        final String errSummary = String.format("Download from %s ref %s of %s at %s to %s failed:",
-                githubNamespace, ref, offsetPath, sourcePath, targetPath);
-
-        //Check offset paths
-        if (!Downloader.ALLOWED_OFFSET_PATHS.contains(offsetPath)) {
-            sendMessage(sender, "download_failed_offset");
-            log.debug(errSummary, new IllegalArgumentException(offsetPath));
-            return;
-        }
-
-        //check if repo is allowed
-        final List<String> whitelist = config.getStringList("downloader.repo_whitelist");
-        if (whitelist.stream().map(String::trim).noneMatch(githubNamespace::equals)) {
-            sendMessage(sender, "download_failed_whitelist");
-            log.debug(errSummary, new IllegalArgumentException(githubNamespace));
-            return;
-        }
-
-        //check if ref is valid
-        if (ref.toLowerCase(Locale.ROOT).startsWith("refs/pull/") && !config.getBoolean("downloader.pull_request", false)) {
-            sendMessage(sender, "download_failed_pr");
-            log.debug(errSummary, new IllegalArgumentException(ref));
-            return;
-        }
-
-        //run download
-        final Downloader downloader = new Downloader(loggerFactory.create(Downloader.class, "Downloader"),
-                plugin.getDataFolder(), githubNamespace, ref, offsetPath, sourcePath, targetPath, recursive, overwrite);
-        sendMessage(sender, "download_scheduled");
-        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
-            try {
-                downloader.call();
-                sendMessageSync(sender, "download_success");
-            } catch (final DownloadFailedException | SecurityException | FileNotFoundException e) {
-                final String message = e.getMessage();
-                sendMessageSync(sender, "download_failed",
-                        new VariableReplacement("error", Component.text(message == null ? e.getClass().getSimpleName() : message)));
-                log.debug(errSummary, e);
-            } catch (final Exception e) {
-                sendMessageSync(sender, "download_failed",
-                        new VariableReplacement("error", Component.text(e.getClass().getSimpleName() + ": " + e.getMessage())));
-                if (sender instanceof final Player player) {
-                    final BetonQuestLogRecord record = new BetonQuestLogRecord(Level.FINE, null, plugin);
-                    record.setThrown(e);
-                    player.sendMessage(new ChatFormatter().formatTextComponent(record));
-                    log.debug(errSummary, e);
-                } else {
-                    log.error(errSummary, e);
-                }
-            }
-        });
-    }
-
-    private Optional<List<String>> completeDownload(final String... args) {
-        return switch (args.length) {
-            case 2 -> Optional.of(config.getStringList("downloader.repo_whitelist"));
-            case 3 -> Optional.of(List.of("refs/heads/", "refs/tags/"));
-            case 4 -> Optional.of(Downloader.ALLOWED_OFFSET_PATHS);
-            case 5 -> Optional.of(List.of("/"));
-            case 6 -> Optional.of(List.of("/", "overwrite", "recursive"));
-            case 7, 8 ->
-                    Optional.of(Stream.of("overwrite", "recursive").filter(tag -> !Arrays.asList(args).contains(tag)).toList());
-            default -> Optional.of(List.of());
-        };
-    }
-
     private Level getLogLevel(@Nullable final String arg) {
         if ("info".equalsIgnoreCase(arg)) {
             return Level.INFO;
@@ -1133,10 +1021,6 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
             return Optional.of(Arrays.asList("error", "info", "debug"));
         }
         return Optional.of(new ArrayList<>());
-    }
-
-    private void sendMessageSync(final CommandSender sender, final String messageName, final VariableReplacement... replacements) {
-        Bukkit.getScheduler().runTask(plugin, () -> sendMessage(sender, messageName, replacements));
     }
 
     private void sendMessage(final CommandSender sender, final String messageName, final VariableReplacement... replacements) {
