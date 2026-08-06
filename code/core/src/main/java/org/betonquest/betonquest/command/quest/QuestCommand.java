@@ -262,12 +262,13 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
                 new ObjectiveSubCommand(log, constructorParams),
                 new VariableObjectiveSubCommand(log, constructorParams),
                 new TagSubCommand(log, constructorParams),
+                new GlobalTagSubCommand(log, constructorParams),
                 new JournalSubCommand(log, constructorParams)
         ).forEach(command -> {
             command.names().forEach(name -> subCommands.put(name, command));
             subCommandSuggestions.add(command.names().get(0));
         });
-        subCommandSuggestions.addAll(Arrays.asList("item", "give", "globaltag",
+        subCommandSuggestions.addAll(Arrays.asList("item", "give",
                 "globalpoint", "point", "delete", "rename", "version", "purge",
                 "update", "reload", "backup", "debug", "download"));
     }
@@ -304,13 +305,6 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
                     case "give":
                     case "g":
                         giveItem(sender, args);
-                        break;
-                    case "globaltags":
-                    case "globaltag":
-                    case "gtag":
-                    case "gtags":
-                    case "gt":
-                        handleGlobalTags(sender, args);
                         break;
                     case "globalpoints":
                     case "globalpoint":
@@ -392,11 +386,6 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
                  "i" -> completeItems(true, args);
             case "give",
                  "g" -> completeItems(false, args);
-            case "globaltags",
-                 "globaltag",
-                 "gtag",
-                 "gtags",
-                 "gt" -> completeGlobalTags(args);
             case "globalpoints",
                  "globalpoint",
                  "gpoints",
@@ -777,70 +766,6 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
         }
         if (suggestSerializers && args.length == 3) {
             return Optional.of(List.copyOf(itemTypeRegistry.serializerKeySet()));
-        }
-        return Optional.of(new ArrayList<>());
-    }
-
-    /**
-     * Lists, adds or removes global tags.
-     */
-    private void handleGlobalTags(final CommandSender sender, final String... args) {
-        // if there are no arguments then list all global tags
-        if (args.length < 2 || "list".equalsIgnoreCase(args[1]) || "l".equalsIgnoreCase(args[1])) {
-            log.debug("Listing global tags");
-            final Predicate<String> shouldDisplay = createListFilter(args, 2, Function.identity());
-            sendMessage(sender, "global_tags");
-            globalData.tags().get().stream()
-                    .filter(shouldDisplay)
-                    .sorted()
-                    .forEach(tag -> sender.sendMessage("§b- " + tag));
-            return;
-        }
-        // handle purge
-        if ("purge".equalsIgnoreCase(args[1])) {
-            log.debug("Purging all global tags");
-            globalData.purgeTags();
-            sendMessage(sender, "global_tags_purged");
-            return;
-        }
-        // if there is not enough arguments, display warning
-        if (args.length < 3) {
-            log.debug("Missing tag name");
-            sendMessage(sender, "specify_tag");
-            return;
-        }
-        final String tag = args[2];
-        // if there are arguments, handle them
-        switch (args[1].toLowerCase(Locale.ROOT)) {
-            case "add", "a" -> {
-                log.debug("Adding global tag " + tag);
-                globalData.tags().add(tag);
-                sendMessage(sender, "tag_added");
-            }
-            case "remove", "delete", "del", "r", "d" -> {
-                log.debug("Removing global tag " + tag);
-                globalData.tags().remove(tag);
-                sendMessage(sender, "tag_removed");
-            }
-            default -> {
-                log.debug("The argument was unknown");
-                sendMessage(sender, "unknown_argument");
-            }
-        }
-    }
-
-    /**
-     * Returns a list including all possible options for tab complete of the {@code /betonquest globaltags} command.
-     */
-    private Optional<List<String>> completeGlobalTags(final String... args) {
-        if (args.length == 2) {
-            return Optional.of(Arrays.asList("list", "add", "del", "purge"));
-        }
-        if (args.length == 3) {
-            if ("purge".equalsIgnoreCase(args[1])) {
-                return Optional.of(new ArrayList<>());
-            }
-            return completeId(args, null);
         }
         return Optional.of(new ArrayList<>());
     }
