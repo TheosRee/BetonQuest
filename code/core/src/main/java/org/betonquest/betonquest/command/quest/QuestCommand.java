@@ -6,7 +6,6 @@ import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.betonquest.betonquest.api.QuestException;
 import org.betonquest.betonquest.api.common.component.VariableReplacement;
-import org.betonquest.betonquest.api.config.ConfigAccessor;
 import org.betonquest.betonquest.api.config.ConfigAccessorFactory;
 import org.betonquest.betonquest.api.config.Localizations;
 import org.betonquest.betonquest.api.config.quest.QuestPackage;
@@ -38,7 +37,6 @@ import org.betonquest.betonquest.feature.journal.Journal;
 import org.betonquest.betonquest.feature.journal.Pointer;
 import org.betonquest.betonquest.kernel.processor.feature.JournalEntryProcessor;
 import org.betonquest.betonquest.kernel.processor.quest.ObjectiveProcessor;
-import org.betonquest.betonquest.kernel.registry.feature.ItemTypeRegistry;
 import org.betonquest.betonquest.logger.PlayerLogWatcher;
 import org.betonquest.betonquest.web.updater.Updater;
 import org.bukkit.Bukkit;
@@ -48,7 +46,6 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.Nullable;
 
@@ -131,11 +128,6 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
     private final ObjectiveManager objectiveManager;
 
     /**
-     * The item type registry.
-     */
-    private final ItemTypeRegistry itemTypeRegistry;
-
-    /**
      * The journal entry processor.
      */
     private final JournalEntryProcessor journalEntryProcessor;
@@ -203,7 +195,6 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
         this.connector = constructorParams.connector();
         this.globalData = constructorParams.globalData();
         this.questPackageManager = constructorParams.questPackageManager();
-        this.itemTypeRegistry = constructorParams.itemTypeRegistry();
         this.journalEntryProcessor = constructorParams.journalEntryProcessor();
         this.objectiveManager = constructorParams.objectiveManager();
         this.identifiers = constructorParams.identifiers();
@@ -221,13 +212,14 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
                 new GlobalPointSubCommand(log, constructorParams),
                 new JournalSubCommand(log, constructorParams),
                 new GiveSubCommand(log, constructorParams),
+                new ItemSubCommand(log, constructorParams),
                 new DebugSubCommand(log, constructorParams),
                 new DownloadSubCommand(plugin, log, constructorParams)
         ).forEach(command -> {
             command.names().forEach(name -> subCommands.put(name, command));
             subCommandSuggestions.add(command.names().get(0));
         });
-        subCommandSuggestions.addAll(Arrays.asList("item",
+        subCommandSuggestions.addAll(Arrays.asList(
                 "delete", "rename", "version", "purge",
                 "update", "reload", "backup"));
 
@@ -256,13 +248,6 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
                     return true;
                 }
                 switch (lowerCase) {
-                    case "items":
-                    case "item":
-                    case "i":
-                        // and items, which only use configuration files (they
-                        // should be sync)
-                        handleItems(sender, args);
-                        break;
                     case "delete":
                     case "del":
                     case "d":
@@ -320,9 +305,6 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
             return subCommand.complete(args);
         }
         return switch (lowerCase) {
-            case "items",
-                 "item",
-                 "i" -> completeItems(true, args);
             case "delete",
                  "del",
                  "d" -> completeDeleting(args);
@@ -436,89 +418,6 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
         }
         log.debug("Profile is offline, loading his data");
         return playerDataFactory.createPlayerData(profile);
-    }
-
-    /**
-     * Adds item held in hand to items.yml file.
-     */
-    private void handleItems(final CommandSender sender, final String... args) {
-        // sender must be a player
-        if (!(sender instanceof final Player player)) {
-            log.debug("Cannot continue, sender must be player");
-            return;
-        }
-        // and the item name must be specified
-        if (args.length < 2) {
-            log.debug("Cannot continue, item's name must be supplied");
-            sendMessage(sender, "specify_item");
-            return;
-        }
-        if (args.length < 3) {
-            log.debug("Cannot continue, item's serializer must be supplied");
-            sendMessage(sender, "specify_key");
-            return;
-        }
-
-        final String itemID = args[1];
-        final String pack;
-        final String name;
-        if (itemID.contains(Identifier.SEPARATOR)) {
-            final String[] parts = itemID.split(Identifier.SEPARATOR);
-            pack = parts[0];
-            name = parts[1];
-        } else {
-            pack = null;
-            name = itemID;
-        }
-        // define parts of the final string
-        final QuestPackage configPack = questPackageManager.getPackages().get(pack);
-        if (configPack == null) {
-            log.debug("Cannot continue, package does not exist");
-            sendMessage(sender, "specify_package");
-            return;
-        }
-        final ItemStack item = player.getInventory().getItemInMainHand();
-        final String instructions;
-        try {
-            instructions = itemTypeRegistry.getSerializer(args[2]).serialize(item);
-        } catch (final QuestException e) {
-            sendMessage(sender, "error",
-                    new VariableReplacement("error", Component.text(e.getMessage())));
-            log.warn("Could not serialize item: " + e.getMessage(), e);
-            return;
-        }
-        // save it in items.yml
-        log.debug("Saving item to configuration as " + args[1] + " (" + args[2] + ")");
-        final String path = "items." + name;
-        final boolean exists = configPack.getConfig().isSet(path);
-        configPack.getConfig().set(path, args[2] + " " + instructions);
-        try {
-            if (!exists) {
-                final ConfigAccessor itemFile = configPack.getOrCreateConfigAccessor("items.yml");
-                configPack.getConfig().associateWith(path, itemFile.getConfig());
-            }
-            configPack.saveAll();
-        } catch (final IOException | InvalidConfigurationException e) {
-            log.warn(configPack, e.getMessage(), e);
-            return;
-        }
-        // done
-        sendMessage(sender, "item_created",
-                new VariableReplacement("item", Component.text(args[1])));
-    }
-
-    /**
-     * Returns a list including all possible options for tab complete of the
-     * /betonquest item and /betonquest give commands.
-     */
-    private Optional<List<String>> completeItems(final boolean suggestSerializers, final String... args) {
-        if (args.length == 2) {
-            return completeId(args, AccessorType.ITEMS);
-        }
-        if (suggestSerializers && args.length == 3) {
-            return Optional.of(List.copyOf(itemTypeRegistry.serializerKeySet()));
-        }
-        return Optional.of(new ArrayList<>());
     }
 
     /**
