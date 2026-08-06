@@ -17,7 +17,6 @@ import org.betonquest.betonquest.api.config.Localizations;
 import org.betonquest.betonquest.api.config.quest.QuestPackage;
 import org.betonquest.betonquest.api.config.quest.QuestPackageManager;
 import org.betonquest.betonquest.api.config.section.multi.MultiConfiguration;
-import org.betonquest.betonquest.api.identifier.ActionIdentifier;
 import org.betonquest.betonquest.api.identifier.Identifier;
 import org.betonquest.betonquest.api.identifier.IdentifierFactory;
 import org.betonquest.betonquest.api.identifier.ItemIdentifier;
@@ -32,7 +31,6 @@ import org.betonquest.betonquest.api.profile.ProfileProvider;
 import org.betonquest.betonquest.api.quest.action.OnlineAction;
 import org.betonquest.betonquest.api.quest.objective.Objective;
 import org.betonquest.betonquest.api.reload.Reloader;
-import org.betonquest.betonquest.api.service.action.ActionManager;
 import org.betonquest.betonquest.api.service.identifier.Identifiers;
 import org.betonquest.betonquest.api.service.item.ItemManager;
 import org.betonquest.betonquest.api.service.objective.ObjectiveManager;
@@ -173,11 +171,6 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
     private final Identifiers identifiers;
 
     /**
-     * The action manager.
-     */
-    private final ActionManager actionManager;
-
-    /**
      * The objective manager.
      */
     private final ObjectiveManager objectiveManager;
@@ -265,7 +258,6 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
         this.questPackageManager = constructorParams.questPackageManager();
         this.itemTypeRegistry = constructorParams.itemTypeRegistry();
         this.journalEntryProcessor = constructorParams.journalEntryProcessor();
-        this.actionManager = constructorParams.actionManager();
         this.objectiveManager = constructorParams.objectiveManager();
         this.itemManager = constructorParams.itemManager();
         this.identifiers = constructorParams.identifiers();
@@ -273,12 +265,13 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
         this.subCommands = new HashMap<>();
         this.subCommandSuggestions = new ArrayList<>();
         List.of(
-                new ConditionSubCommand(log, constructorParams)
+                new ConditionSubCommand(log, constructorParams),
+                new ActionSubCommand(log, constructorParams)
         ).forEach(command -> {
             command.names().forEach(name -> subCommands.put(name, command));
             subCommandSuggestions.add(command.names().get(0));
         });
-        subCommandSuggestions.addAll(Arrays.asList("action", "item", "give", "objective", "globaltag",
+        subCommandSuggestions.addAll(Arrays.asList("item", "give", "objective", "globaltag",
                 "globalpoint", "tag", "point", "journal", "delete", "rename", "version", "purge",
                 "update", "reload", "backup", "debug", "download", "variable"));
     }
@@ -305,11 +298,6 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
                     return true;
                 }
                 switch (lowerCase) {
-                    case "actions":
-                    case "action":
-                    case "a":
-                        handleActions(sender, args);
-                        break;
                     case "items":
                     case "item":
                     case "i":
@@ -422,9 +410,6 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
             return subCommand.complete(args);
         }
         return switch (lowerCase) {
-            case "actions",
-                 "action",
-                 "a" -> completeActions(args);
             case "items",
                  "item",
                  "i" -> completeItems(true, args);
@@ -935,49 +920,6 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
         }
         if (suggestSerializers && args.length == 3) {
             return Optional.of(List.copyOf(itemTypeRegistry.serializerKeySet()));
-        }
-        return Optional.of(new ArrayList<>());
-    }
-
-    /**
-     * Fires an action for an online player. It cannot work for offline players!
-     */
-    private void handleActions(final CommandSender sender, final String... args) throws QuestException {
-        if (args.length < 2 || Bukkit.getPlayer(args[1]) == null && !"-".equals(args[1])) {
-            log.debug("Player's name is missing or he's offline");
-            sendMessage(sender, "specify_player");
-            return;
-        }
-        if (args.length < 3) {
-            log.debug("Actions's ID is missing");
-            sendMessage(sender, "specify_action");
-            return;
-        }
-        final ActionIdentifier actionID;
-        try {
-            actionID = getIdentifier(ActionIdentifier.class, args[2]);
-        } catch (final QuestException e) {
-            sendMessage(sender, "error",
-                    new VariableReplacement("error", Component.text(e.getMessage())));
-            log.warn("Could not find action: " + e.getMessage(), e);
-            return;
-        }
-        final Profile profile = "-".equals(args[1]) ? null : profileProvider.getProfile(Bukkit.getOfflinePlayer(args[1]));
-        actionManager.run(profile, actionID);
-        sendMessage(sender, "player_action",
-                new VariableReplacement("action", Component.text(actionID.readRawInstruction())));
-    }
-
-    /**
-     * Returns a list including all possible options for tab complete of the
-     * /betonquest action command.
-     */
-    private Optional<List<String>> completeActions(final String... args) {
-        if (args.length == 2) {
-            return Optional.empty();
-        }
-        if (args.length == 3) {
-            return completeId(args, AccessorType.ACTIONS);
         }
         return Optional.of(new ArrayList<>());
     }
