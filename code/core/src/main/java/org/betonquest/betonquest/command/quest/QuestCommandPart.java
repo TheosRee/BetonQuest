@@ -31,6 +31,7 @@ import java.util.function.Predicate;
 /**
  * Common methods used in the quest sub commands.
  */
+@SuppressWarnings({"PMD.AvoidLiteralsInIfCondition", "PMD.CouplingBetweenObjects"})
 public abstract class QuestCommandPart implements SubCommand {
 
     /**
@@ -124,7 +125,7 @@ public abstract class QuestCommandPart implements SubCommand {
         return pointer -> true;
     }
 
-    /* default */ <T> Predicate<T> createCaseInsensitivePrefixPredicate(final String prefix, final Function<T, String> getId) {
+    private <T> Predicate<T> createCaseInsensitivePrefixPredicate(final String prefix, final Function<T, String> getId) {
         return element -> getId.apply(element).regionMatches(true, 0, prefix, 0, prefix.length());
     }
 
