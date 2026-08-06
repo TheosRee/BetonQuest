@@ -45,7 +45,6 @@ import org.betonquest.betonquest.kernel.processor.quest.ObjectiveProcessor;
 import org.betonquest.betonquest.kernel.registry.feature.ItemTypeRegistry;
 import org.betonquest.betonquest.lib.instruction.argument.DefaultArgument;
 import org.betonquest.betonquest.logger.PlayerLogWatcher;
-import org.betonquest.betonquest.logger.handler.history.LogPublishingController;
 import org.betonquest.betonquest.quest.action.IngameNotificationSender;
 import org.betonquest.betonquest.quest.action.NoNotificationSender;
 import org.betonquest.betonquest.quest.action.NotificationLevel;
@@ -181,11 +180,6 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
     private final PlayerLogWatcher logWatcher;
 
     /**
-     * The LogPublishingController to control the debug log.
-     */
-    private final LogPublishingController debuggingController;
-
-    /**
      * Sub commands with their aliases.
      */
     private final Map<String, SubCommand> subCommands;
@@ -213,7 +207,6 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
         this.loggerFactory = constructorParams.loggerFactory();
         this.configAccessorFactory = constructorParams.configAccessorFactory();
         this.logWatcher = constructorParams.playerLogWatcher();
-        this.debuggingController = constructorParams.logPublishingController();
         this.playerDataFactory = constructorParams.playerDataFactory();
         this.playerDataStorage = constructorParams.playerDataStorage();
         this.profileProvider = constructorParams.profileProvider();
@@ -242,6 +235,7 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
                 new PointSubCommand(log, constructorParams),
                 new GlobalPointSubCommand(log, constructorParams),
                 new JournalSubCommand(log, constructorParams),
+                new DebugSubCommand(log, constructorParams),
                 new DownloadSubCommand(plugin, log, constructorParams)
         ).forEach(command -> {
             command.names().forEach(name -> subCommands.put(name, command));
@@ -249,7 +243,7 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
         });
         subCommandSuggestions.addAll(Arrays.asList("item", "give",
                 "delete", "rename", "version", "purge",
-                "update", "reload", "backup", "debug"));
+                "update", "reload", "backup"));
 
         this.versionSubCommand = new VersionSubCommand(plugin, constructorParams);
     }
@@ -319,9 +313,6 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
                         new Backup(loggerFactory, loggerFactory.create(Backup.class), configAccessorFactory, plugin.getDataFolder(),
                                 connector).backup(plugin.getDescription().getVersion());
                         break;
-                    case "debug":
-                        handleDebug(sender, args);
-                        break;
                     default:
                         // there was an unknown argument, so handle this
                         sendMessage(sender, "unknown_argument");
@@ -358,7 +349,6 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
             case "rename",
                  "r" -> completeRenaming(args);
             case "purge" -> args.length == 2 ? Optional.empty() : Optional.of(new ArrayList<>());
-            case "debug" -> completeDebug(args);
             case "version",
                  "ver",
                  "v",
@@ -928,99 +918,6 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
             }
         }
         sender.sendMessage(builder.build());
-    }
-
-    @SuppressWarnings("PMD.AvoidDeeplyNestedIfStmts")
-    private void handleDebug(final CommandSender sender, final String... args) {
-        if (args.length == 1) {
-            sender.sendMessage(
-                    "§2Debugging mode is currently " + (debuggingController.isLogging() ? "enabled" : "disabled") + '!');
-            return;
-        }
-        if ("ingame".equalsIgnoreCase(args[1])) {
-            if (!(sender instanceof Player)) {
-                log.debug("Cannot continue, sender must be player");
-                return;
-            }
-            final UUID uuid = ((Player) sender).getUniqueId();
-            if (args.length < 3) {
-                sender.sendMessage("§2Active Filters: " + String.join(", ", logWatcher.getActivePatterns(uuid)));
-                return;
-            }
-            final String filter = args[2];
-            if (logWatcher.isActivePattern(uuid, filter)) {
-                if (args.length == 3) {
-                    logWatcher.removeFilter(uuid, filter);
-                    sender.sendMessage("§2Filter removed!");
-                } else {
-                    final Level level = getLogLevel(args[3]);
-                    logWatcher.addFilter(uuid, filter, level);
-                    sender.sendMessage("§2Filter replaced!");
-                }
-            } else {
-                final Level level = getLogLevel(args.length > 3 ? args[3] : null);
-                logWatcher.addFilter(uuid, filter, level);
-                sender.sendMessage("§2Filter added!");
-            }
-            return;
-        }
-        if ("dump".equalsIgnoreCase(args[1])) {
-            if (debuggingController.isLogging()) {
-                sender.sendMessage("§2Can not dump while debugging is enabled!");
-                return;
-            }
-            debuggingController.dumpLog();
-            sender.sendMessage("§2Dumped debug log to file!");
-            log.info("Dumped debug log to file!");
-            return;
-        }
-        final Boolean input = "true".equalsIgnoreCase(args[1]) ? Boolean.TRUE
-                : "false".equalsIgnoreCase(args[1]) ? Boolean.FALSE : null;
-        if (input != null && args.length == 2) {
-
-            if (debuggingController.isLogging() && input || !debuggingController.isLogging() && !input) {
-                sender.sendMessage(
-                        "§2Debugging mode is already " + (debuggingController.isLogging() ? "enabled" : "disabled") + '!');
-                return;
-            }
-            try {
-                if (input) {
-                    debuggingController.startLogging();
-                } else {
-                    debuggingController.stopLogging();
-                }
-            } catch (final IOException e) {
-                sender.sendMessage("Could not save new debugging state to configuration file!");
-                log.warn("Could not save new debugging state to configuration file! " + e.getMessage(), e);
-            }
-            sender.sendMessage("§2Debugging mode was " + (debuggingController.isLogging() ? "enabled" : "disabled") + '!');
-            log.info("Debugging mode was " + (debuggingController.isLogging() ? "enabled" : "disabled") + '!');
-            return;
-        }
-        sendMessage(sender, "unknown_argument");
-    }
-
-    private Level getLogLevel(@Nullable final String arg) {
-        if ("info".equalsIgnoreCase(arg)) {
-            return Level.INFO;
-        }
-        if ("debug".equalsIgnoreCase(arg)) {
-            return Level.ALL;
-        }
-        return Level.WARNING;
-    }
-
-    private Optional<List<String>> completeDebug(final String... args) {
-        if (args.length == 2) {
-            return Optional.of(Arrays.asList("true", "false", "ingame", "dump"));
-        }
-        if (args.length == 3) {
-            return completePackage();
-        }
-        if (args.length == 4) {
-            return Optional.of(Arrays.asList("error", "info", "debug"));
-        }
-        return Optional.of(new ArrayList<>());
     }
 
     private void sendMessage(final CommandSender sender, final String messageName, final VariableReplacement... replacements) {
