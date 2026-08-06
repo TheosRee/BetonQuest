@@ -262,12 +262,13 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
         List.of(
                 new ConditionSubCommand(log, constructorParams),
                 new ActionSubCommand(log, constructorParams),
+                new ObjectiveSubCommand(log, constructorParams),
                 new JournalSubCommand(log, constructorParams)
         ).forEach(command -> {
             command.names().forEach(name -> subCommands.put(name, command));
             subCommandSuggestions.add(command.names().get(0));
         });
-        subCommandSuggestions.addAll(Arrays.asList("item", "give", "objective", "globaltag",
+        subCommandSuggestions.addAll(Arrays.asList("item", "give", "globaltag",
                 "globalpoint", "tag", "point", "delete", "rename", "version", "purge",
                 "update", "reload", "backup", "debug", "download", "variable"));
     }
@@ -304,11 +305,6 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
                     case "give":
                     case "g":
                         giveItem(sender, args);
-                        break;
-                    case "objectives":
-                    case "objective":
-                    case "o":
-                        handleObjectives(sender, args);
                         break;
                     case "globaltags":
                     case "globaltag":
@@ -406,9 +402,6 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
                  "i" -> completeItems(true, args);
             case "give",
                  "g" -> completeItems(false, args);
-            case "objectives",
-                 "objective",
-                 "o" -> completeObjectives(args);
             case "globaltags",
                  "globaltag",
                  "gtag",
@@ -924,108 +917,6 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
                 return Optional.of(new ArrayList<>());
             }
             return completeId(args, null);
-        }
-        return Optional.of(new ArrayList<>());
-    }
-
-    /**
-     * Lists, adds or removes objectives.
-     */
-    private void handleObjectives(final CommandSender sender, final String... args) {
-        final Profile profile = getTargetProfile(sender, args);
-        if (profile == null) {
-            return;
-        }
-        final boolean isOnline = profile.getOnlineProfile().isPresent();
-        final PlayerData playerData;
-        if (isOnline) {
-            playerData = playerDataStorage.get(profile);
-        } else {
-            log.debug("Profile is offline, loading his data");
-            playerData = playerDataFactory.createPlayerData(profile);
-        }
-        // if there are no arguments then list player's objectives
-        if (args.length < 3 || "list".equalsIgnoreCase(args[2]) || "l".equalsIgnoreCase(args[2])) {
-            // display objectives
-            log.debug("Listing objectives");
-            final Predicate<String> shouldDisplay = createListFilter(args, 3, Function.identity());
-            final Stream<String> objectives;
-            if (isOnline) {
-                // if the player is online then just retrieve tags from his active objectives
-                objectives = objectiveManager.getForProfile(profile).stream()
-                        .map(defaultObjective -> defaultObjective.getObjectiveID().getFull());
-            } else {
-                // if player is offline then convert his raw objective strings to tags
-                objectives = playerData.getRawObjectives().keySet().stream();
-            }
-            sendMessage(sender, "player_objectives");
-            objectives.filter(shouldDisplay)
-                    .sorted()
-                    .forEach(objective -> sender.sendMessage("§b- " + objective));
-            return;
-        }
-        // if there is not enough arguments, display warning
-        if (args.length < 4) {
-            log.debug("Missing objective instruction string");
-            sendMessage(sender, "specify_objective");
-            return;
-        }
-        // get the objective
-        final ObjectiveIdentifier objectiveID;
-        final Objective objective;
-        try {
-            objectiveID = getIdentifier(ObjectiveIdentifier.class, args[3]);
-            objective = objectiveManager.getObjective(objectiveID);
-        } catch (final QuestException e) {
-            sendMessage(sender, "error",
-                    new VariableReplacement("error", Component.text(e.getMessage())));
-            log.warn("Could not find objective: " + e.getMessage(), e);
-            return;
-        }
-        switch (args[2].toLowerCase(Locale.ROOT)) {
-            case "start", "s", "add", "a" -> {
-                log.debug("Adding new objective " + objectiveID + " for " + profile);
-                if (isOnline) {
-                    objectiveManager.start(profile, objectiveID);
-                } else {
-                    playerData.addNewRawObjective(objectiveID);
-                }
-                sendMessage(sender, "objective_added");
-            }
-            case "remove", "delete", "del", "r", "d" -> {
-                log.debug("Deleting objective " + objectiveID + " for " + profile);
-                objectiveManager.cancel(profile, objectiveID);
-                playerData.removeRawObjective(objectiveID);
-                sendMessage(sender, "objective_removed");
-            }
-            case "complete", "c" -> {
-                log.debug("Completing objective " + objectiveID + " for " + profile);
-                if (isOnline) {
-                    objective.getService().complete(profile);
-                } else {
-                    playerData.removeRawObjective(objectiveID);
-                }
-                sendMessage(sender, "objective_completed");
-            }
-            default -> {
-                log.debug("The argument was unknown");
-                sendMessage(sender, "unknown_argument");
-            }
-        }
-    }
-
-    /**
-     * Returns a list including all possible options for tab complete of the {@code /betonquest objectives} command.
-     */
-    private Optional<List<String>> completeObjectives(final String... args) {
-        if (args.length == 2) {
-            return Optional.empty();
-        }
-        if (args.length == 3) {
-            return Optional.of(Arrays.asList("list", "add", "del", "complete"));
-        }
-        if (args.length == 4) {
-            return completeId(args, AccessorType.OBJECTIVES);
         }
         return Optional.of(new ArrayList<>());
     }
