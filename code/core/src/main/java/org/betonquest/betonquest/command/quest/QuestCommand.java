@@ -85,8 +85,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
-import java.util.function.Function;
-import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.stream.Stream;
 
@@ -264,13 +262,14 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
                 new TagSubCommand(log, constructorParams),
                 new GlobalTagSubCommand(log, constructorParams),
                 new PointSubCommand(log, constructorParams),
+                new GlobalPointSubCommand(log, constructorParams),
                 new JournalSubCommand(log, constructorParams)
         ).forEach(command -> {
             command.names().forEach(name -> subCommands.put(name, command));
             subCommandSuggestions.add(command.names().get(0));
         });
         subCommandSuggestions.addAll(Arrays.asList("item", "give",
-                "globalpoint", "delete", "rename", "version", "purge",
+                "delete", "rename", "version", "purge",
                 "update", "reload", "backup", "debug", "download"));
     }
 
@@ -306,13 +305,6 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
                     case "give":
                     case "g":
                         giveItem(sender, args);
-                        break;
-                    case "globalpoints":
-                    case "globalpoint":
-                    case "gpoints":
-                    case "gpoint":
-                    case "gp":
-                        handleGlobalPoints(sender, args);
                         break;
                     case "delete":
                     case "del":
@@ -382,11 +374,6 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
                  "i" -> completeItems(true, args);
             case "give",
                  "g" -> completeItems(false, args);
-            case "globalpoints",
-                 "globalpoint",
-                 "gpoints",
-                 "gpoint",
-                 "gp" -> completeGlobalPoints(args);
             case "delete",
                  "del",
                  "d" -> completeDeleting(args);
@@ -543,75 +530,6 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
         }
         log.debug("Profile is offline, loading his data");
         return playerDataFactory.createPlayerData(profile);
-    }
-
-    /**
-     * Lists, adds, removes or purges all global points.
-     */
-    private void handleGlobalPoints(final CommandSender sender, final String... args) {
-        // if there are no arguments then list all global points
-        if (args.length < 2 || "list".equalsIgnoreCase(args[1]) || "l".equalsIgnoreCase(args[1])) {
-            log.debug("Listing global points");
-            final Predicate<Map.Entry<String, Integer>> shouldDisplay = createListFilter(args, 2, Map.Entry::getKey);
-            sendMessage(sender, "global_points");
-            globalData.points().get().entrySet().stream()
-                    .filter(shouldDisplay)
-                    .forEach(point -> sender.sendMessage("§b- " + point.getKey() + "§e: §a" + point.getValue()));
-            return;
-        }
-        // handle purge
-        if ("purge".equalsIgnoreCase(args[1])) {
-            log.debug("Purging all global points");
-            globalData.purgePoints();
-            sendMessage(sender, "global_points_purged");
-            return;
-        }
-        // if there is not enough arguments, display warning
-        if (args.length < 3) {
-            log.debug("Missing category");
-            sendMessage(sender, "specify_category");
-            return;
-        }
-        final String category = args[2];
-        // if there are arguments, handle them
-        switch (args[1].toLowerCase(Locale.ROOT)) {
-            case "add", "a" -> {
-                if (args.length < 4 || !args[3].matches("-?\\d+")) {
-                    log.debug("Missing amount");
-                    sendMessage(sender, "specify_amount");
-                    return;
-                }
-                log.debug("Adding global points");
-                globalData.points().add(category, Integer.parseInt(args[3]));
-                sendMessage(sender, "points_added");
-            }
-            case "remove", "delete", "del", "r", "d" -> {
-                log.debug("Removing global points");
-                globalData.points().remove(category);
-                sendMessage(sender, "points_removed");
-            }
-            default -> {
-                log.debug("The argument was unknown");
-                sendMessage(sender, "unknown_argument");
-            }
-        }
-    }
-
-    /**
-     * Returns a list including all possible options for tab complete of the
-     * /betonquest globalpoints command.
-     */
-    private Optional<List<String>> completeGlobalPoints(final String... args) {
-        if (args.length == 2) {
-            return Optional.of(Arrays.asList("add", "list", "del", "purge"));
-        }
-        if (args.length == 3) {
-            if ("purge".equalsIgnoreCase(args[1])) {
-                return Optional.of(new ArrayList<>());
-            }
-            return completeId(args, null);
-        }
-        return Optional.of(new ArrayList<>());
     }
 
     /**
@@ -1311,17 +1229,6 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
             log.warn("Failed to send message '" + messageName + "': " + e.getMessage(), e);
             sender.sendMessage("Failed to send message '" + messageName + "': " + e.getMessage());
         }
-    }
-
-    private <T> Predicate<T> createListFilter(final String[] args, final int filterIndex, final Function<T, String> getId) {
-        if (args.length > filterIndex) {
-            return createCaseInsensitivePrefixPredicate(args[filterIndex], getId);
-        }
-        return pointer -> true;
-    }
-
-    private <T> Predicate<T> createCaseInsensitivePrefixPredicate(final String prefix, final Function<T, String> getId) {
-        return element -> getId.apply(element).regionMatches(true, 0, prefix, 0, prefix.length());
     }
 
     private <I extends Identifier> I getIdentifier(final Class<I> identifierClass, final String identifier) throws QuestException {
