@@ -14,19 +14,15 @@ import org.betonquest.betonquest.api.config.quest.QuestPackageManager;
 import org.betonquest.betonquest.api.config.section.multi.MultiConfiguration;
 import org.betonquest.betonquest.api.identifier.Identifier;
 import org.betonquest.betonquest.api.identifier.IdentifierFactory;
-import org.betonquest.betonquest.api.identifier.ItemIdentifier;
 import org.betonquest.betonquest.api.identifier.JournalEntryIdentifier;
 import org.betonquest.betonquest.api.identifier.ObjectiveIdentifier;
-import org.betonquest.betonquest.api.instruction.Item;
 import org.betonquest.betonquest.api.logger.BetonQuestLogger;
 import org.betonquest.betonquest.api.logger.BetonQuestLoggerFactory;
 import org.betonquest.betonquest.api.profile.OnlineProfile;
 import org.betonquest.betonquest.api.profile.Profile;
 import org.betonquest.betonquest.api.profile.ProfileProvider;
-import org.betonquest.betonquest.api.quest.action.OnlineAction;
 import org.betonquest.betonquest.api.reload.Reloader;
 import org.betonquest.betonquest.api.service.identifier.Identifiers;
-import org.betonquest.betonquest.api.service.item.ItemManager;
 import org.betonquest.betonquest.api.service.objective.ObjectiveManager;
 import org.betonquest.betonquest.command.SimpleTabCompleter;
 import org.betonquest.betonquest.data.PlayerDataStorage;
@@ -43,12 +39,7 @@ import org.betonquest.betonquest.feature.journal.Pointer;
 import org.betonquest.betonquest.kernel.processor.feature.JournalEntryProcessor;
 import org.betonquest.betonquest.kernel.processor.quest.ObjectiveProcessor;
 import org.betonquest.betonquest.kernel.registry.feature.ItemTypeRegistry;
-import org.betonquest.betonquest.lib.instruction.argument.DefaultArgument;
 import org.betonquest.betonquest.logger.PlayerLogWatcher;
-import org.betonquest.betonquest.quest.action.IngameNotificationSender;
-import org.betonquest.betonquest.quest.action.NoNotificationSender;
-import org.betonquest.betonquest.quest.action.NotificationLevel;
-import org.betonquest.betonquest.quest.action.give.GiveAction;
 import org.betonquest.betonquest.web.updater.Updater;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
@@ -140,11 +131,6 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
     private final ObjectiveManager objectiveManager;
 
     /**
-     * The item manager.
-     */
-    private final ItemManager itemManager;
-
-    /**
      * The item type registry.
      */
     private final ItemTypeRegistry itemTypeRegistry;
@@ -220,7 +206,6 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
         this.itemTypeRegistry = constructorParams.itemTypeRegistry();
         this.journalEntryProcessor = constructorParams.journalEntryProcessor();
         this.objectiveManager = constructorParams.objectiveManager();
-        this.itemManager = constructorParams.itemManager();
         this.identifiers = constructorParams.identifiers();
 
         this.subCommands = new HashMap<>();
@@ -235,13 +220,14 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
                 new PointSubCommand(log, constructorParams),
                 new GlobalPointSubCommand(log, constructorParams),
                 new JournalSubCommand(log, constructorParams),
+                new GiveSubCommand(log, constructorParams),
                 new DebugSubCommand(log, constructorParams),
                 new DownloadSubCommand(plugin, log, constructorParams)
         ).forEach(command -> {
             command.names().forEach(name -> subCommands.put(name, command));
             subCommandSuggestions.add(command.names().get(0));
         });
-        subCommandSuggestions.addAll(Arrays.asList("item", "give",
+        subCommandSuggestions.addAll(Arrays.asList("item",
                 "delete", "rename", "version", "purge",
                 "update", "reload", "backup"));
 
@@ -276,10 +262,6 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
                         // and items, which only use configuration files (they
                         // should be sync)
                         handleItems(sender, args);
-                        break;
-                    case "give":
-                    case "g":
-                        giveItem(sender, args);
                         break;
                     case "delete":
                     case "del":
@@ -341,8 +323,6 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
             case "items",
                  "item",
                  "i" -> completeItems(true, args);
-            case "give",
-                 "g" -> completeItems(false, args);
             case "delete",
                  "del",
                  "d" -> completeDeleting(args);
@@ -399,47 +379,6 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
             }
         }
         return Optional.of(completions);
-    }
-
-    /**
-     * Gives an item to the player.
-     */
-    private void giveItem(final CommandSender sender, final String... args) {
-        // sender must be a player
-        if (!(sender instanceof Player)) {
-            log.debug("Cannot continue, sender must be player");
-            return;
-        }
-        // and the item name must be specified
-        if (args.length < 2) {
-            log.debug("Cannot continue, item's name must be supplied");
-            sendMessage(sender, "specify_item");
-            return;
-        }
-        try {
-            final ItemIdentifier itemID;
-            try {
-                itemID = getIdentifier(ItemIdentifier.class, args[1]);
-            } catch (final QuestException e) {
-                sendMessage(sender, "error",
-                        new VariableReplacement("error", Component.text(e.getMessage())));
-                log.warn("Could not find Item: " + e.getMessage(), e);
-                return;
-            }
-            final OnlineAction give = new GiveAction(
-                    new DefaultArgument<>(List.of(new Item(itemManager, itemID, new DefaultArgument<>(1)))),
-                    new NoNotificationSender(),
-                    new IngameNotificationSender(log, localizations, itemID.getPackage(), itemID.getFull(), NotificationLevel.ERROR,
-                            "inventory_full_backpack", "inventory_full"),
-                    new IngameNotificationSender(log, localizations, itemID.getPackage(), itemID.getFull(), NotificationLevel.ERROR,
-                            "inventory_full_drop", "inventory_full"),
-                    profile -> Optional.empty(), playerDataStorage);
-            give.execute(profileProvider.getProfile((Player) sender));
-        } catch (final QuestException e) {
-            sendMessage(sender, "error",
-                    new VariableReplacement("error", Component.text(e.getMessage())));
-            log.warn("Error while creating an item: " + e.getMessage(), e);
-        }
     }
 
     /**
