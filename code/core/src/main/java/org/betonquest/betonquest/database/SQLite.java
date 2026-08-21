@@ -333,7 +333,7 @@ public class SQLite extends Database {
                         textParser, null, null, null
                 );
 
-                final SimpleQuestItemFactory itemFactory = new SimpleQuestItemFactory(textParser, bookPageWrapper, () -> null);
+                final SimpleQuestItemFactory itemFactory = new SimpleQuestItemFactory(bookPageWrapper, () -> null);
 
                 while (resultSet.next()) {
                     final int rowId = resultSet.getInt("id");
