@@ -116,7 +116,10 @@ public class BannerHandler implements ItemMetaHandler<BannerMeta> {
 
         @Override
         public void populate(final BannerMeta bannerMeta) {
-            bannerMeta.setPatterns(patterns.getRight());
+            final List<Pattern> patterns = this.patterns.getRight();
+            if (!patterns.isEmpty()) {
+                bannerMeta.setPatterns(patterns);
+            }
         }
 
         @Override
