@@ -19,6 +19,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - ability to start a new conversation within the interceptor delay window while preserving intercepted messages
 - `ingredient` check for `brew` objective
 - `itemOverride` action to update a specific item
+- MythicCrucible integration to catch Mythic crafting for `crafting` objective
 ### Changed
 - `lore` of `item` placeholder can now be used without number to get all lines
 - `chat` notify io now only sends messages during a conversation if `bypassInterceptor` is set to `true`

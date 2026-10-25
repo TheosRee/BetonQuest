@@ -25,6 +25,7 @@ import org.betonquest.betonquest.compatibility.mcmmo.McMMOIntegrator;
 import org.betonquest.betonquest.compatibility.mmogroup.mmocore.MMOCoreIntegrator;
 import org.betonquest.betonquest.compatibility.mmogroup.mmoitems.MMOItemsIntegrator;
 import org.betonquest.betonquest.compatibility.mmogroup.mmolib.MythicLibIntegrator;
+import org.betonquest.betonquest.compatibility.mythicmobs.MythicCrucibleIntegrator;
 import org.betonquest.betonquest.compatibility.mythicmobs.MythicMobsIntegrator;
 import org.betonquest.betonquest.compatibility.nexo.NexoIntegrator;
 import org.betonquest.betonquest.compatibility.npc.citizens.CitizensIntegrator;
@@ -130,6 +131,8 @@ public final class BundledCompatibility {
     @SuppressWarnings("Convert2MethodRef") //ClassNotFoundException on load up if certain integrations are absent
     public void registerCompatiblePlugins(final ServicesManager servicesManager, final ProcessorDataLoader processorDataLoader) {
         register("MythicMobs", () -> new MythicMobsIntegrator(plugin, config), MythicMobsIntegrator.REQUIRED_VERSION);
+        config.set("hooks.mythiccrucible", true);
+        register("MythicCrucible", () -> new MythicCrucibleIntegrator(), MythicCrucibleIntegrator.REQUIRED_VERSION);
         register("Citizens", () -> new CitizensIntegrator(), CitizensIntegrator.REQUIRED_VERSION);
         register("Vault", () -> new VaultIntegrator(servicesManager), VaultIntegrator.REQUIRED_VERSION);
         register("Skript", () -> new SkriptIntegrator(), SkriptIntegrator.REQUIRED_VERSION);

@@ -32,6 +32,7 @@
     <Heroes.version>1.10.7-RELEASE</Heroes.version>
     <Mythic-Dist.version>5.7.2</Mythic-Dist.version>
     <MythicLib-dist.version>1.7.1-SNAPSHOT</MythicLib-dist.version>
+    <MythicCrucible-API.version>5.13.1-SNAPSHOT</MythicCrucible-API.version>
     <MMOCore-API.version>1.13.1-SNAPSHOT</MMOCore-API.version>
     <MMOItems-API.version>6.9.4-SNAPSHOT</MMOItems-API.version>
     <citizens-main.version>2.0.33-SNAPSHOT</citizens-main.version>
@@ -139,6 +140,13 @@
       <groupId>io.lumine</groupId>
       <artifactId>Mythic-Dist</artifactId>
       <version>${Mythic-Dist.version}</version>
+      <scope>provided</scope>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>io.lumine</groupId>
+      <artifactId>MythicCrucible-API</artifactId>
+      <version>${MythicCrucible-API.version}</version>
       <scope>provided</scope>
       <optional>true</optional>
     </dependency>
