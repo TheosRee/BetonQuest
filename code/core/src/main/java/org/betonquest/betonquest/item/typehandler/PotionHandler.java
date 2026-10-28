@@ -148,8 +148,12 @@ public class PotionHandler implements ItemMetaHandler<PotionMeta> {
                 potionMeta.setBasePotionData(new PotionData(type,
                         extended.orElse(false), upgraded.orElse(false)));
             }
-            for (final PotionEffect effect : getCustom()) {
-                potionMeta.addCustomEffect(effect, true);
+            final List<PotionEffect> custom = getCustom();
+            if (custom != null) {
+                potionMeta.clearCustomEffects();
+                for (final PotionEffect effect : custom) {
+                    potionMeta.addCustomEffect(effect, true);
+                }
             }
         }
 
@@ -163,11 +167,13 @@ public class PotionHandler implements ItemMetaHandler<PotionMeta> {
          *
          * @return the custom potion effects
          */
+        @SuppressWarnings("PMD.")
+        @Nullable
         public List<PotionEffect> getCustom() {
-            final List<PotionEffect> effects = new LinkedList<>();
             if (customPair.getLeft() == Existence.FORBIDDEN) {
-                return effects;
+                return null;
             }
+            final List<PotionEffect> effects = new LinkedList<>();
             for (final CustomEffectHandler checker : customPair.getRight()) {
                 if (checker.customTypeE != Existence.FORBIDDEN) {
                     effects.add(new PotionEffect(checker.customType, checker.duration, checker.power));
