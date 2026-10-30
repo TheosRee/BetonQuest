@@ -1,5 +1,6 @@
 package org.betonquest.betonquest.compatibility.holograms.lines;
 
+import com.destroystokyo.paper.profile.PlayerProfile;
 import org.betonquest.betonquest.api.logger.BetonQuestLogger;
 import org.betonquest.betonquest.database.Arguments;
 import org.betonquest.betonquest.database.Connector;
@@ -82,7 +83,9 @@ public class TopXObject {
             connector.querySQL(orderType.getType(), new Arguments(category, limit), resultSet -> {
                 while (resultSet.next()) {
                     final UUID uuid = UUID.fromString(resultSet.getString("playerID"));
-                    final String playerName = Bukkit.getOfflinePlayer(uuid).getName();
+                    final PlayerProfile profile = Bukkit.createProfile(uuid);
+                    profile.complete(false);
+                    final String playerName = profile.getName();
                     if (playerName == null) {
                         log.debug("No player name found for '" + uuid + "' in top line for '" + category + "'");
                     }
